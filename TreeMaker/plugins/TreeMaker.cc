@@ -120,6 +120,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("mt_W_lep"        ,&Wboson_lep.mt, "mt_W_lep/D"         );
   outTree_->Branch("mt_W_had"        ,&Wboson_had.mt,  "mt_W_had/D"         );
   
+  outTree_->Branch("charge_W_lep"        ,&Wboson_lep.charge, "charge_W_lep/D"         );
+    
   outTree_->Branch("N_had_W"          ,&N_had_W       ,"N_had_W/I"         );
   outTree_->Branch("N_lep_W"          ,&N_lep_W       ,"N_lep_W/I"         );
   
@@ -146,6 +148,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("pt_ele"    ,&Electron.pt     ,"pt_ele/D"     );
   outTree_->Branch("eta_ele"    ,&Electron.eta     ,"eta_ele/D"     );
   outTree_->Branch("phi_ele"    ,&Electron.phi     ,"phi_ele/D"     );
+  outTree_->Branch("charge_ele"    ,&Electron.charge     ,"charge_ele/D"     );
  
   outTree_->Branch("etaSC_ele"          ,&etaSC_ele         ,"etaSC_ele/D"         );
   outTree_->Branch("dEtaIn_ele"         ,&dEtaIn_ele        ,"dEtaIn_ele/D"        );
@@ -165,6 +168,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("pt_mu",  &Muon.pt, "pt_mu/D"          );
   outTree_->Branch("eta_mu", &Muon.eta , "eta_mu/D"          );
   outTree_->Branch("phi_mu", &Muon.phi, "phi_mu/D"          );
+  outTree_->Branch("charge_mu", &Muon.charge, "charge_mu/D"          );
  // outTree_->Branch("ptel2"           ,&ptel2          ,"ptel2/D"          );
   //outTree_->Branch("etaSC1"          ,&etaSC1         ,"etaSC1/D"         );
   //outTree_->Branch("etaSC2"          ,&etaSC2         ,"etaSC2/D"         );
@@ -267,12 +271,14 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    Wboson_lep.phi = leptonicV.phi();
    Wboson_lep.mass = leptonicV.mass();
    Wboson_lep.mt = leptonicV.mt();
+   Wboson_lep.charge = leptonicV.charge();
    
    Wboson_had.pt = hadronicV.pt();
    Wboson_had.eta = hadronicV.eta();
    Wboson_had.phi = hadronicV.phi();
    Wboson_had.mass = hadronicV.userFloat("ak8PFJetsCHSPrunedLinks");
    Wboson_had.mt = hadronicV.mt();
+ 
 
    tau1 = hadronicV.userFloat("tau1");
    tau2 = hadronicV.userFloat("tau2");
@@ -302,6 +308,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Electron.pt  = el->pt() ;
       Electron.eta = el -> eta();
       Electron.phi = el -> phi();
+      Electron.charge = el -> charge();
+      
     
       etaSC_ele  = el -> superCluster()->eta();
       dEtaIn_ele = el -> deltaEtaSuperClusterTrackAtVtx();
@@ -338,6 +346,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Electron.pt = -99.;
       Electron.eta = - 99.;
       Electron.phi = - 99.;
+      Electron.charge = - 99.;
       
       etaSC_ele = -99.;
       dEtaIn_ele = -99.;
@@ -359,6 +368,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Muon.pt   = muon -> pt() ;
       Muon.eta   = muon -> eta();
       Muon.phi  = muon -> phi();
+      Muon.charge  = muon -> charge();
   
       }
    
@@ -366,6 +376,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        Muon.pt = -99.;
        Muon.eta  = -99.;
        Muon.phi = -99.0;
+       Muon.charge = -99.0;
      }
   
    
