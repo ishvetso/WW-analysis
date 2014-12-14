@@ -54,7 +54,9 @@ private:
   TTree* outTree_;
 
   int nVtx;
+  
   Particle Wboson_lep, Wboson_had, METCand, Electron, Muon, Lepton;
+  double m_pruned;
   
   //Decay Info (gen level)
   DecayClass WDecayClass;
@@ -84,8 +86,7 @@ private:
   double deltaR_LepWJet, deltaPhi_LepMet, deltaPhi_WJetMet;
 
   /// Parameters to steer the treeDumper
-  std::string hadronicVSrc_, leptonicVSrc_, genSrc_;
-  std::string  metSrc_;
+  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_;
 };
 
 //
@@ -106,104 +107,82 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_ = fs->make<TTree>("Basic Info","Basic Info");
 
   //W observables
-  outTree_->Branch("pt_W_lep"        ,&Wboson_lep.pt  ,"pt_W_lep/D"         );
-  outTree_->Branch("pt_W_had"        ,&Wboson_had.pt  ,"pt_W_had/D"         );
+  outTree_->Branch("pt_W_lep",	      &Wboson_lep.pt,     "pt_W_lep/D"         );
+  outTree_->Branch("pt_W_had",	      &Wboson_had.pt,     "pt_W_had/D"         );
   
-  outTree_->Branch("eta_W_lep"       ,&Wboson_lep.eta ,"eta_W_lep/D"         );
-  outTree_->Branch("eta_W_had"       ,&Wboson_had.eta ,"eta_W_had/D"         );
+  outTree_->Branch("eta_W_lep",	      &Wboson_lep.eta,    "eta_W_lep/D"        );
+  outTree_->Branch("eta_W_had",	      &Wboson_had.eta,    "eta_W_had/D"        );
   
-  outTree_->Branch("phi_W_lep"       ,&Wboson_lep.phi, "phi_W_lep/D"         );
-  outTree_->Branch("phi_W_had"       ,&Wboson_had.phi ,"phi_W_had/D"         );
+  outTree_->Branch("phi_W_lep",	      &Wboson_lep.phi,    "phi_W_lep/D"        );
+  outTree_->Branch("phi_W_had",	      &Wboson_had.phi,    "phi_W_had/D"        );
   
-  outTree_->Branch("mass_W_lep"      ,&Wboson_lep.mass,"mass_W_lep/D"         );
-  outTree_->Branch("mass_W_had"      ,&Wboson_had.mass,"mass_W_had/D"         );
+  outTree_->Branch("mass_W_lep",      &Wboson_lep.mass,   "mass_W_lep/D"       );
+  outTree_->Branch("mass_W_had",      &Wboson_had.mass,   "mass_W_had/D"       );
+  outTree_->Branch("mass_W_pruned",   &m_pruned,          "mass_W_pruned/D"    );
   
-  outTree_->Branch("mt_W_lep"        ,&Wboson_lep.mt, "mt_W_lep/D"         );
-  outTree_->Branch("mt_W_had"        ,&Wboson_had.mt,  "mt_W_had/D"         );
+  outTree_->Branch("mt_W_lep",	      &Wboson_lep.mt,     "mt_W_lep/D"         );
+  outTree_->Branch("mt_W_had",	      &Wboson_had.mt,  	  "mt_W_had/D"         );
   
-  outTree_->Branch("charge_W_lep"        ,&Wboson_lep.charge, "charge_W_lep/D"         );
+  outTree_->Branch("charge_W_lep",    &Wboson_lep.charge, "charge_W_lep/D"     );
     
-  outTree_->Branch("N_had_W"          ,&N_had_W       ,"N_had_W/I"         );
-  outTree_->Branch("N_lep_W"          ,&N_lep_W       ,"N_lep_W/I"         );
+  outTree_->Branch("N_had_W",	      &N_had_W, 	  "N_had_W/I"          );
+  outTree_->Branch("N_lep_W",	      &N_lep_W,		  "N_lep_W/I"          );
   
-  outTree_->Branch("WDecayClass"          ,&WDecayClass       ,"WDecayClass/I"         );
+  outTree_->Branch("WDecayClass",     &WDecayClass,	  "WDecayClass/I"      );
   
-  outTree_->Branch("N_had_W_gen"          ,&N_had_Wgen       ,"N_had_W_gen/I"         );
-  outTree_->Branch("N_lep_W_gen"          ,&N_lep_Wgen      ,"N_lep_W_gen/I"         );
+  outTree_->Branch("N_had_W_gen",     &N_had_Wgen,	  "N_had_W_gen/I"      );
+  outTree_->Branch("N_lep_W_gen",     &N_lep_Wgen, 	  "N_lep_W_gen/I"      );
   
-  outTree_->Branch("tau1"            ,&tau1           ,"tau1/D"           );
-  outTree_->Branch("tau2"            ,&tau2           ,"tau2/D"           );
-  outTree_->Branch("tau3"            ,&tau3           ,"tau3/D"           );
-  outTree_->Branch("tau21"           ,&tau21          ,"tau21/D"          );
+  outTree_->Branch("tau1",	      &tau1,		  "tau1/D"             );
+  outTree_->Branch("tau2",	      &tau2,		  "tau2/D"             );
+  outTree_->Branch("tau3",	      &tau3,		  "tau3/D"             );
+  outTree_->Branch("tau21",	      &tau21,		  "tau21/D"            );
 
 
-    
-  outTree_->Branch("MET"        ,&METCand.pt, "MET/D"         );
-  outTree_->Branch("MET_eta"        ,&METCand.eta, "MET_eta/D"         );
-  outTree_->Branch("MET_phi"        ,&METCand.phi, "MET_phi/D"         );
-  outTree_->Branch("MET_mass"        ,&METCand.mass, "MET_mass/D"         );
-  outTree_->Branch("MET_mt"        ,&METCand.mt, "MET_mt/D"         );
+  //MET observables  
+  outTree_->Branch("MET", 	      &METCand.pt, 	  "MET/D"              );
+  outTree_->Branch("MET_eta",	      &METCand.eta, 	  "MET_eta/D"          );
+  outTree_->Branch("MET_phi",	      &METCand.phi, 	  "MET_phi/D"          );
+  outTree_->Branch("MET_mass",	      &METCand.mass, 	  "MET_mass/D"         );
+  outTree_->Branch("MET_mt",	      &METCand.mt, 	  "MET_mt/D"           );
 
   
-  /// Electron ID quantities
-  outTree_->Branch("pt_ele"    ,&Electron.pt     ,"pt_ele/D"     );
-  outTree_->Branch("eta_ele"    ,&Electron.eta     ,"eta_ele/D"     );
-  outTree_->Branch("phi_ele"    ,&Electron.phi     ,"phi_ele/D"     );
-  outTree_->Branch("charge_ele"    ,&Electron.charge     ,"charge_ele/D"     );
+  /// Electron observables
+  outTree_->Branch("pt_ele",	      &Electron.pt,	  "pt_ele/D"           );
+  outTree_->Branch("eta_ele",	      &Electron.eta,	  "eta_ele/D"          );
+  outTree_->Branch("phi_ele",	      &Electron.phi,	  "phi_ele/D"          );
+  outTree_->Branch("charge_ele",      &Electron.charge,	  "charge_ele/D"       );
  
-  outTree_->Branch("etaSC_ele"          ,&etaSC_ele         ,"etaSC_ele/D"         );
-  outTree_->Branch("dEtaIn_ele"         ,&dEtaIn_ele        ,"dEtaIn_ele/D"        );
-  outTree_->Branch("dPhiIn_ele"         ,&dPhiIn_ele        ,"dPhiIn_ele/D"        );
-  outTree_->Branch("hcalOverEcal"         ,&hcalOverEcal ,"hcalOverEcal/D"        );
-  outTree_->Branch("full5x5_sigma"  ,&full5x5_sigma ,"full5x5_sigma/D" );
-  outTree_->Branch("ooEmooP"        ,&ooEmooP       ,"ooEmooP/D"       );
-  outTree_->Branch("d0"             ,&d0            ,"d0/D"            );
-  outTree_->Branch("dz"             ,&dz            ,"dz/D"            );
+  outTree_->Branch("etaSC_ele",       &etaSC_ele,	  "etaSC_ele/D"        );
+  outTree_->Branch("dEtaIn_ele",      &dEtaIn_ele,	  "dEtaIn_ele/D"       );
+  outTree_->Branch("dPhiIn_ele",      &dPhiIn_ele,	  "dPhiIn_ele/D"       );
+  outTree_->Branch("hcalOverEcal",    &hcalOverEcal,	  "hcalOverEcal/D"     );
+  outTree_->Branch("full5x5_sigma",   &full5x5_sigma,	  "full5x5_sigma/D"    );
+  outTree_->Branch("ooEmooP",	      &ooEmooP,		  "ooEmooP/D"          );
+  outTree_->Branch("d0",	      &d0,		  "d0/D"               );
+  outTree_->Branch("dz",	      &dz,		  "dz/D"               );
   
-  outTree_->Branch("relIso_ele"         ,&relIso_ele        ,"relIso_ele/D"        );
-  outTree_->Branch("missingHits"    ,&missingHits   ,"missingHits/I"   );
-  outTree_->Branch("passConVeto"    ,&passConVeto   ,"passConVeto/I"   );
+  outTree_->Branch("relIso_ele",      &relIso_ele,	  "relIso_ele/D"       );
+  outTree_->Branch("missingHits",     &missingHits,	  "missingHits/I"      );
+  outTree_->Branch("passConVeto",     &passConVeto,	  "passConVeto/I"      ); 
  
+   /// Muon  observables
+  outTree_->Branch("pt_mu",	      &Muon.pt, 	  "pt_mu/D"            );
+  outTree_->Branch("eta_mu", 	      &Muon.eta, 	  "eta_mu/D"           );
+  outTree_->Branch("phi_mu", 	      &Muon.phi, 	  "phi_mu/D"           );
+  outTree_->Branch("charge_mu",       &Muon.charge, 	  "charge_mu/D"        );
+  outTree_->Branch("relIso_muon",     &relIso_muon, 	  "relIso_muon/D"      );
+
  
-   /// Muon ID quantities
-  outTree_->Branch("pt_mu",  &Muon.pt, "pt_mu/D"          );
-  outTree_->Branch("eta_mu", &Muon.eta , "eta_mu/D"          );
-  outTree_->Branch("phi_mu", &Muon.phi, "phi_mu/D"          );
-  outTree_->Branch("charge_mu", &Muon.charge, "charge_mu/D"          );
-  outTree_->Branch("relIso_muon", &relIso_muon, "relIso_muon/D"          );
- // outTree_->Branch("ptel2"           ,&ptel2          ,"ptel2/D"          );
-  //outTree_->Branch("etaSC1"          ,&etaSC1         ,"etaSC1/D"         );
-  //outTree_->Branch("etaSC2"          ,&etaSC2         ,"etaSC2/D"         );
-  //outTree_->Branch("dEtaIn1"         ,&dEtaIn1        ,"dEtaIn1/D"        );
- // outTree_->Branch("dEtaIn2"         ,&dEtaIn2        ,"dEtaIn2/D"        );
-  //outTree_->Branch("dPhiIn1"         ,&dPhiIn1        ,"dPhiIn1/D"        );
-  //outTree_->Branch("dPhiIn2"         ,&dPhiIn2        ,"dPhiIn2/D"        );
- /* outTree_->Branch("hOverE1"         ,&hOverE1        ,"hOverE1/D"        );
-  outTree_->Branch("hOverE2"         ,&hOverE2        ,"hOverE2/D"        );
-  outTree_->Branch("full5x5_sigma1"  ,&full5x5_sigma1 ,"full5x5_sigma1/D" );
-  outTree_->Branch("full5x5_sigma2"  ,&full5x5_sigma2 ,"full5x5_sigma2/D" );
-  outTree_->Branch("ooEmooP1"        ,&ooEmooP1       ,"ooEmooP1/D"       );
-  outTree_->Branch("ooEmooP2"        ,&ooEmooP2       ,"ooEmooP2/D"       );
-  outTree_->Branch("d01"             ,&d01            ,"d01/D"            );
-  //outTree_->Branch("d02"             ,&d02            ,"d02/D"            );
-  outTree_->Branch("dz1"             ,&dz1            ,"dz1/D"            );
-  //outTree_->Branch("dz2"             ,&dz2            ,"dz2/D"            );
-  outTree_->Branch("relIso1"         ,&relIso1        ,"relIso1/D"        );
-  outTree_->Branch("relIso2"         ,&relIso2        ,"relIso2/D"        );
-  outTree_->Branch("missingHits1"    ,&missingHits1   ,"missingHits1/I"   );
-  outTree_->Branch("missingHits2"    ,&missingHits2   ,"missingHits2/I"   );
-  outTree_->Branch("passConVeto1"    ,&passConVeto1   ,"passConVeto1/I"   );
-  outTree_->Branch("passConVeto2"    ,&passConVeto2   ,"passConVeto2/I"   );*/
- 
-  /// Generic kinematic quantities
-  outTree_->Branch("pt_lep"          ,&Lepton.pt         ,"pt_lep/D"         );
-  outTree_->Branch("eta_lep"          ,&Lepton.eta         ,"eta_lep/D"         );
-  outTree_->Branch("phi_lep"          ,&Lepton.phi         ,"phi_lep/D"         );
+  /// Lepton observables
+  outTree_->Branch("pt_lep",	      &Lepton.pt,	  "pt_lep/D"           );
+  outTree_->Branch("eta_lep",	      &Lepton.eta,	  "eta_lep/D"          );
+  outTree_->Branch("phi_lep",	      &Lepton.phi,	  "phi_lep/D"          );
   
-  /// Other quantities
-  outTree_->Branch("deltaR_LepWJet"    ,&deltaR_LepWJet   ,"deltaR_LepWJet/D"   );
-  outTree_->Branch("deltaPhi_LepMet"    ,&deltaPhi_LepMet   ,"deltaPhi_LepMet/D"   );
-  outTree_->Branch("deltaPhi_WJetMet"    ,&deltaPhi_WJetMet   ,"deltaPhi_WJetMet/D"   );
+  /// Other observables
+  outTree_->Branch("deltaR_LepWJet",  &deltaR_LepWJet,	  "deltaR_LepWJet/D"   );
+  outTree_->Branch("deltaPhi_LepMet", &deltaPhi_LepMet,	  "deltaPhi_LepMet/D"  );
+  outTree_->Branch("deltaPhi_WJetMet",&deltaPhi_WJetMet,  "deltaPhi_WJetMet/D" );
 }
 
 
@@ -278,9 +257,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    Wboson_had.pt = hadronicV.pt();
    Wboson_had.eta = hadronicV.eta();
    Wboson_had.phi = hadronicV.phi();
-   Wboson_had.mass = hadronicV.userFloat("ak8PFJetsCHSPrunedLinks");
+   Wboson_had.mass = hadronicV.mass();
    Wboson_had.mt = hadronicV.mt();
- 
+   m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedLinks");
 
    tau1 = hadronicV.userFloat("tau1");
    tau2 = hadronicV.userFloat("tau2");
