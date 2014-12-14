@@ -18,6 +18,7 @@
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include <DataFormats/MuonReco/interface/Muon.h>
 
 
 #include "DataFormats/PatCandidates/interface/Jet.h"
@@ -73,12 +74,12 @@ private:
   double ooEmooP;
   double d0;
   double dz;
-  double relIso;
+  double relIso_ele;
   int missingHits;
   int passConVeto;
   
   //Muon IDs
-  double pt_muon, eta_muon, phi_muon;
+  double pt_muon, eta_muon, phi_muon, relIso_muon;
   
   double deltaR_LepWJet, deltaPhi_LepMet, deltaPhi_WJetMet;
 
@@ -159,16 +160,17 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("d0"             ,&d0            ,"d0/D"            );
   outTree_->Branch("dz"             ,&dz            ,"dz/D"            );
   
-  outTree_->Branch("relIso"         ,&relIso        ,"relIso/D"        );
+  outTree_->Branch("relIso_ele"         ,&relIso_ele        ,"relIso_ele/D"        );
   outTree_->Branch("missingHits"    ,&missingHits   ,"missingHits/I"   );
   outTree_->Branch("passConVeto"    ,&passConVeto   ,"passConVeto/I"   );
  
  
-   /// Electron ID quantities
+   /// Muon ID quantities
   outTree_->Branch("pt_mu",  &Muon.pt, "pt_mu/D"          );
   outTree_->Branch("eta_mu", &Muon.eta , "eta_mu/D"          );
   outTree_->Branch("phi_mu", &Muon.phi, "phi_mu/D"          );
   outTree_->Branch("charge_mu", &Muon.charge, "charge_mu/D"          );
+  outTree_->Branch("relIso_muon", &relIso_muon, "relIso_muon/D"          );
  // outTree_->Branch("ptel2"           ,&ptel2          ,"ptel2/D"          );
   //outTree_->Branch("etaSC1"          ,&etaSC1         ,"etaSC1/D"         );
   //outTree_->Branch("etaSC2"          ,&etaSC2         ,"etaSC2/D"         );
@@ -333,9 +335,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       dz = el->gsfTrack()->dz(math::XYZPoint(0.,0.,0.));
      
       reco::GsfElectron::PflowIsolationVariables pfIso = el->pfIsolationVariables();
-      double absiso = pfIso.sumChargedHadronPt + std::max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - 0.5*pfIso.sumPUPt );
-      relIso = absiso/el->pt();
-      
+      double absiso_ele = pfIso.sumChargedHadronPt + std::max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - 0.5*pfIso.sumPUPt );
+      relIso_ele = absiso_ele/el->pt();
+           
       missingHits = el -> gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
       passConVeto = el->passConversionVeto();
       
@@ -356,12 +358,12 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       ooEmooP = -99.;
       d0 = -99.;
       dz = -99.;
-      relIso = -99.;
+      relIso_ele = -99.;
       missingHits = -99;
       passConVeto = -99;
     }
     
-      // Running over muons
+     // Running over muons
      if( leptonicV.daughter(0)->isMuon() || leptonicV.daughter(1)->isMuon()) {
        
      const pat::Muon *muon = (pat::Muon*)leptonicV.daughter(MuonDaughterIndex);
@@ -369,6 +371,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Muon.eta   = muon -> eta();
       Muon.phi  = muon -> phi();
       Muon.charge  = muon -> charge();
+      
+      //reco::Muon::MuonPFIsolation muonIso = muon->pfIsolationR04();
+      double muon_absiso = (muon->pfIsolationR04()).sumChargedHadronPt + std::max(0.0, (muon->pfIsolationR04()).sumNeutralHadronEt + (muon->pfIsolationR04()).sumPhotonEt - 0.5*((muon->pfIsolationR04()).sumPUPt) );
+      relIso_muon = muon_absiso/muon -> pt();
   
       }
    
@@ -377,10 +383,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        Muon.eta  = -99.;
        Muon.phi = -99.0;
        Muon.charge = -99.0;
+       relIso_muon = -99.;
      }
   
-   
-   
    // Kinematics of leptons and jets
    Lepton.pt = (leptonicV.daughter(LeptonDaughterIndex))->pt();
    Lepton.eta = (leptonicV.daughter(LeptonDaughterIndex))->eta();
