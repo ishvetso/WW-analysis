@@ -1,4 +1,4 @@
-Instructions to setup the ExoDiBosonResonances code
+Instructions to setup the WW-analysis code
 ========
 
 ```
