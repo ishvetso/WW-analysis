@@ -93,7 +93,8 @@ process.leptonSequence = cms.Sequence(process.muSequence +
                                       process.leptonicVSequence +
                                       process.leptonicVFilter )
 
-process.jetSequence = cms.Sequence(process.fatJetsSequence +
+process.jetSequence = cms.Sequence(process.JetsWithBTagSequence +
+				   process.fatJetsSequence +
                                    process.hadronicV +
                                    process.hadronicVFilter)
 
@@ -108,6 +109,8 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     leptonicVSrc = cms.string("leptonicV"),
                                     metSrc = cms.string("slimmedMETs"),
                                     genSrc = cms.string("prunedGenParticles"),
+                                    jetSrc = cms.string("jetsWithTau"),
+                                    jets_btag_veto_Src  = cms.string("cleanJetsWithBTag"),
                                     )
 
 
@@ -120,34 +123,22 @@ process.printTree = cms.EDAnalyzer("ParticleListDrawer",
   src = cms.InputTag("prunedGenParticles")
 )
 
-#process.analysis = cms.Path(process.egmGsfElectronIDSequence  )
 
 process.analysis = cms.Path(process.DecayChannel +  process.egmGsfElectronIDSequence  +   process.TightMuons + process.leptonSequence +   process.jetSequence +  process.treeDumper )
 process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_PHYS14.root')
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/WJetsToLNu_HT-400to600.root')
     
 )
 
-
+#file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_PHYS14.root'
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 
-
-process.out = cms.OutputModule("PoolOutputModule",
-                               fileName = cms.untracked.string('patTuple.root'),
-                               ## save only events passing the full path
-                               #SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
-                               ## save PAT output; you need a '*' to unpack the list of commands
-                               ## 'patEventContent'
-                               outputCommands = cms.untracked.vstring('keep *')
-                               )                            
-                               
-process.outpath = cms.EndPath(process.out)
 
 process.TFileService = cms.Service("TFileService",
                                  fileName = cms.string("tree.root")

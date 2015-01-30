@@ -53,6 +53,8 @@ private:
   // ----------member data ---------------------------
   TTree* outTree_;
 
+  int nevent, run, luminosityBlock;
+  
   int nVtx;
   
   Particle Wboson_lep, Wboson_had, METCand, Electron, Muon, Lepton;
@@ -84,9 +86,16 @@ private:
   double pt_muon, eta_muon, phi_muon, relIso_muon;
   
   double deltaR_LepWJet, deltaPhi_LepMet, deltaPhi_WJetMet;
+  
+  //Jets
+  int Njet;
+  double Pt_J1, Pt_J2;
+  
+  //for the collection with b-tagging info
+  int NBtag;
 
   /// Parameters to steer the treeDumper
-  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_;
+  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_, jetsSrc_, jets_btag_veto_Src_;
 };
 
 //
@@ -99,13 +108,19 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   hadronicVSrc_ = iConfig.getParameter<std::string>("hadronicVSrc");
   leptonicVSrc_ = iConfig.getParameter<std::string>("leptonicVSrc");
   genSrc_ = iConfig.getParameter<std::string>("genSrc");
-   metSrc_= iConfig.getParameter<std::string>("metSrc");
+  metSrc_= iConfig.getParameter<std::string>("metSrc");
+  jetsSrc_ = iConfig.getParameter<std::string>("jetSrc");
+  jets_btag_veto_Src_ = iConfig.getParameter<std::string>("jets_btag_veto_Src");
 
   
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
   outTree_ = fs->make<TTree>("Basic Info","Basic Info");
 
+  outTree_->Branch("nevent",	      &nevent,    	  "nevent/I"           );
+  outTree_->Branch("luminosityBlock", &luminosityBlock,   "luminosityBlock/I"  );
+  outTree_->Branch("run",	      &run,		  "run/I"  	       );
+  
   //W observables
   outTree_->Branch("pt_W_lep",	      &Wboson_lep.pt,     "pt_W_lep/D"         );
   outTree_->Branch("pt_W_had",	      &Wboson_had.pt,     "pt_W_had/D"         );
@@ -183,6 +198,12 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("deltaR_LepWJet",  &deltaR_LepWJet,	  "deltaR_LepWJet/D"   );
   outTree_->Branch("deltaPhi_LepMet", &deltaPhi_LepMet,	  "deltaPhi_LepMet/D"  );
   outTree_->Branch("deltaPhi_WJetMet",&deltaPhi_WJetMet,  "deltaPhi_WJetMet/D" );
+  
+  //Jet observables
+  outTree_->Branch("Njet",            &Njet,              "Njet/I"   );
+  outTree_->Branch("Pt_J1",  	      &Pt_J1,	  	  "Pt_J1/D"   );
+  outTree_->Branch("Pt_J2",  	      &Pt_J2,	          "Pt_J2/D"   );
+  outTree_->Branch("NBtag",  	      &NBtag,	          "NBtag/I"   );
 }
 
 
@@ -205,7 +226,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
 
-
+   nevent = iEvent.eventAuxiliary().event();
+   run    = iEvent.eventAuxiliary().run();
+   luminosityBlock     = iEvent.eventAuxiliary().luminosityBlock();
+   
    //Hadronic Ws
    edm::Handle<edm::View<pat::Jet> > hadronicVs;
    iEvent.getByLabel(hadronicVSrc_.c_str(), hadronicVs);
@@ -222,11 +246,21 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle<edm::View<reco::Vertex> > vertices;
    iEvent.getByLabel("offlineSlimmedPrimaryVertices", vertices);
    
+   //Jets
+   edm::Handle<edm::View<pat::Jet> > jets;
+   iEvent.getByLabel(jetsSrc_.c_str(), jets);
+   
+   //Jets for Btag veto
+   edm::Handle<edm::View<pat::Jet> > jets_btag_veto;
+   iEvent.getByLabel(jets_btag_veto_Src_.c_str(), jets_btag_veto);
+   
    //MET
    edm::Handle<edm::View<pat::MET> > metHandle;
    iEvent.getByLabel(metSrc_.c_str(), metHandle);
 
    nVtx = vertices->size();
+   
+   reco::MuonPFIsolation muonIso;
 
    //  Defining decay channel on the gen level
    N_had_Wgen  = 0, N_lep_Wgen = 0 ;
@@ -351,8 +385,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Muon.phi  = muon -> phi();
       Muon.charge  = muon -> charge();
       
-      //reco::Muon::MuonPFIsolation muonIso = muon->pfIsolationR04();
-      double muon_absiso = (muon->pfIsolationR04()).sumChargedHadronPt + std::max(0.0, (muon->pfIsolationR04()).sumNeutralHadronEt + (muon->pfIsolationR04()).sumPhotonEt - 0.5*((muon->pfIsolationR04()).sumPUPt) );
+      muonIso = muon->pfIsolationR04();
+      float muon_absiso = (muon->pfIsolationR04()).sumChargedHadronPt + std::max(0.0f, (muon->pfIsolationR04()).sumNeutralHadronEt + (muon->pfIsolationR04()).sumPhotonEt);
       relIso_muon = muon_absiso/muon -> pt();
   
       }
@@ -365,6 +399,26 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        relIso_muon = -99.;
      }
   
+  
+  
+  
+   if ( (jets -> size()) > 0) Pt_J1 = (jets -> at(0)).pt();
+   if ( (jets -> size()) > 1) Pt_J2 = (jets -> at(1)).pt();
+   else Pt_J2 = -99.0;
+   
+  //Loop over the collection of the jets which contains b-tagging information
+  NBtag = 0; 
+   
+  
+  for (unsigned int iBtag = 0; iBtag < jets_btag_veto -> size(); iBtag ++)
+  {
+    //WP for 8 TeV and preliminary. Should be updated at some point
+    if(((jets_btag_veto -> at(iBtag)).bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) NBtag ++;
+  }
+  
+  
+    
+   
    // Kinematics of leptons and jets
    Lepton.pt = (leptonicV.daughter(LeptonDaughterIndex))->pt();
    Lepton.eta = (leptonicV.daughter(LeptonDaughterIndex))->eta();
@@ -374,6 +428,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,Wboson_had.eta,Wboson_had.phi); 
    deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
    deltaPhi_WJetMet = deltaPhi(Wboson_had.phi, METCand.phi);
+   
+   Njet = jets -> size();
 
    outTree_->Fill();
 
