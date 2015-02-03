@@ -13,6 +13,14 @@
 #include <iostream>
 #include <iostream>
 
+
+/*
+ * Small macro to add weights corresponding to the cross-sections
+ * 
+ * Compile by: 
+ * root -l addWeightSamples.cpp+
+ */
+
 void addWeight(string FileName, float xsection, float lumi, int Nevents)
 {
   TFile file(FileName.c_str(), "UPDATE");
@@ -32,6 +40,6 @@ void addWeight(string FileName, float xsection, float lumi, int Nevents)
 
 void addWeightSamples()
 {
-  addWeight("/afs/cern.ch/work/i/ishvetso/samples_PHYS14/Wjets.root", 20508.9,20000., 10017462); //ttbar
-  addWeight("/afs/cern.ch/work/i/ishvetso/samples_PHYS14/ttbar.root", 831.76 ,20000., 2991609 );//W + jets
+  addWeight("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_2_2_patch1/src/WW-analysis/Common/test/crab_projects_Phys14_btag/crab_WJetsToLNu_13TeV-madgraph-pythia8-tauola/results/Wjets.root", 20508.9,20000., 10017462); //W + jets
+  addWeight("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_2_2_patch1/src/WW-analysis/Common/test/crab_projects_Phys14_btag/crab_TT_Tune4C_13TeV-pythia8-tauola/results/ttbar.root", 831.76 ,20000., 2991609 );//ttbar
 }
