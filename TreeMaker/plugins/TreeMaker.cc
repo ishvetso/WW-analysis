@@ -95,7 +95,7 @@ private:
   int NBtag;
 
   /// Parameters to steer the treeDumper
-  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_, jetsSrc_, jets_btag_veto_Src_;
+  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_, jetsSrc_, jets_btag_veto_Src_, vertexSrc_;
 };
 
 //
@@ -111,6 +111,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   metSrc_= iConfig.getParameter<std::string>("metSrc");
   jetsSrc_ = iConfig.getParameter<std::string>("jetSrc");
   jets_btag_veto_Src_ = iConfig.getParameter<std::string>("jets_btag_veto_Src");
+  vertexSrc_ = iConfig.getParameter<std::string>("vertex_Src");
 
   
   //now do what ever initialization is needed
@@ -244,7 +245,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    //Vertices 
    edm::Handle<edm::View<reco::Vertex> > vertices;
-   iEvent.getByLabel("offlineSlimmedPrimaryVertices", vertices);
+   iEvent.getByLabel(vertexSrc_.c_str(), vertices);
    
    //Jets
    edm::Handle<edm::View<pat::Jet> > jets;
