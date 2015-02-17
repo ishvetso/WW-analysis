@@ -11,6 +11,7 @@ process.options.allowUnscheduled = cms.untracked.bool(False)
 process.load("WW-analysis.Common.goodMuons_cff")
 process.load("WW-analysis.Common.goodElectrons_cff")
 process.load("WW-analysis.Common.goodJets_cff")
+process.load("WW-analysis.Common.trigger_cff")
 
 ### Hadronic and leptonic boson.
 ### Naturally, you should choose the one channel you need
@@ -114,7 +115,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 
-process.analysis = cms.Path(process.DecayChannel +  process.egmGsfElectronIDSequence  +   process.TightMuons + process.leptonSequence +   process.jetSequence +  process.treeDumper )
+process.analysis = cms.Path(process.TriggerSequence + process.DecayChannel +  process.egmGsfElectronIDSequence + process.TightMuons + process.leptonSequence +   process.jetSequence +  process.treeDumper)
 process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
