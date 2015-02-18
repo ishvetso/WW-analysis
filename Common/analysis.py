@@ -18,6 +18,9 @@ process.load("WW-analysis.Common.trigger_cff")
 process.load("WW-analysis.Common.leptonicW_cff")
 process.load("WW-analysis.Common.hadronicW_cff")
 
+#Puppi Jets
+process.load("WW-analysis.Common.PuppiJets_cff")
+
 # module to print out generator information (not included in the path)
 process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 process.printTree = cms.EDAnalyzer("ParticleListDrawer",
@@ -25,6 +28,7 @@ process.printTree = cms.EDAnalyzer("ParticleListDrawer",
   printVertex = cms.untracked.bool(False),
   src = cms.InputTag("prunedGenParticles")
 )
+
 
 
 # Muons
@@ -115,7 +119,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 
-process.analysis = cms.Path(process.TriggerSequence + process.DecayChannel +  process.egmGsfElectronIDSequence + process.TightMuons + process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.TriggerSequence + process.DecayChannel +  process.egmGsfElectronIDSequence + process.TightMuons + process.leptonSequence +   process.jetSequence +  process.treeDumper + process.PuppiSequence)
 process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
@@ -130,13 +134,13 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 
-'''process.out = cms.OutputModule("PoolOutputModule",
+process.out = cms.OutputModule("PoolOutputModule",
  fileName = cms.untracked.string('patTuple.root'),
   outputCommands = cms.untracked.vstring('keep *')
 )
 
 process.outpath = cms.EndPath(process.out)
-'''
+
 process.TFileService = cms.Service("TFileService",
                                  fileName = cms.string("tree.root")
                                   )
