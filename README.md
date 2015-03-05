@@ -1,4 +1,4 @@
-Instructions to setup the WW-analysis code
+Instructions to setup the WW-analysis code. This the branch that is used for synchronization with Zurich, Milano and Peking groups, March 2015.
 ========
 
 ```
