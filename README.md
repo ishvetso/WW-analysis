@@ -1,7 +1,9 @@
-Instructions to setup the WW-analysis code. This the branch that is used for synchronization with Zurich, Milano and Peking groups, March 2015.
+Instructions to setup the WW-analysis code. 
 ========
+...
 
-```
+This the branch that is used for synchronization with Zurich, Milano and Peking groups, March 2015.
+
 cmsrel CMSSW_7_2_2_patch1
 cd CMSSW_7_2_2_patch1/src
 cmsenv
