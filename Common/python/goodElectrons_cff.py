@@ -1,14 +1,21 @@
 import FWCore.ParameterSet.Config as cms
 
 electronIDs = cms.EDFilter("ElectronID",
-			   ValueMap_src = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V1-miniAOD-standalone-medium"),
+			   ValueMap_src = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV51-miniAOD"),
                            electron_src = cms.InputTag("slimmedElectrons"),
 			    #False -> runs as producer 
 			    #True -> filters events
 			    filter_flag = cms.bool(False),
 			   )
 
-goodElectrons = cms.EDFilter("CandViewSelector",
+looseElectrons = cms.EDFilter("CandViewSelector",
                          src = cms.InputTag("electronIDs"),
-                         cut = cms.string("pt > 40")
+                         cut = cms.string("pt > 35")
                          )
+
+tightElectrons = cms.EDFilter("CandViewSelector",
+                         src = cms.InputTag("electronIDs"),
+                         cut = cms.string("pt > 90")
+                         )
+
+eleSequence = cms.Sequence(electronIDs + looseElectrons + tightElectrons)

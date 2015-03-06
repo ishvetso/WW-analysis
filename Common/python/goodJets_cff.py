@@ -13,15 +13,15 @@ import PhysicsTools.PatAlgos.cleaningLayer1.jetCleaner_cfi as jetCleaner_cfi
 
 cleanJets = jetCleaner_cfi.cleanPatJets.clone()
 cleanJets.src = "goodJets"
-cleanJets.checkOverlaps.muons.src = "goodMuons"
-cleanJets.checkOverlaps.muons.deltaR = 0.8
+cleanJets.checkOverlaps.muons.src = "tightMuons"
+cleanJets.checkOverlaps.muons.deltaR = 1.0
 cleanJets.checkOverlaps.muons.requireNoOverlaps = True
 
 
 #cleanJets.checkOverlaps.muons = cms.PSet()
 
-cleanJets.checkOverlaps.electrons.src = "goodElectrons"
-cleanJets.checkOverlaps.electrons.deltaR = 0.8
+cleanJets.checkOverlaps.electrons.src = "tightElectrons"
+cleanJets.checkOverlaps.electrons.deltaR = 1.0
 cleanJets.checkOverlaps.electrons.requireNoOverlaps = True
 cleanJets.checkOverlaps.photons = cms.PSet()
 cleanJets.checkOverlaps.taus = cms.PSet()
@@ -34,27 +34,27 @@ jetsWithTau = cms.EDProducer("NJettinessAdder",
                              )
 # Create a different collection of jets which  contains b-tagging information. This is necessary because slimmedJetsAK8 jets don't contain BTagInfo
 
-JetsWithBTag = cms.EDFilter("PFJetIDSelectionFunctorFilter",
+AK4Jets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
                         filterParams = pfJetIDSelector.clone(),
                         src = cms.InputTag("slimmedJets")
                         )
 
-cleanJetsWithBTag = jetCleaner_cfi.cleanPatJets.clone()
-cleanJetsWithBTag.src = "JetsWithBTag"
-cleanJetsWithBTag.checkOverlaps.muons.src = "goodMuons"
-cleanJetsWithBTag.checkOverlaps.muons.deltaR = 0.5
-cleanJetsWithBTag.checkOverlaps.muons.requireNoOverlaps = True
+cleanAK4Jets = jetCleaner_cfi.cleanPatJets.clone()
+cleanAK4Jets.src = "AK4Jets"
+cleanAK4Jets.checkOverlaps.muons.src = "tightMuons"
+cleanAK4Jets.checkOverlaps.muons.deltaR = 0.3
+cleanAK4Jets.checkOverlaps.muons.requireNoOverlaps = True
 
 
 #cleanJets.checkOverlaps.muons = cms.PSet()
 
-cleanJetsWithBTag.checkOverlaps.electrons.src = "goodElectrons"
-cleanJetsWithBTag.checkOverlaps.electrons.deltaR = 0.8
-cleanJetsWithBTag.checkOverlaps.electrons.requireNoOverlaps = True
-cleanJetsWithBTag.checkOverlaps.photons = cms.PSet()
-cleanJetsWithBTag.checkOverlaps.taus = cms.PSet()
-cleanJetsWithBTag.checkOverlaps.tkIsoElectrons = cms.PSet()
-cleanJetsWithBTag.finalCut = "pt > 30 & abs(eta) < 2.4"
+cleanAK4Jets.checkOverlaps.electrons.src = "tightElectrons"
+cleanAK4Jets.checkOverlaps.electrons.deltaR = 0.8
+cleanAK4Jets.checkOverlaps.electrons.requireNoOverlaps = True
+cleanAK4Jets.checkOverlaps.photons = cms.PSet()
+cleanAK4Jets.checkOverlaps.taus = cms.PSet()
+cleanAK4Jets.checkOverlaps.tkIsoElectrons = cms.PSet()
+cleanAK4Jets.finalCut = "pt > 30 & abs(eta) < 2.4"
 
 fatJetsSequence = cms.Sequence(goodJets + cleanJets + jetsWithTau )
-JetsWithBTagSequence = cms.Sequence(JetsWithBTag + cleanJetsWithBTag)
+AK4JetsSequence = cms.Sequence(AK4Jets + cleanAK4Jets)

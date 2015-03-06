@@ -10,6 +10,7 @@ process.options.allowUnscheduled = cms.untracked.bool(False)
 
 process.load("WW-analysis.Common.goodMuons_cff")
 process.load("WW-analysis.Common.goodElectrons_cff")
+process.load("WW-analysis.Common.goodMuons_cff")
 process.load("WW-analysis.Common.goodJets_cff")
 process.load("WW-analysis.Common.trigger_cff")
 
@@ -18,61 +19,33 @@ process.load("WW-analysis.Common.trigger_cff")
 process.load("WW-analysis.Common.leptonicW_cff")
 process.load("WW-analysis.Common.hadronicW_cff")
 
-#Puppi Jets
-process.load("WW-analysis.Common.PuppiJets_cff")
-
-# module to print out generator information (not included in the path)
-process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
-process.printTree = cms.EDAnalyzer("ParticleListDrawer",
-  maxEventsToPrint = cms.untracked.int32(1000),
-  printVertex = cms.untracked.bool(False),
-  src = cms.InputTag("prunedGenParticles")
-)
-
-
-
-# Muons
-process.TightMuons = cms.EDProducer("TightMuonSelector",
-                         src = cms.InputTag("slimmedMuons"),
-                         vertex = cms.InputTag("offlineSlimmedPrimaryVertices")
-                         )
-
 # Electrons
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 
 process.GlobalTag.globaltag = 'PHYS14_25_V1'
-#
+
 # START ELECTRON ID SECTION
 #
 # Set up everything that is needed to compute electron IDs and
 # add the ValueMaps with ID decisions into the event data stream
 #
-
 # Load tools and function definitions
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
-
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
-# overwrite a default parameter: for miniAOD, the collection name is a slimmed one
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
-
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-
-# Define which IDs we want to produce
-# Each of these two example IDs contains all four standard 
-# cut-based ID working points (only two WP of the PU20bx25 are actually used here).
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V1_miniAOD_cff']
-#Add them to the VID producer
-for idmod in my_id_modules:
-    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
-
+#add in the heep ID to the producer. You can run with other IDs but heep ID must be loaded with setupVIDSelection, not setupAllVIDSelection as heep works differently because mini-aod and aod are defined in the same file to ensure consistancy (you cant change cuts of aod without changing miniaod
+process.load('RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff')
+setupVIDSelection(process.egmGsfElectronIDs,process.heepElectronID_HEEPV51_miniAOD)
 # Do not forget to add the egmGsfElectronIDSequence to the path,
 # as in the example below!
-
 #
-# END ELECTRON ID SECTION
 
+#process.electronIDs.ValueMap_src = cms.InputTag("egmGsfElectronsIDs:heepElectronID-HEEPV51-miniAOD")
+
+# END ELECTRON ID SECTION
 
 
 process.leptonicVFilter = cms.EDFilter("CandViewCountFilter",
@@ -88,13 +61,12 @@ process.hadronicVFilter = cms.EDFilter("CandViewCountFilter",
 
 
 process.leptonSequence = cms.Sequence(process.muSequence +
-                                      process.electronIDs +
-                                      process.goodElectrons +
+                                      process.eleSequence +
                                       process.leptonicVSequence +
                                       process.leptonicVFilter )
 
 
-process.jetSequence = cms.Sequence(process.JetsWithBTagSequence +
+process.jetSequence = cms.Sequence(process.AK4JetsSequence +
 				   process.fatJetsSequence +
                                    process.hadronicV +
                                    process.hadronicVFilter)
@@ -111,7 +83,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     metSrc = cms.string("slimmedMETs"),
                                     genSrc = cms.string("prunedGenParticles"),
                                     jetSrc = cms.string("jetsWithTau"),
-                                    jets_btag_veto_Src  = cms.string("cleanJetsWithBTag"),
+                                    jets_btag_veto_Src  = cms.string("cleanAK4Jets"),
                                     vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
                                     )
 
@@ -119,7 +91,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 
-process.analysis = cms.Path(process.TriggerSequence + process.DecayChannel +  process.egmGsfElectronIDSequence + process.TightMuons + process.leptonSequence +   process.jetSequence +  process.treeDumper + process.PuppiSequence)
+process.analysis = cms.Path(process.TriggerSequence + process.DecayChannel +  process.egmGsfElectronIDSequence + process.leptonSequence +   process.jetSequence +  process.treeDumper)
 process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),

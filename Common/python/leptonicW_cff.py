@@ -13,16 +13,16 @@ import FWCore.ParameterSet.Config as cms
 #                        )
 
 Wtomunu = cms.EDProducer("WLeptonicProducer",
-                         leptons = cms.InputTag("goodMuons"),
+                         leptons = cms.InputTag("looseMuons"),
                          MET = cms.InputTag("slimmedMETs"),
-                         cut = cms.string("pt > 100")
+                         cut = cms.string("")
                          )
 
 
 Wtoenu = cms.EDProducer("WLeptonicProducer",
-                        leptons = cms.InputTag("goodElectrons"),
+                        leptons = cms.InputTag("looseElectrons"),
                         MET = cms.InputTag("slimmedMETs"),
-                        cut = cms.string("pt > 100")
+                        cut = cms.string("")
                         )
 
 leptonicV = cms.EDProducer("CandViewMerger",
