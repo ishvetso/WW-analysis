@@ -28,10 +28,10 @@ cleanJets.checkOverlaps.taus = cms.PSet()
 cleanJets.checkOverlaps.tkIsoElectrons = cms.PSet()
 cleanJets.finalCut = "pt > 40 & abs(eta) < 2.4"
 
-jetsWithTau = cms.EDProducer("NJettinessAdder",
+'''jetsWithTau = cms.EDProducer("NJettinessAdder",
                              src = cms.InputTag("cleanJets"),
                              cone = cms.double(0.8)
-                             )
+                             )'''
 # Create a different collection of jets which  contains b-tagging information. This is necessary because slimmedJetsAK8 jets don't contain BTagInfo
 
 AK4Jets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
@@ -56,5 +56,5 @@ cleanAK4Jets.checkOverlaps.taus = cms.PSet()
 cleanAK4Jets.checkOverlaps.tkIsoElectrons = cms.PSet()
 cleanAK4Jets.finalCut = "pt > 30 & abs(eta) < 2.4"
 
-fatJetsSequence = cms.Sequence(goodJets + cleanJets + jetsWithTau )
+fatJetsSequence = cms.Sequence(goodJets + cleanJets )
 AK4JetsSequence = cms.Sequence(AK4Jets + cleanAK4Jets)
