@@ -82,7 +82,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     leptonicVSrc = cms.string("leptonicV"),
                                     metSrc = cms.string("slimmedMETs"),
                                     genSrc = cms.string("prunedGenParticles"),
-                                    jetSrc = cms.string("jetsWithTau"),
+                                    jetSrc = cms.string("cleanJets"),
                                     jets_btag_veto_Src  = cms.string("cleanAK4Jets"),
                                     vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
                                     )
