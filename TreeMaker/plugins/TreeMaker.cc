@@ -186,10 +186,10 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("njets",  	      &njets,	          "njets/I"   );
   outTree_->Branch("nbtag",  	      &nbtag,	          "nbtag/I"   );
   
-  outTree_->Branch("jet2_pt",  	      &jet2_pt,	          "jet2_pt/I"   );
-  outTree_->Branch("jet2_btag",       &jet2_btag,         "jet2_btag/I"   );
-  outTree_->Branch("jet3_pt",  	      &jet3_pt,	          "jet3_pt/I"   );
-  outTree_->Branch("jet3_btag",	      &jet3_btag,         "jet3_btag/I"   );
+  outTree_->Branch("jet2_pt",  	      &jet2_pt,	          "jet2_pt/D"   );
+  outTree_->Branch("jet2_btag",       &jet2_btag,         "jet2_btag/D"   );
+  outTree_->Branch("jet3_pt",  	      &jet3_pt,	          "jet3_pt/D"   );
+  outTree_->Branch("jet3_btag",	      &jet3_btag,         "jet3_btag/D"   );
 }
 
 
