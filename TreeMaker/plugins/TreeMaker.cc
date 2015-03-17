@@ -53,9 +53,11 @@ private:
   // ----------member data ---------------------------
   TTree* outTree_;
 
-  int nevent, run, luminosityBlock;
+  //event info
+  int nevent, run, lumi;
   
-  int nVtx;
+  //number of primary vertices
+  int nPV;
   
   Particle Wboson_lep, Wboson_had, METCand, Electron, Muon, Lepton;
   double m_pruned;
@@ -65,37 +67,25 @@ private:
   
   int N_had_W, N_lep_W;
   int N_had_Wgen, N_lep_Wgen;
+  
+  int nLooseEle, nLooseMu;
 
   double tau1, tau2, tau3, tau21;
-
-  
-  // Electron ID 
-  double etaSC_ele;
-  double dEtaIn_ele;
-  double dPhiIn_ele;
-  double hcalOverEcal;
-  double full5x5_sigma;
-  double ooEmooP;
-  double d0;
-  double dz;
-  double relIso_ele;
-  int missingHits;
-  int passConVeto;
-  
-  //Muon IDs
-  double pt_muon, eta_muon, phi_muon, relIso_muon;
   
   double deltaR_LepWJet, deltaPhi_LepMet, deltaPhi_WJetMet;
   
   //Jets
-  int Njet;
-  double Pt_J1, Pt_J2;
+  int NAK8jet, njets, nbtag;
+  double jet_pt, jet_eta, jet_phi, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1;
+  
+  //AK4 jets
+  double jet2_pt, jet2_btag, jet3_pt, jet3_btag;
   
   //for the collection with b-tagging info
   int NBtag;
 
   /// Parameters to steer the treeDumper
-  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_, jetsSrc_, jets_btag_veto_Src_, vertexSrc_;
+  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_, jetsSrc_, jets_btag_veto_Src_, vertexSrc_, looseEleSrc_, looseMuSrc_, leptonSrc_;
 };
 
 //
@@ -112,24 +102,40 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   jetsSrc_ = iConfig.getParameter<std::string>("jetSrc");
   jets_btag_veto_Src_ = iConfig.getParameter<std::string>("jets_btag_veto_Src");
   vertexSrc_ = iConfig.getParameter<std::string>("vertex_Src");
+  looseEleSrc_ = iConfig.getParameter<std::string>("looseEleSrc");
+  looseMuSrc_ = iConfig.getParameter<std::string>("looseMuSrc");
+  leptonSrc_ = iConfig.getParameter<std::string>("leptonSrc");
 
   
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
   outTree_ = fs->make<TTree>("Basic Info","Basic Info");
 
+  //event info
   outTree_->Branch("nevent",	      &nevent,    	  "nevent/I"           );
-  outTree_->Branch("luminosityBlock", &luminosityBlock,   "luminosityBlock/I"  );
+  outTree_->Branch("lumi", 	      &lumi,   		  "lumi/I"  		);
   outTree_->Branch("run",	      &run,		  "run/I"  	       );
   
+  //number of primary vertices
+  outTree_->Branch("nPV",	      &nPV,		  "nPV/I"  	       );
+  
+  //number of loose leptons
+  outTree_->Branch("nLooseEle",      &nLooseEle, 	  "nLooseEle/I"       );
+  outTree_->Branch("nLooseMu",      &nLooseMu, 	  "nLooseMu/I"       );
+  
+  //leptons (tight, ele or mu depends on the channel)
+  outTree_->Branch("l_pt",	      &Lepton.pt,      "l_pt/D"         	);
+  outTree_->Branch("l_eta",	      &Lepton.eta,     "l_eta/D"        	);
+  outTree_->Branch("l_phi",	      &Lepton.phi,     "l_phi/D"        	);
+  
   //W observables
-  outTree_->Branch("pt_W_lep",	      &Wboson_lep.pt,     "pt_W_lep/D"         );
+  outTree_->Branch("W_pt",	      &Wboson_lep.pt,     "W_pt/D"         );
   outTree_->Branch("pt_W_had",	      &Wboson_had.pt,     "pt_W_had/D"         );
   
-  outTree_->Branch("eta_W_lep",	      &Wboson_lep.eta,    "eta_W_lep/D"        );
+  outTree_->Branch("W_eta",	      &Wboson_lep.eta,    "W_eta/D"        );
   outTree_->Branch("eta_W_had",	      &Wboson_had.eta,    "eta_W_had/D"        );
   
-  outTree_->Branch("phi_W_lep",	      &Wboson_lep.phi,    "phi_W_lep/D"        );
+  outTree_->Branch("W_phi",	      &Wboson_lep.phi,    "W_phi/D"        );
   outTree_->Branch("phi_W_had",	      &Wboson_had.phi,    "phi_W_had/D"        );
   
   outTree_->Branch("mass_W_lep",      &Wboson_lep.mass,   "mass_W_lep/D"       );
@@ -156,55 +162,34 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
 
 
   //MET observables  
-  outTree_->Branch("MET", 	      &METCand.pt, 	  "MET/D"              );
-  outTree_->Branch("MET_eta",	      &METCand.eta, 	  "MET_eta/D"          );
-  outTree_->Branch("MET_phi",	      &METCand.phi, 	  "MET_phi/D"          );
-  outTree_->Branch("MET_mass",	      &METCand.mass, 	  "MET_mass/D"         );
-  outTree_->Branch("MET_mt",	      &METCand.mt, 	  "MET_mt/D"           );
+  outTree_->Branch("pfMET", 	      &METCand.pt, 	  "pfMET/D"              );
+  outTree_->Branch("pfMETEta",	      &METCand.eta, 	  "pfMETEta/D"          );
+  outTree_->Branch("pfMETPhi",	      &METCand.phi, 	  "pfMETPhi/D"          );
+  outTree_->Branch("pfMETMass",	      &METCand.mass, 	  "pfMETMass/D"         );
+  outTree_->Branch("pfMETMt",	      &METCand.mt, 	  "pfMETMt/D"           );
 
-  
-  /// Electron observables
-  outTree_->Branch("pt_ele",	      &Electron.pt,	  "pt_ele/D"           );
-  outTree_->Branch("eta_ele",	      &Electron.eta,	  "eta_ele/D"          );
-  outTree_->Branch("phi_ele",	      &Electron.phi,	  "phi_ele/D"          );
-  outTree_->Branch("charge_ele",      &Electron.charge,	  "charge_ele/D"       );
- 
-  outTree_->Branch("etaSC_ele",       &etaSC_ele,	  "etaSC_ele/D"        );
-  outTree_->Branch("dEtaIn_ele",      &dEtaIn_ele,	  "dEtaIn_ele/D"       );
-  outTree_->Branch("dPhiIn_ele",      &dPhiIn_ele,	  "dPhiIn_ele/D"       );
-  outTree_->Branch("hcalOverEcal",    &hcalOverEcal,	  "hcalOverEcal/D"     );
-  outTree_->Branch("full5x5_sigma",   &full5x5_sigma,	  "full5x5_sigma/D"    );
-  outTree_->Branch("ooEmooP",	      &ooEmooP,		  "ooEmooP/D"          );
-  outTree_->Branch("d0",	      &d0,		  "d0/D"               );
-  outTree_->Branch("dz",	      &dz,		  "dz/D"               );
-  
-  outTree_->Branch("relIso_ele",      &relIso_ele,	  "relIso_ele/D"       );
-  outTree_->Branch("missingHits",     &missingHits,	  "missingHits/I"      );
-  outTree_->Branch("passConVeto",     &passConVeto,	  "passConVeto/I"      ); 
- 
-   /// Muon  observables
-  outTree_->Branch("pt_mu",	      &Muon.pt, 	  "pt_mu/D"            );
-  outTree_->Branch("eta_mu", 	      &Muon.eta, 	  "eta_mu/D"           );
-  outTree_->Branch("phi_mu", 	      &Muon.phi, 	  "phi_mu/D"           );
-  outTree_->Branch("charge_mu",       &Muon.charge, 	  "charge_mu/D"        );
-  outTree_->Branch("relIso_muon",     &relIso_muon, 	  "relIso_muon/D"      );
-
- 
-  /// Lepton observables
-  outTree_->Branch("pt_lep",	      &Lepton.pt,	  "pt_lep/D"           );
-  outTree_->Branch("eta_lep",	      &Lepton.eta,	  "eta_lep/D"          );
-  outTree_->Branch("phi_lep",	      &Lepton.phi,	  "phi_lep/D"          );
-  
   /// Other observables
   outTree_->Branch("deltaR_LepWJet",  &deltaR_LepWJet,	  "deltaR_LepWJet/D"   );
   outTree_->Branch("deltaPhi_LepMet", &deltaPhi_LepMet,	  "deltaPhi_LepMet/D"  );
   outTree_->Branch("deltaPhi_WJetMet",&deltaPhi_WJetMet,  "deltaPhi_WJetMet/D" );
   
   //Jet observables
-  outTree_->Branch("Njet",            &Njet,              "Njet/I"   );
-  outTree_->Branch("Pt_J1",  	      &Pt_J1,	  	  "Pt_J1/D"   );
-  outTree_->Branch("Pt_J2",  	      &Pt_J2,	          "Pt_J2/D"   );
-  outTree_->Branch("NBtag",  	      &NBtag,	          "NBtag/I"   );
+  outTree_->Branch("NAK8jet",            &NAK8jet,              "NAK8jet/I"   );
+  outTree_->Branch("jet_pt",  	      &jet_pt,	  	  "jet_pt/D"   );
+  outTree_->Branch("jet_eta",  	      &jet_eta,	  	  "jet_eta/D"   );
+  outTree_->Branch("jet_phi",  	      &jet_phi,	  	  "jet_phi/D"   );
+  outTree_->Branch("jet_mass_pruned", &jet_mass_pruned,	  "jet_mass_pruned/D"   );
+  outTree_->Branch("jet_mass_softdrop",&jet_mass_softdrop,"jet_mass_softdrop/D"   );
+  outTree_->Branch("jet_tau2tau1",    &jet_tau2tau1,	  "jet_tau2tau1/D"   );
+  
+  
+  outTree_->Branch("njets",  	      &njets,	          "njets/I"   );
+  outTree_->Branch("nbtag",  	      &nbtag,	          "nbtag/I"   );
+  
+  outTree_->Branch("jet2_pt",  	      &jet2_pt,	          "jet2_pt/I"   );
+  outTree_->Branch("jet2_btag",       &jet2_btag,         "jet2_btag/I"   );
+  outTree_->Branch("jet3_pt",  	      &jet3_pt,	          "jet3_pt/I"   );
+  outTree_->Branch("jet3_btag",	      &jet3_btag,         "jet3_btag/I"   );
 }
 
 
@@ -229,7 +214,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    nevent = iEvent.eventAuxiliary().event();
    run    = iEvent.eventAuxiliary().run();
-   luminosityBlock     = iEvent.eventAuxiliary().luminosityBlock();
+   lumi   = iEvent.eventAuxiliary().luminosityBlock();
    
    //Hadronic Ws
    edm::Handle<edm::View<pat::Jet> > hadronicVs;
@@ -258,11 +243,20 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //MET
    edm::Handle<edm::View<pat::MET> > metHandle;
    iEvent.getByLabel(metSrc_.c_str(), metHandle);
-
-   nVtx = vertices->size();
    
-   reco::MuonPFIsolation muonIso;
-
+   //electrons
+   edm::Handle<edm::View<reco::Candidate> > looseElectrons;
+   iEvent.getByLabel(looseEleSrc_.c_str(), looseElectrons);
+   
+   //muons
+   edm::Handle<edm::View<reco::Candidate> > looseMuons;
+   iEvent.getByLabel(looseMuSrc_.c_str(), looseMuons); 
+   
+   //leptons (tight)
+   edm::Handle<edm::View<reco::Candidate> > leptons;
+   iEvent.getByLabel(leptonSrc_.c_str(), leptons); 
+   nPV = vertices->size();
+      
    //  Defining decay channel on the gen level
    N_had_Wgen  = 0, N_lep_Wgen = 0 ;
 
@@ -276,161 +270,122 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    N_lep_W = leptonicVs -> size();
    N_had_W = hadronicVs -> size();
    
-
+   //loose leptons
+   nLooseEle = looseElectrons -> size();
+   nLooseMu = looseMuons -> size();
+   
+   //tight leptons
+   if ( ( leptons -> size() ) > 0 )
+   {
+     Lepton.pt = (leptons -> at(0)).pt();
+     Lepton.eta = (leptons -> at(0)).eta();
+     Lepton.phi = (leptons -> at(0)).phi();
+   }
+   
+   else 
+   {
+     Lepton.pt = -99.;
+     Lepton.eta = -99.;
+     Lepton.phi = -99.;
+   }
   
+
+   //leptonically decaying W
+   if (leptonicVs -> size() > 0)
+   {
+      const reco::Candidate& leptonicV = leptonicVs->at(0);   
+      Wboson_lep.pt = leptonicV.pt();
+      Wboson_lep.eta = leptonicV.eta();
+      Wboson_lep.phi = leptonicV.phi();
+      Wboson_lep.mass = leptonicV.mass();
+      Wboson_lep.mt = leptonicV.mt();
+      Wboson_lep.charge = leptonicV.charge();
+  }
+  
+  else 
+   {
+      Wboson_lep.pt = -99.;
+      Wboson_lep.eta = -99.;
+      Wboson_lep.phi = -99.;
+      Wboson_lep.mass = -99.;
+      Wboson_lep.mt = -99.;
+      Wboson_lep.charge = -99.;
+  }
+  
+  //hadronically W 
    const pat::Jet& hadronicV = hadronicVs->at(0);
-   const reco::Candidate& leptonicV = leptonicVs->at(0);
-   const pat::MET& metCand = metHandle->at(0);
-   
-   Wboson_lep.pt = leptonicV.pt();
-   Wboson_lep.eta = leptonicV.eta();
-   Wboson_lep.phi = leptonicV.phi();
-   Wboson_lep.mass = leptonicV.mass();
-   Wboson_lep.mt = leptonicV.mt();
-   Wboson_lep.charge = leptonicV.charge();
-   
+    
    Wboson_had.pt = hadronicV.pt();
    Wboson_had.eta = hadronicV.eta();
    Wboson_had.phi = hadronicV.phi();
    Wboson_had.mass = hadronicV.mass();
    Wboson_had.mt = hadronicV.mt();
-   m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedLinks");
+   m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedLinks");   
 
-   tau1 = hadronicV.userFloat("tau1");
-   tau2 = hadronicV.userFloat("tau2");
-   tau3 = hadronicV.userFloat("tau3");
-   tau21 = hadronicV.userFloat("tau21");
+   tau1 = hadronicV.userFloat("Njettiness:tau1");
+   tau2 = hadronicV.userFloat("Njettiness:tau2");
+   tau3 = hadronicV.userFloat("Njettiness:tau3");
+   tau21 = tau2/tau1;
+   
+   deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,Wboson_had.eta,Wboson_had.phi); 
+   deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
+   deltaPhi_WJetMet = deltaPhi(Wboson_had.phi, METCand.phi);
+   
+   //MET quantities   
+   const pat::MET& metCand = metHandle->at(0);
    
    METCand.pt = metCand.pt();
    METCand.eta = metCand.eta();
    METCand.phi = metCand.phi();
    METCand.mass = metCand.mass();
    METCand.mt = metCand.mt();
+   
+  NAK8jet = jets -> size();
 
-   //Running over leptons
-   
-   int ElectronDaughterIndex = -1, MuonDaughterIndex = -1, LeptonDaughterIndex = -1;
-   
-   for (unsigned int iDaughter = 0; iDaughter < leptonicV.numberOfDaughters(); iDaughter++)
-   {
-     if ( leptonicV.daughter(iDaughter) -> isElectron()) { ElectronDaughterIndex = iDaughter; LeptonDaughterIndex = iDaughter;};
-     if ( leptonicV.daughter(iDaughter) -> isMuon()) {MuonDaughterIndex = iDaughter; LeptonDaughterIndex = iDaughter;};
-   }
-     
-   if( leptonicV.daughter(0)->isElectron() || leptonicV.daughter(1)->isElectron()) {
-      
-      const pat::Electron *el = (pat::Electron*)leptonicV.daughter(ElectronDaughterIndex);
-    
-      Electron.pt  = el->pt() ;
-      Electron.eta = el -> eta();
-      Electron.phi = el -> phi();
-      Electron.charge = el -> charge();
-      
-    
-      etaSC_ele  = el -> superCluster()->eta();
-      dEtaIn_ele = el -> deltaEtaSuperClusterTrackAtVtx();
-      dPhiIn_ele = el -> deltaPhiSuperClusterTrackAtVtx();
-      hcalOverEcal = el->hcalOverEcal();
-      
-      full5x5_sigma = el->full5x5_sigmaIetaIeta();
-      
-      if( el->ecalEnergy() == 0 ){
-	printf("Electron energy is zero!\n");
-	ooEmooP = 1e30;
-      }else if( !std::isfinite(el->ecalEnergy())){
-	printf("Electron energy is not finite!\n");
-	ooEmooP = 1e30;
-      }else{
-	ooEmooP = fabs(1.0/el->ecalEnergy() - el->eSuperClusterOverP()/el->ecalEnergy() );
-      }
+  jet_pt = (jets -> at(0)).pt();
+  jet_eta = (jets -> at(0)).eta();
+  jet_phi = (jets -> at(0)).phi();
+  jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedLinks");
+  jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropLinks");
+  jet_tau2tau1 = ((jets -> at(0)).userFloat("Njettiness:tau2"))/((jets -> at(0)).userFloat("Njettiness:tau1"));
 
-      d0 = (-1)*el->gsfTrack()->dxy(math::XYZPoint(0.,0.,0.)); //Distance wrt origin is not correct  
-      //Implementation of primary vertex needed! 
-      dz = el->gsfTrack()->dz(math::XYZPoint(0.,0.,0.));
-     
-      reco::GsfElectron::PflowIsolationVariables pfIso = el->pfIsolationVariables();
-      double absiso_ele = pfIso.sumChargedHadronPt + std::max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - 0.5*pfIso.sumPUPt );
-      relIso_ele = absiso_ele/el->pt();
-           
-      missingHits = el -> gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
-      passConVeto = el->passConversionVeto();
-      
-     
-    }
-    
-      else {
-      Electron.pt = -99.;
-      Electron.eta = - 99.;
-      Electron.phi = - 99.;
-      Electron.charge = - 99.;
-      
-      etaSC_ele = -99.;
-      dEtaIn_ele = -99.;
-      dPhiIn_ele = -99.;
-      hcalOverEcal = -99. ;
-      full5x5_sigma = -99.;
-      ooEmooP = -99.;
-      d0 = -99.;
-      dz = -99.;
-      relIso_ele = -99.;
-      missingHits = -99;
-      passConVeto = -99;
-    }
-    
-     // Running over muons
-     if( leptonicV.daughter(0)->isMuon() || leptonicV.daughter(1)->isMuon()) {
-       
-     const pat::Muon *muon = (pat::Muon*)leptonicV.daughter(MuonDaughterIndex);
-      Muon.pt   = muon -> pt() ;
-      Muon.eta   = muon -> eta();
-      Muon.phi  = muon -> phi();
-      Muon.charge  = muon -> charge();
-      
-      muonIso = muon->pfIsolationR04();
-      float muon_absiso = (muon->pfIsolationR04()).sumChargedHadronPt + std::max(0.0f, (muon->pfIsolationR04()).sumNeutralHadronEt + (muon->pfIsolationR04()).sumPhotonEt);
-      relIso_muon = muon_absiso/muon -> pt();
-  
-      }
-   
-    else {
-       Muon.pt = -99.;
-       Muon.eta  = -99.;
-       Muon.phi = -99.0;
-       Muon.charge = -99.0;
-       relIso_muon = -99.;
-     }
   
   
-  
-  
-   if ( (jets -> size()) > 0) Pt_J1 = (jets -> at(0)).pt();
-   if ( (jets -> size()) > 1) Pt_J2 = (jets -> at(1)).pt();
-   else Pt_J2 = -99.0;
    
   //Loop over the collection of the jets which contains b-tagging information
-  NBtag = 0; 
-   
+  njets = jets_btag_veto -> size(); 
+  nbtag = 0;
   
   for (unsigned int iBtag = 0; iBtag < jets_btag_veto -> size(); iBtag ++)
   {
     //WP for 8 TeV and preliminary. Should be updated at some point
-    if(((jets_btag_veto -> at(iBtag)).bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) NBtag ++;
+    if(((jets_btag_veto -> at(iBtag)).bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) nbtag ++;
   }
   
+  if (jets_btag_veto -> size() > 0)
+  {
+    jet2_pt = (jets_btag_veto -> at(0)).pt();
+    jet2_btag = (jets_btag_veto -> at(0)).bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags");
+  }
   
-    
-   
-   // Kinematics of leptons and jets
-   Lepton.pt = (leptonicV.daughter(LeptonDaughterIndex))->pt();
-   Lepton.eta = (leptonicV.daughter(LeptonDaughterIndex))->eta();
-   Lepton.phi = (leptonicV.daughter(LeptonDaughterIndex))->phi();
-   
+  else 
+  {
+    jet2_pt = -99.;
+    jet2_btag = -99.;
+  }
+  
+  if (jets_btag_veto -> size() > 1)
+  {
+    jet3_pt = (jets_btag_veto -> at(1)).pt();
+    jet3_btag = (jets_btag_veto -> at(1)).bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags");
+  } 
+  else 
+  {
+    jet3_pt = -99.;
+    jet3_btag = -99.;
+  }
 
-   deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,Wboson_had.eta,Wboson_had.phi); 
-   deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
-   deltaPhi_WJetMet = deltaPhi(Wboson_had.phi, METCand.phi);
-   
-   Njet = jets -> size();
+
 
    outTree_->Fill();
 

@@ -1,17 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 
-#Wtomunu = cms.EDProducer("CandViewShallowCloneCombiner",
-#                         decay = cms.string("goodMuons genMetTrue"),
-#                         checkCharge = cms.bool(False),
-#                         cut = cms.string("mt > 50 & pt > 80")
-#                         )
-
-#Wtoenu = cms.EDProducer("CandViewCombiner",
-#                        decay = cms.string("goodElectrons genMetTrue"),
-#                        checkCharge = cms.bool(False),
-#                        cut = cms.string("mt > 50 & pt > 80")
-#                        )
-
 Wtomunu = cms.EDProducer("WLeptonicProducer",
                          leptons = cms.InputTag("looseMuons"),
                          MET = cms.InputTag("slimmedMETs"),
@@ -30,5 +18,3 @@ leptonicV = cms.EDProducer("CandViewMerger",
                            cut = cms.string("")
                            ) 
 
-leptonicVSequence = cms.Sequence(Wtomunu + Wtoenu + leptonicV)
-#pt > 200 & (70.0 < mass < 90.0)

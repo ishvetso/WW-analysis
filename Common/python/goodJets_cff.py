@@ -1,10 +1,102 @@
 import FWCore.ParameterSet.Config as cms
 from PhysicsTools.SelectorUtils.pfJetIDSelector_cfi import pfJetIDSelector
 
-goodJets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
-                        filterParams = pfJetIDSelector.clone(),
-                        src = cms.InputTag("slimmedJetsAK8")
-                        )
+
+# adding softdrop
+
+from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHS, ak8PFJetsCHSPruned, ak8PFJetsCHSSoftDrop, ak8PFJetsCHSPrunedLinks, ak8PFJetsCHSSoftDropLinks
+
+chs = cms.EDFilter("CandPtrSelector",
+src = cms.InputTag('packedPFCandidates'),
+cut = cms.string('fromPV')
+)
+
+
+ak8PFJetsCHS.src = cms.InputTag('chs')
+ak8PFJetsCHSPruned.src = cms.InputTag('chs')
+ak8PFJetsCHSSoftDrop.src = cms.InputTag('chs')
+
+from RecoJets.JetProducers.nJettinessAdder_cfi import Njettiness
+Njettiness.src = cms.InputTag('ak8PFJetsCHS')
+
+substructureSequence = cms.Sequence(chs +
+				    ak8PFJetsCHS +
+				    ak8PFJetsCHSPruned +
+				    ak8PFJetsCHSSoftDrop +				    
+				    ak8PFJetsCHSPrunedLinks +
+				    ak8PFJetsCHSSoftDropLinks +
+				    Njettiness)
+
+
+patJetCorrFactorsAK8 = cms.EDProducer("JetCorrFactorsProducer",
+				      src = cms.InputTag("ak8PFJetsCHS"),
+				      emf = cms.bool(False),
+				      extraJPTOffset = cms.string('L1FastJet'),
+				      primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
+				      levels = cms.vstring('L1FastJet',
+				      'L2Relative',
+				      'L3Absolute'),
+				      useNPV = cms.bool(True),
+				      rho = cms.InputTag("fixedGridRhoFastjetAll"),
+				      useRho = cms.bool(True),
+				      payload = cms.string('AK8PFchs'),
+				      flavorType = cms.string('J')
+				      )
+patJetsAK8 = cms.EDProducer("PATJetProducer",
+			    addJetCharge = cms.bool(False),
+			    addGenJetMatch = cms.bool(False),
+			    embedGenJetMatch = cms.bool(False),
+			    addAssociatedTracks = cms.bool(False),
+			    addBTagInfo = cms.bool(False),
+			    partonJetSource = cms.InputTag("NOT_IMPLEMENTED"),
+			    addGenPartonMatch = cms.bool(False),
+			    JetPartonMapSource = cms.InputTag(""),
+			    resolutions = cms.PSet(),
+			    genPartonMatch = cms.InputTag(""),
+			    addTagInfos = cms.bool(False),
+			    addPartonJetMatch = cms.bool(False),
+			    embedGenPartonMatch = cms.bool(False),
+			    efficiencies = cms.PSet(),
+			    genJetMatch = cms.InputTag(""),
+			    useLegacyJetMCFlavour = cms.bool(False),
+			    userData = cms.PSet(
+			    userCands = cms.PSet(
+			    src = cms.VInputTag("")
+			    ),
+			    userInts = cms.PSet(
+			    src = cms.VInputTag("")
+			    ),
+			    userFloats = cms.PSet(
+			    src = cms.VInputTag("ak8PFJetsCHSPrunedLinks",
+			    "ak8PFJetsCHSSoftDropLinks", "Njettiness:tau1", "Njettiness:tau2", "Njettiness:tau3", "Njettiness:tau4")
+			    ),
+			    userClasses = cms.PSet(
+			    src = cms.VInputTag("")
+			    ),
+			    userFunctionLabels = cms.vstring(),
+			    userFunctions = cms.vstring()
+			    ),
+			    jetSource = cms.InputTag("ak8PFJetsCHS"),
+			    addEfficiencies = cms.bool(False),
+			    discriminatorSources = cms.VInputTag(),
+			    trackAssociationSource = cms.InputTag(""),
+			    tagInfoSources = cms.VInputTag(cms.InputTag("")),
+			    jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsAK8")),
+			    embedPFCandidates = cms.bool(False),
+			    addJetFlavourInfo = cms.bool(False),
+			    addResolutions = cms.bool(False),
+			    getJetMCFlavour = cms.bool(False),
+			    addDiscriminators = cms.bool(False),
+			    jetChargeSource = cms.InputTag(""),
+			    JetFlavourInfoSource = cms.InputTag(""),
+			    addJetCorrFactors = cms.bool(True),
+			    jetIDMap = cms.InputTag(""),
+			    addJetID = cms.bool(False)
+)
+			    
+
+redoPatJets = cms.Sequence(patJetCorrFactorsAK8 + patJetsAK8)
+
 
 ### Cleaning
 # We want to make sure that the jets are not the electrons or muons done previously
@@ -12,7 +104,7 @@ goodJets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
 import PhysicsTools.PatAlgos.cleaningLayer1.jetCleaner_cfi as jetCleaner_cfi
 
 cleanJets = jetCleaner_cfi.cleanPatJets.clone()
-cleanJets.src = "goodJets"
+cleanJets.src = "patJetsAK8"
 cleanJets.checkOverlaps.muons.src = "tightMuons"
 cleanJets.checkOverlaps.muons.deltaR = 1.0
 cleanJets.checkOverlaps.muons.requireNoOverlaps = True
@@ -26,12 +118,15 @@ cleanJets.checkOverlaps.electrons.requireNoOverlaps = True
 cleanJets.checkOverlaps.photons = cms.PSet()
 cleanJets.checkOverlaps.taus = cms.PSet()
 cleanJets.checkOverlaps.tkIsoElectrons = cms.PSet()
-cleanJets.finalCut = "pt > 40 & abs(eta) < 2.4"
+cleanJets.finalCut = ""
 
-'''jetsWithTau = cms.EDProducer("NJettinessAdder",
-                             src = cms.InputTag("cleanJets"),
-                             cone = cms.double(0.8)
-                             )'''
+
+goodJets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
+                        filterParams = pfJetIDSelector.clone(),
+                        src = cms.InputTag("cleanJets")
+                        )
+
+fatJetsSequence = cms.Sequence(cleanJets + goodJets)
 # Create a different collection of jets which  contains b-tagging information. This is necessary because slimmedJetsAK8 jets don't contain BTagInfo
 
 AK4Jets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
@@ -49,12 +144,22 @@ cleanAK4Jets.checkOverlaps.muons.requireNoOverlaps = True
 #cleanJets.checkOverlaps.muons = cms.PSet()
 
 cleanAK4Jets.checkOverlaps.electrons.src = "tightElectrons"
-cleanAK4Jets.checkOverlaps.electrons.deltaR = 0.8
+cleanAK4Jets.checkOverlaps.electrons.deltaR = 0.3
 cleanAK4Jets.checkOverlaps.electrons.requireNoOverlaps = True
 cleanAK4Jets.checkOverlaps.photons = cms.PSet()
 cleanAK4Jets.checkOverlaps.taus = cms.PSet()
 cleanAK4Jets.checkOverlaps.tkIsoElectrons = cms.PSet()
 cleanAK4Jets.finalCut = "pt > 30 & abs(eta) < 2.4"
 
-fatJetsSequence = cms.Sequence(goodJets + cleanJets )
+
 AK4JetsSequence = cms.Sequence(AK4Jets + cleanAK4Jets)
+
+
+
+
+
+
+
+
+
+
