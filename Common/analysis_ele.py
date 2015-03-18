@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(1000)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -47,14 +47,14 @@ setupVIDSelection(process.egmGsfElectronIDs,process.heepElectronID_HEEPV51_miniA
 # END ELECTRON ID SECTION
 
 process.leptonFilter = cms.EDFilter("CandViewCountFilter",
-				    src = cms.InputTag("slimmedMuons"),
+				    src = cms.InputTag("slimmedElectrons"),
                                     minNumber = cms.uint32(1),
 				   )
 
 process.leptonSequence = cms.Sequence(process.leptonFilter +
 				      process.muSequence +
 				      process.eleSequence +
-                                      process.Wtomunu )
+                                      process.Wtoenu )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("slimmedJetsAK8"),
@@ -71,7 +71,7 @@ process.jetSequence = cms.Sequence(process.jetFilter +
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     hadronicVSrc = cms.string("hadronicV"),
-                                    leptonicVSrc = cms.string("Wtomunu"),
+                                    leptonicVSrc = cms.string("Wtoenu"),
                                     metSrc = cms.string("slimmedMETs"),
                                     genSrc = cms.string("prunedGenParticles"),
                                     jetSrc = cms.string("goodJets"),
@@ -79,7 +79,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
                                     looseEleSrc = cms.string("looseElectrons"),
                                     looseMuSrc = cms.string("looseMuons"),
-                                    leptonSrc = cms.string("tightMuons"),
+                                    leptonSrc = cms.string("tightElectrons"),
                                     )
 
 
@@ -90,7 +90,7 @@ process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 process.analysis = cms.Path(process.DecayChannel +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
 
 
-#process.maxEvents.input = 1000
+process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
     fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_PHYS14.root')
@@ -112,5 +112,5 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.outpath = cms.EndPath(process.out)
 
 process.TFileService = cms.Service("TFileService",
-                                 fileName = cms.string("tree_mu.root")
+                                 fileName = cms.string("tree_ele.root")
                                   )

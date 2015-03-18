@@ -2,7 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-
+#include <algorithm> 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -110,10 +110,10 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
-  outTree_ = fs->make<TTree>("Basic Info","Basic Info");
+  outTree_ = fs->make<TTree>("BasicTree","BasicTree");
 
   //event info
-  outTree_->Branch("nevent",	      &nevent,    	  "nevent/I"           );
+  outTree_->Branch("event",	      &nevent,    	  "event/I"           );
   outTree_->Branch("lumi", 	      &lumi,   		  "lumi/I"  		);
   outTree_->Branch("run",	      &run,		  "run/I"  	       );
   
@@ -270,7 +270,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    else WDecayClass = UnDefined;
 
    N_lep_W = leptonicVs -> size();
-   N_had_W = hadronicVs -> size();
+   N_had_W = hadronicVs -> size();   
    
    //loose leptons
    nLooseEle = looseElectrons -> size();
@@ -393,6 +393,14 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    lvj_p4 = hadronicVp4 + leptonicVp4;
    if (leptonicVs -> size() > 0)  m_lvj = lvj_p4.M();
    else m_lvj = -99.;
+   
+   for (unsigned int iWlep = 0; iWlep < leptonicVs -> size(); iWlep ++)
+   { 
+     std::cout << (leptonicVs -> at(iWlep)).pt() << std::endl; 
+     
+   }
+     
+  
 
 
 
