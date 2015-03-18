@@ -19,7 +19,7 @@
 
 // system include files
 #include <memory>
-
+#include <algorithm>
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
@@ -98,6 +98,11 @@ WLeptonicProducer::~WLeptonicProducer()
 
 }
 
+bool byPt (reco::CompositeCandidate cand1,reco::CompositeCandidate cand2)
+{ 
+  return (cand1.pt() > cand2.pt() ); 
+  
+}
 
 //
 // member functions
@@ -120,6 +125,8 @@ WLeptonicProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    reco::CandidateBaseRef METBaseRef = MET_h->refAt(0);
 
    std::auto_ptr<reco::CompositeCandidateCollection> outCollection(new reco::CompositeCandidateCollection);
+   
+
 
    
    /// Loop on the leptons and combine them with the MET
@@ -136,6 +143,7 @@ WLeptonicProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      if(pass) outCollection->push_back(WLeptonic);
    }
 
+   std::sort(outCollection->begin(), outCollection->end(), byPt);
    iEvent.put(outCollection);
 }
 
