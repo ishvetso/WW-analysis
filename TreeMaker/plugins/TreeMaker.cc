@@ -29,6 +29,7 @@
 
 #include "TTree.h"
 #include "TFile.h"
+#include "TLorentzVector.h"
 
 #include "DecayChannel.h"
 #include "DecayClass.h"
@@ -81,9 +82,9 @@ private:
   //AK4 jets
   double jet2_pt, jet2_btag, jet3_pt, jet3_btag;
   
-  //for the collection with b-tagging info
-  int NBtag;
-
+  //m_lvj
+  double m_lvj;
+  
   /// Parameters to steer the treeDumper
   std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_, jetsSrc_, jets_btag_veto_Src_, vertexSrc_, looseEleSrc_, looseMuSrc_, leptonSrc_;
 };
@@ -163,7 +164,6 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
 
   //MET observables  
   outTree_->Branch("pfMET", 	      &METCand.pt, 	  "pfMET/D"              );
-  outTree_->Branch("pfMETEta",	      &METCand.eta, 	  "pfMETEta/D"          );
   outTree_->Branch("pfMETPhi",	      &METCand.phi, 	  "pfMETPhi/D"          );
   outTree_->Branch("pfMETMass",	      &METCand.mass, 	  "pfMETMass/D"         );
   outTree_->Branch("pfMETMt",	      &METCand.mt, 	  "pfMETMt/D"           );
@@ -190,6 +190,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("jet2_btag",       &jet2_btag,         "jet2_btag/D"   );
   outTree_->Branch("jet3_pt",  	      &jet3_pt,	          "jet3_pt/D"   );
   outTree_->Branch("jet3_btag",	      &jet3_btag,         "jet3_btag/D"   );
+  
+  outTree_->Branch("m_lvj",	      &m_lvj,         "m_lvj/D"   );
 }
 
 
@@ -293,7 +295,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //leptonically decaying W
    if (leptonicVs -> size() > 0)
    {
-      const reco::Candidate& leptonicV = leptonicVs->at(0);   
+      const reco::Candidate  & leptonicV = leptonicVs->at(0);   
       Wboson_lep.pt = leptonicV.pt();
       Wboson_lep.eta = leptonicV.eta();
       Wboson_lep.phi = leptonicV.phi();
@@ -335,7 +337,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    const pat::MET& metCand = metHandle->at(0);
    
    METCand.pt = metCand.pt();
-   METCand.eta = metCand.eta();
    METCand.phi = metCand.phi();
    METCand.mass = metCand.mass();
    METCand.mt = metCand.mt();
@@ -352,7 +353,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   
   
    
-  //Loop over the collection of the jets which contains b-tagging information
+  //Loop over the collection of the AK4 jets which contain b-tagging information (to veto b-jets)
   njets = jets_btag_veto -> size(); 
   nbtag = 0;
   
@@ -384,6 +385,14 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet3_pt = -99.;
     jet3_btag = -99.;
   }
+  
+  //diboson mass
+   TLorentzVector hadronicVp4, leptonicVp4, lvj_p4;
+   hadronicVp4.SetPtEtaPhiM(hadronicV.pt(),hadronicV.eta(),hadronicV.phi(),hadronicV.mass());
+   leptonicVp4.SetPtEtaPhiM(Wboson_lep.pt,Wboson_lep.eta,Wboson_lep.phi,Wboson_lep.mass);
+   lvj_p4 = hadronicVp4 + leptonicVp4;
+   if (leptonicVs -> size() > 0)  m_lvj = lvj_p4.M();
+   else m_lvj = -99.;
 
 
 
