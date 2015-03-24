@@ -7,14 +7,17 @@ from PhysicsTools.SelectorUtils.pfJetIDSelector_cfi import pfJetIDSelector
 from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHS, ak8PFJetsCHSPruned, ak8PFJetsCHSSoftDrop, ak8PFJetsCHSPrunedLinks, ak8PFJetsCHSSoftDropLinks
 
 chs = cms.EDFilter("CandPtrSelector",
-src = cms.InputTag('packedPFCandidates'),
-cut = cms.string('fromPV')
-)
+		  src = cms.InputTag('packedPFCandidates'),
+		  cut = cms.string('fromPV')
+		  )
 
 
 ak8PFJetsCHS.src = cms.InputTag('chs')
+ak8PFJetsCHS.jetPtMin = cms.double(100.0)
 ak8PFJetsCHSPruned.src = cms.InputTag('chs')
 ak8PFJetsCHSSoftDrop.src = cms.InputTag('chs')
+
+
 
 from RecoJets.JetProducers.nJettinessAdder_cfi import Njettiness
 Njettiness.src = cms.InputTag('ak8PFJetsCHS')
@@ -133,6 +136,12 @@ AK4Jets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
                         filterParams = pfJetIDSelector.clone(),
                         src = cms.InputTag("slimmedJets")
                         )
+
+bestJets =cms.EDProducer("LargestPtCandViewSelector",
+    src = cms.InputTag("goodJets"), 
+    maxNumber = cms.uint32(1)
+  )
+
 
 cleanAK4Jets = jetCleaner_cfi.cleanPatJets.clone()
 cleanAK4Jets.src = "AK4Jets"
