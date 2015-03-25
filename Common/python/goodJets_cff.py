@@ -112,7 +112,6 @@ cleanJets.checkOverlaps.muons.src = "tightMuons"
 cleanJets.checkOverlaps.muons.deltaR = 1.0
 cleanJets.checkOverlaps.muons.requireNoOverlaps = True
 
-
 #cleanJets.checkOverlaps.muons = cms.PSet()
 
 cleanJets.checkOverlaps.electrons.src = "tightElectrons"
@@ -129,7 +128,13 @@ goodJets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
                         src = cms.InputTag("cleanJets")
                         )
 
-fatJetsSequence = cms.Sequence(cleanJets + goodJets)
+
+bestJet =cms.EDFilter("LargestPtCandViewSelector",
+    src = cms.InputTag("goodJets"), 
+    maxNumber = cms.uint32(1)
+  )
+
+fatJetsSequence = cms.Sequence(cleanJets + goodJets + bestJet)
 # Create a different collection of jets which  contains b-tagging information. This is necessary because slimmedJetsAK8 jets don't contain BTagInfo
 
 AK4Jets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
@@ -137,10 +142,6 @@ AK4Jets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
                         src = cms.InputTag("slimmedJets")
                         )
 
-bestJets =cms.EDProducer("LargestPtCandViewSelector",
-    src = cms.InputTag("goodJets"), 
-    maxNumber = cms.uint32(1)
-  )
 
 
 cleanAK4Jets = jetCleaner_cfi.cleanPatJets.clone()
@@ -158,10 +159,19 @@ cleanAK4Jets.checkOverlaps.electrons.requireNoOverlaps = True
 cleanAK4Jets.checkOverlaps.photons = cms.PSet()
 cleanAK4Jets.checkOverlaps.taus = cms.PSet()
 cleanAK4Jets.checkOverlaps.tkIsoElectrons = cms.PSet()
+cleanAK4Jets.checkOverlaps.jets = cms.PSet(
+					src = cms.InputTag("bestJet"),
+					algorithm = cms.string("byDeltaR"),
+					preselection = cms.string(""),
+					deltaR = cms.double(0.8),
+					checkRecoComponents = cms.bool(False), # don't check if they share some AOD object ref
+					pairCut = cms.string(""),
+					requireNoOverlaps = cms.bool(True), # overlaps don't cause the jet to be discared
+				      )
+
 cleanAK4Jets.finalCut = "pt > 30 & abs(eta) < 2.4"
 
-
-AK4JetsSequence = cms.Sequence(AK4Jets + cleanAK4Jets)
+AK4JetsSequence = cms.Sequence(AK4Jets + cleanAK4Jets )
 
 
 
