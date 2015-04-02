@@ -69,11 +69,11 @@ private:
   int N_had_W, N_lep_W;
   int N_had_Wgen, N_lep_Wgen;
   
-  int nLooseEle, nLooseMu;
+  int nLooseEle, nLooseMu, nLep;
 
   double tau1, tau2, tau3, tau21;
   
-  double deltaR_LepWJet, deltaPhi_LepMet, deltaPhi_WJetMet;
+  double deltaR_LepWJet, deltaPhi_LepMet, deltaPhi_WJetMet, deltaPhi_WJetWlep;
   
   //Jets
   int NAK8jet, njets, nbtag;
@@ -124,6 +124,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("nLooseEle",      &nLooseEle, 	  "nLooseEle/I"       );
   outTree_->Branch("nLooseMu",      &nLooseMu, 	  "nLooseMu/I"       );
   
+  // number of leptons for particular mu/ele channel (should be tight lepton)
+  outTree_->Branch("nLep",            &nLep, 	      "nLep/I"       );
+  
   //leptons (tight, ele or mu depends on the channel)
   outTree_->Branch("l_pt",	      &Lepton.pt,      "l_pt/D"         	);
   outTree_->Branch("l_eta",	      &Lepton.eta,     "l_eta/D"        	);
@@ -172,7 +175,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
   outTree_->Branch("deltaR_LepWJet",  &deltaR_LepWJet,	  "deltaR_LepWJet/D"   );
   outTree_->Branch("deltaPhi_LepMet", &deltaPhi_LepMet,	  "deltaPhi_LepMet/D"  );
   outTree_->Branch("deltaPhi_WJetMet",&deltaPhi_WJetMet,  "deltaPhi_WJetMet/D" );
-  
+  outTree_->Branch("deltaPhi_WJetWlep",&deltaPhi_WJetWlep,  "deltaPhi_WJetWlep/D" );
   //Jet observables
   outTree_->Branch("NAK8jet",            &NAK8jet,              "NAK8jet/I"   );
   outTree_->Branch("jet_pt",  	      &jet_pt,	  	  "jet_pt/D"   );
@@ -276,6 +279,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nLooseEle = looseElectrons -> size();
    nLooseMu = looseMuons -> size();
    
+   nLep = leptons -> size();
+   
    //tight leptons
    if ( ( leptons -> size() ) > 0 )
    {
@@ -315,23 +320,52 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
   
   //hadronically W 
-   const pat::Jet& hadronicV = hadronicVs->at(0);
-    
-   Wboson_had.pt = hadronicV.pt();
-   Wboson_had.eta = hadronicV.eta();
-   Wboson_had.phi = hadronicV.phi();
-   Wboson_had.mass = hadronicV.mass();
-   Wboson_had.mt = hadronicV.mt();
-   m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedLinks");   
+  if (hadronicVs -> size() > 0)
+  {
+    const pat::Jet& hadronicV = hadronicVs->at(0);
+      
+    Wboson_had.pt = hadronicV.pt();
+    Wboson_had.eta = hadronicV.eta();
+    Wboson_had.phi = hadronicV.phi();
+    Wboson_had.mass = hadronicV.mass();
+    Wboson_had.mt = hadronicV.mt();
+    m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedLinks");   
 
-   tau1 = hadronicV.userFloat("Njettiness:tau1");
-   tau2 = hadronicV.userFloat("Njettiness:tau2");
-   tau3 = hadronicV.userFloat("Njettiness:tau3");
-   tau21 = tau2/tau1;
+    tau1 = hadronicV.userFloat("Njettiness:tau1");
+    tau2 = hadronicV.userFloat("Njettiness:tau2");
+    tau3 = hadronicV.userFloat("Njettiness:tau3");
+    tau21 = tau2/tau1;
+  }
    
-   deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,Wboson_had.eta,Wboson_had.phi); 
-   deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
-   deltaPhi_WJetMet = deltaPhi(Wboson_had.phi, METCand.phi);
+   else 
+   {
+     Wboson_had.pt = -99.;
+     Wboson_had.eta = -99.;
+     Wboson_had.phi = -99.;
+     Wboson_had.mass = -99.;
+     Wboson_had.mt = -99.;
+     m_pruned = -99.;   
+
+     tau1 = -99.;
+     tau2 = -99.;
+     tau3 = -99.;
+     tau21 = -99.;     
+   }
+   
+    if (hadronicVs -> size() > 0 && leptonicVs -> size() > 0)
+    {
+      deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,Wboson_had.eta,Wboson_had.phi); 
+      deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
+      deltaPhi_WJetMet = deltaPhi(Wboson_had.phi, METCand.phi);
+      deltaPhi_WJetWlep = deltaPhi(Wboson_had.phi, Wboson_lep.phi);
+    }
+    else 
+    {
+      deltaR_LepWJet = -99.; 
+      deltaPhi_LepMet = -99.;
+      deltaPhi_WJetMet = -99.;
+      deltaPhi_WJetWlep = -99.;
+    }
    
    //MET quantities   
    const pat::MET& metCand = metHandle->at(0);
@@ -343,13 +377,26 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
   NAK8jet = jets -> size();
 
-  jet_pt = (jets -> at(0)).pt();
-  jet_eta = (jets -> at(0)).eta();
-  jet_phi = (jets -> at(0)).phi();
-  jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedLinks");
-  jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropLinks");
-  jet_tau2tau1 = ((jets -> at(0)).userFloat("Njettiness:tau2"))/((jets -> at(0)).userFloat("Njettiness:tau1"));
-
+   
+   if (jets -> size() > 0)
+  {
+    jet_pt = (jets -> at(0)).pt();
+    jet_eta = (jets -> at(0)).eta();
+    jet_phi = (jets -> at(0)).phi();
+    jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedLinks");
+    jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropLinks");
+    jet_tau2tau1 = ((jets -> at(0)).userFloat("Njettiness:tau2"))/((jets -> at(0)).userFloat("Njettiness:tau1"));
+  }
+  
+  else 
+  {
+    jet_pt = -99.;
+    jet_eta = -99.;
+    jet_phi = -99.;
+    jet_mass_pruned = -99.;
+    jet_mass_softdrop = -99.;
+    jet_tau2tau1 = -99.;
+  }
   
   
    
@@ -388,20 +435,11 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   
   //diboson mass
    TLorentzVector hadronicVp4, leptonicVp4, lvj_p4;
-   hadronicVp4.SetPtEtaPhiM(hadronicV.pt(),hadronicV.eta(),hadronicV.phi(),hadronicV.mass());
+   hadronicVp4.SetPtEtaPhiM(Wboson_had.pt,Wboson_had.eta,Wboson_had.phi,Wboson_had.mass);
    leptonicVp4.SetPtEtaPhiM(Wboson_lep.pt,Wboson_lep.eta,Wboson_lep.phi,Wboson_lep.mass);
    lvj_p4 = hadronicVp4 + leptonicVp4;
    if (leptonicVs -> size() > 0)  m_lvj = lvj_p4.M();
    else m_lvj = -99.;
-   
-   for (unsigned int iWlep = 0; iWlep < leptonicVs -> size(); iWlep ++)
-   { 
-     std::cout << (leptonicVs -> at(iWlep)).pt() << std::endl; 
-     
-   }
-     
-  
-
 
 
    outTree_->Fill();
