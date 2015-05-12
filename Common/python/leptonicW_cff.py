@@ -1,15 +1,25 @@
 import FWCore.ParameterSet.Config as cms
 
+bestMuon =cms.EDFilter("LargestPtCandViewSelector",
+    src = cms.InputTag("tightMuons"), 
+    maxNumber = cms.uint32(1)
+  )
+
+bestElectron =cms.EDFilter("LargestPtCandViewSelector",
+    src = cms.InputTag("tightElectrons"), 
+    maxNumber = cms.uint32(1)
+  )
+
 Wtomunu = cms.EDProducer("WLeptonicProducer",
-                         leptons = cms.InputTag("looseMuons"),
-                         MET = cms.InputTag("slimmedMETs"),
+                         leptons = cms.InputTag("bestMuon"),
+                         MET = cms.InputTag("patMETs"),
                          cut = cms.string("")
                          )
 
 
 Wtoenu = cms.EDProducer("WLeptonicProducer",
-                        leptons = cms.InputTag("looseElectrons"),
-                        MET = cms.InputTag("slimmedMETs"),
+                        leptons = cms.InputTag("bestElectron"),
+                        MET = cms.InputTag("patMETs"),
                         cut = cms.string("")
                         )
 
@@ -17,4 +27,6 @@ leptonicV = cms.EDProducer("CandViewMerger",
                            src = cms.VInputTag( "Wtoenu", "Wtomunu"),
                            cut = cms.string("")
                            ) 
+
+leptonicVSequence = cms.Sequence(bestElectron + bestMuon + Wtomunu + Wtoenu + leptonicV)
 

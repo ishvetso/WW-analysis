@@ -55,16 +55,17 @@ process.leptonFilter = cms.EDFilter("CandViewCountFilter",
 process.leptonSequence = cms.Sequence(process.leptonFilter +
 				      process.muSequence +
 				      process.eleSequence +
-                                      process.Wtoenu )
+                                      process.leptonicVSequence)
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
-                                 src = cms.InputTag("slimmedJetsAK8"),
+                                 src = cms.InputTag("patJetsAK8"),
                                  minNumber = cms.uint32(1),
                                 )
 
-process.jetSequence = cms.Sequence(process.jetFilter +
-				   process.substructureSequence +
+process.jetSequence = cms.Sequence(process.substructureSequence +
 				   process.redoPatJets + 
+				   process.jetFilter +
+				   process.redoPatAK4Jets +
 				   process.fatJetsSequence +
 				   process.AK4JetsSequence +
 				   process.hadronicV)
