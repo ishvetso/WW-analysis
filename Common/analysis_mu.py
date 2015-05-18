@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(100000)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -10,6 +10,7 @@ process.options.allowUnscheduled = cms.untracked.bool(False)
 
 process.load("WW-analysis.Common.goodMuons_cff")
 process.load("WW-analysis.Common.goodElectrons_cff")
+process.load("WW-analysis.Common.MET_cff")
 process.load("WW-analysis.Common.goodJets_cff")
 process.load("WW-analysis.Common.trigger_cff")
 
@@ -54,16 +55,17 @@ process.leptonFilter = cms.EDFilter("CandViewCountFilter",
 process.leptonSequence = cms.Sequence(process.leptonFilter +
 				      process.muSequence +
 				      process.eleSequence +
-                                      process.Wtomunu )
+                                      process.leptonicVSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
-                                 src = cms.InputTag("slimmedJetsAK8"),
+                                 src = cms.InputTag("patJetsAK8"),
                                  minNumber = cms.uint32(1),
                                 )
 
-process.jetSequence = cms.Sequence(process.jetFilter +
-				   process.substructureSequence +
+process.jetSequence = cms.Sequence(process.substructureSequence +
 				   process.redoPatJets + 
+				   process.jetFilter +
+				   process.redoPatAK4Jets +
 				   process.fatJetsSequence +
 				   process.AK4JetsSequence +
 				   process.hadronicV)
@@ -87,13 +89,13 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.DecayChannel +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.DecayChannel + process.metSequence +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
 
 
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_PHYS14.root')
+    fileNames = cms.untracked.vstring('file:////afs/cern.ch/work/i/ishvetso/RunII_preparation/Synchronization_March2015/miniAOD/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_synch_exercise.root')
     
 )
 
@@ -104,12 +106,12 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 
-process.out = cms.OutputModule("PoolOutputModule",
+'''process.out = cms.OutputModule("PoolOutputModule",
  fileName = cms.untracked.string('patTuple.root'),
   outputCommands = cms.untracked.vstring('keep *')
 )
 
-process.outpath = cms.EndPath(process.out)
+process.outpath = cms.EndPath(process.out)'''
 
 process.TFileService = cms.Service("TFileService",
                                  fileName = cms.string("tree_mu.root")
