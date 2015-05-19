@@ -74,7 +74,7 @@ process.jetSequence = cms.Sequence(process.substructureSequence +
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     hadronicVSrc = cms.string("hadronicV"),
                                     leptonicVSrc = cms.string("Wtomunu"),
-                                    metSrc = cms.string("slimmedMETs"),
+                                    metSrc = cms.string("patMETs"),
                                     genSrc = cms.string("prunedGenParticles"),
                                     jetSrc = cms.string("goodJets"),
                                     jets_btag_veto_Src  = cms.string("cleanAK4Jets"),
@@ -103,7 +103,7 @@ process.source = cms.Source("PoolSource",
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 
 '''process.out = cms.OutputModule("PoolOutputModule",
