@@ -2,15 +2,23 @@ import FWCore.ParameterSet.Config as cms
 
 from RecoJets.JetProducers.ak4PFJets_cfi import *
 from RecoMET.METProducers.PFMET_cfi import pfMet
+from PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi import patMETs
+
 
 pfMet = pfMet.clone(src = "packedPFCandidates")
 pfMet.calculateSignificance = False # this can't be easily implemented on packed PF candidates at the moment
 
-MyPFJetParameters =  PFJetParameters.clone()
-MyPFJetParameters.src = cms.InputTag('packedPFCandidates')
+
+patMETs.addGenMET = cms.bool(False)
+
+
+
+AK4PFJetParameters =  PFJetParameters.clone()
+AK4PFJetParameters.src = cms.InputTag('packedPFCandidates')
+
 
 ak4PFJetsOnPackedCandidates = cms.EDProducer("FastjetJetProducer",
-					      MyPFJetParameters,
+					      AK4PFJetParameters,
 					      AnomalousCellParameters,
 					      jetAlgorithm = cms.string("AntiKt"),
 					      rParam       = cms.double(0.4)
@@ -62,4 +70,4 @@ pfMetT1 = cms.EDProducer(
     ),
 )   
 
-metSequence = cms.Sequence(pfMet + ak4PFJetsOnPackedCandidates + ak4PFL1FastjetCorrector + ak4PFL2RelativeCorrector + ak4PFL3AbsoluteCorrector + ak4PFL1FastL2L3Corrector + corrPfMetType1 + pfMetT1)
+metSequence = cms.Sequence(pfMet  + ak4PFJetsOnPackedCandidates + ak4PFL1FastjetCorrector + ak4PFL2RelativeCorrector + ak4PFL3AbsoluteCorrector + ak4PFL1FastL2L3Corrector + corrPfMetType1 + pfMetT1 + patMETs)

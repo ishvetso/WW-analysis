@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from PhysicsTools.SelectorUtils.pfJetIDSelector_cfi import pfJetIDSelector
-
+from RecoJets.JetProducers.ak4PFJets_cfi import *
 
 # adding softdrop
 
@@ -105,6 +105,23 @@ selectedPatJetsAK8 = cms.EDFilter("PATJetSelector",
 
 redoPatJets = cms.Sequence(patJetCorrFactorsAK8 + patJetsAK8 + selectedPatJetsAK8)
 
+packedPFCandidatesCHS = cms.EDFilter("CandViewSelector",
+			  src = cms.InputTag("packedPFCandidates"),
+			  cut = cms.string("fromPV > 0")
+			 )	
+
+
+AK4PFCHSJetParameters =  PFJetParameters.clone()
+AK4PFCHSJetParameters.src = cms.InputTag('packedPFCandidatesCHS')
+AK4PFCHSJetParameters.jetPtMin = cms.double(10.0)
+
+ak4PFJetsOnPackedCandidatesCHS = cms.EDProducer("FastjetJetProducer",
+					      AK4PFCHSJetParameters,
+					      AnomalousCellParameters,
+					      jetAlgorithm = cms.string("AntiKt"),
+					      rParam       = cms.double(0.4)
+					     )
+
 patJetCorrFactorsAK4 = cms.EDProducer("JetCorrFactorsProducer",
 				      src = cms.InputTag("ak4PFJetsOnPackedCandidatesCHS"),
 				      emf = cms.bool(False),
@@ -172,7 +189,7 @@ patJetsAK4 = cms.EDProducer("PATJetProducer",
 			    
 			    
 
-redoPatAK4Jets = cms.Sequence(patJetCorrFactorsAK4 + patJetsAK4)
+redoPatAK4Jets = cms.Sequence(packedPFCandidatesCHS + ak4PFJetsOnPackedCandidatesCHS + patJetCorrFactorsAK4 + patJetsAK4)
 
 
 ### Cleaning
@@ -181,7 +198,7 @@ redoPatAK4Jets = cms.Sequence(patJetCorrFactorsAK4 + patJetsAK4)
 import PhysicsTools.PatAlgos.cleaningLayer1.jetCleaner_cfi as jetCleaner_cfi
 
 cleanJets = jetCleaner_cfi.cleanPatJets.clone()
-cleanJets.src = "selectedPatJetsAK8"
+cleanJets.src = "patJetsAK8"
 cleanJets.checkOverlaps.muons.src = "tightMuons"
 cleanJets.checkOverlaps.muons.deltaR = 1.0
 cleanJets.checkOverlaps.muons.requireNoOverlaps = True
