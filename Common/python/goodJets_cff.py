@@ -4,7 +4,7 @@ from RecoJets.JetProducers.ak4PFJets_cfi import *
 
 # adding softdrop
 
-from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHS, ak8PFJetsCHSPruned, ak8PFJetsCHSSoftDrop, ak8PFJetsCHSPrunedLinks, ak8PFJetsCHSSoftDropLinks
+from RecoJets.Configuration.RecoPFJets_cff import ak8PFJetsCHS, ak8PFJetsCHSPruned, ak8PFJetsCHSSoftDrop, ak8PFJetsCHSPrunedMass, ak8PFJetsCHSSoftDropMass
 
 chs = cms.EDFilter("CandPtrSelector",
 		  src = cms.InputTag('packedPFCandidates'),
@@ -26,8 +26,8 @@ substructureSequence = cms.Sequence(chs +
 				    ak8PFJetsCHS +
 				    ak8PFJetsCHSPruned +
 				    ak8PFJetsCHSSoftDrop +				    
-				    ak8PFJetsCHSPrunedLinks +
-				    ak8PFJetsCHSSoftDropLinks +
+				    ak8PFJetsCHSPrunedMass +
+				    ak8PFJetsCHSSoftDropMass +
 				    Njettiness)
 
 
@@ -70,8 +70,8 @@ patJetsAK8 = cms.EDProducer("PATJetProducer",
 			    src = cms.VInputTag("")
 			    ),
 			    userFloats = cms.PSet(
-			    src = cms.VInputTag("ak8PFJetsCHSPrunedLinks",
-			    "ak8PFJetsCHSSoftDropLinks", "Njettiness:tau1", "Njettiness:tau2", "Njettiness:tau3", "Njettiness:tau4")
+			    src = cms.VInputTag("ak8PFJetsCHSPrunedMass",
+			    "ak8PFJetsCHSSoftDropMass", "Njettiness:tau1", "Njettiness:tau2", "Njettiness:tau3", "Njettiness:tau4")
 			    ),
 			    userClasses = cms.PSet(
 			    src = cms.VInputTag("")
