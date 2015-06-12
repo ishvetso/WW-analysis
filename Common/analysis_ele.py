@@ -22,30 +22,30 @@ process.load("WW-analysis.Common.hadronicW_cff")
 # Electrons
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.load("Configuration.StandardSequences.Geometry_cff")
+process.GlobalTag.globaltag = 'MCRUN2_74_V9::All'
 
-process.GlobalTag.globaltag = 'PHYS14_25_V2::All'
+#
+# Set up electron ID (VID framework)
+#
 
-# START ELECTRON ID SECTION
-#
-# Set up everything that is needed to compute electron IDs and
-# add the ValueMaps with ID decisions into the event data stream
-#
-# Load tools and function definitions
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
-process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
-process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
-from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
-process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-#add in the heep ID to the producer. You can run with other IDs but heep ID must be loaded with setupVIDSelection, not setupAllVIDSelection as heep works differently because mini-aod and aod are defined in the same file to ensure consistancy (you cant change cuts of aod without changing miniaod
-process.load('RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff')
-setupVIDSelection(process.egmGsfElectronIDs,process.heepElectronID_HEEPV51_miniAOD)
-# Do not forget to add the egmGsfElectronIDSequence to the path,
-# as in the example below!
+# turn on VID producer, indicate data format  to be
+# DataFormat.AOD or DataFormat.MiniAOD, as appropriate 
+dataFormat = DataFormat.MiniAOD
+
+switchOnVIDElectronIdProducer(process, dataFormat)
+
+# define which IDs we want to produce
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
+
+#add them to the VID producer
+for idmod in my_id_modules:
+    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+
 #
-
-#process.electronIDs.ValueMap_src = cms.InputTag("egmGsfElectronsIDs:heepElectronID-HEEPV51-miniAOD")
-
-# END ELECTRON ID SECTION
+# Configure an example module for user analysis with electrons
+#
 
 process.leptonFilter = cms.EDFilter("CandViewCountFilter",
 				    src = cms.InputTag("slimmedElectrons"),
@@ -55,17 +55,14 @@ process.leptonFilter = cms.EDFilter("CandViewCountFilter",
 process.leptonSequence = cms.Sequence(process.leptonFilter +
 				      process.muSequence +
 				      process.eleSequence +
-                                      process.leptonicVSequence)
+                                      process.leptonicVSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
-                                 src = cms.InputTag("patJetsAK8"),
+                                 src = cms.InputTag("slimmedJetsAK8"),
                                  minNumber = cms.uint32(1),
                                 )
 
-process.jetSequence = cms.Sequence(process.substructureSequence +
-				   process.redoPatJets + 
-				   process.jetFilter +
-				   process.redoPatAK4Jets +
+process.jetSequence = cms.Sequence(process.jetFilter +
 				   process.fatJetsSequence +
 				   process.AK4JetsSequence +
 				   process.hadronicV)
@@ -74,29 +71,28 @@ process.jetSequence = cms.Sequence(process.substructureSequence +
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     hadronicVSrc = cms.string("hadronicV"),
                                     leptonicVSrc = cms.string("Wtoenu"),
-                                    metSrc = cms.string("patMETs"),
+                                    metSrc = cms.string("slimmedMETs"),
                                     genSrc = cms.string("prunedGenParticles"),
                                     jetSrc = cms.string("goodJets"),
-                                    jets_btag_veto_Src  = cms.string("cleanAK4Jets"),
+                                    jets_btag_veto_Src  = cms.string("goodAK4Jets"),
                                     vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
                                     looseEleSrc = cms.string("looseElectrons"),
                                     looseMuSrc = cms.string("looseMuons"),
-                                    leptonSrc = cms.string("tightElectrons"),
-                                   )
+                                    leptonSrc = cms.string("tightMuons"),
+                                    )
 
 
 # Identify the channel 
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.DecayChannel +  process.metSequence + process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.DecayChannel + process.metSequence +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
 
 
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:////afs/cern.ch/work/i/ishvetso/RunII_preparation/Synchronization_March2015/miniAOD/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_synch_exercise.root'),
-    #eventsToProcess =cms.untracked.VEventRange('1:1:15305')
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/WW_74X.root')
     
 )
 
@@ -115,5 +111,5 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.outpath = cms.EndPath(process.out)'''
 
 process.TFileService = cms.Service("TFileService",
-                                 fileName = cms.string("tree_ele.root")
+                                 fileName = cms.string("tree_mu.root")
                                   )

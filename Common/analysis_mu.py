@@ -58,14 +58,11 @@ process.leptonSequence = cms.Sequence(process.leptonFilter +
                                       process.leptonicVSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
-                                 src = cms.InputTag("patJetsAK8"),
+                                 src = cms.InputTag("slimmedJetsAK8"),
                                  minNumber = cms.uint32(1),
                                 )
 
-process.jetSequence = cms.Sequence(process.substructureSequence +
-				   process.redoPatJets + 
-				   process.jetFilter +
-				   process.redoPatAK4Jets +
+process.jetSequence = cms.Sequence(process.jetFilter +
 				   process.fatJetsSequence +
 				   process.AK4JetsSequence +
 				   process.hadronicV)
@@ -74,10 +71,10 @@ process.jetSequence = cms.Sequence(process.substructureSequence +
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     hadronicVSrc = cms.string("hadronicV"),
                                     leptonicVSrc = cms.string("Wtomunu"),
-                                    metSrc = cms.string("patMETs"),
+                                    metSrc = cms.string("slimmedMETs"),
                                     genSrc = cms.string("prunedGenParticles"),
                                     jetSrc = cms.string("goodJets"),
-                                    jets_btag_veto_Src  = cms.string("cleanAK4Jets"),
+                                    jets_btag_veto_Src  = cms.string("goodAK4Jets"),
                                     vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
                                     looseEleSrc = cms.string("looseElectrons"),
                                     looseMuSrc = cms.string("looseMuons"),

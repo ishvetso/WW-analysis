@@ -12,14 +12,14 @@ bestElectron =cms.EDFilter("LargestPtCandViewSelector",
 
 Wtomunu = cms.EDProducer("WLeptonicProducer",
                          leptons = cms.InputTag("bestMuon"),
-                         MET = cms.InputTag("patMETs"),
+                         MET = cms.InputTag("slimmedMETs"),
                          cut = cms.string("")
                          )
 
 
 Wtoenu = cms.EDProducer("WLeptonicProducer",
                         leptons = cms.InputTag("bestElectron"),
-                        MET = cms.InputTag("patMETs"),
+                        MET = cms.InputTag("slimmedMETs"),
                         cut = cms.string("")
                         )
 
