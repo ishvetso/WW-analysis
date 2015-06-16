@@ -11,7 +11,7 @@ looseMuons = cms.EDFilter("CandViewSelector",
 
 tightMuons = cms.EDFilter("CandViewSelector",
                          src = cms.InputTag("HighPtMuons"),
-                         cut = cms.string("pt > 40 & trackIso/pt < 0.1 & abs(eta) < 2.4")
+                         cut = cms.string("pt > 50 & trackIso/pt < 0.1 & abs(eta) < 2.1")
                          )
 
 
