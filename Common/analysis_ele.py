@@ -78,7 +78,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
                                     looseEleSrc = cms.string("looseElectrons"),
                                     looseMuSrc = cms.string("looseMuons"),
-                                    leptonSrc = cms.string("tightMuons"),
+                                    leptonSrc = cms.string("tightElectrons"),
                                     )
 
 
