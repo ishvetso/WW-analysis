@@ -86,20 +86,22 @@ private:
   double m_lvj;
   
   /// Parameters to steer the treeDumper
-  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, metSrc_, jetsSrc_, jets_btag_veto_Src_, vertexSrc_, looseEleSrc_, looseMuSrc_, leptonSrc_;
+  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, jetsSrc_, jets_btag_veto_Src_, vertexSrc_, looseEleSrc_, looseMuSrc_, leptonSrc_;
+  
+  edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
 };
 
 //
 // constructors and destructor
 //
-TreeMaker::TreeMaker(const edm::ParameterSet& iConfig)
+TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
+  metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc")))
 
 {
   // Sources
   hadronicVSrc_ = iConfig.getParameter<std::string>("hadronicVSrc");
   leptonicVSrc_ = iConfig.getParameter<std::string>("leptonicVSrc");
   genSrc_ = iConfig.getParameter<std::string>("genSrc");
-  metSrc_= iConfig.getParameter<std::string>("metSrc");
   jetsSrc_ = iConfig.getParameter<std::string>("jetSrc");
   jets_btag_veto_Src_ = iConfig.getParameter<std::string>("jets_btag_veto_Src");
   vertexSrc_ = iConfig.getParameter<std::string>("vertex_Src");
@@ -238,7 +240,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel(vertexSrc_.c_str(), vertices);
    
    //Jets
-   edm::Handle<edm::View<pat::Jet> > jets;
+   edm::Handle<edm::View<pat::Jet> > jets; 
    iEvent.getByLabel(jetsSrc_.c_str(), jets);
    
    //Jets for Btag veto
@@ -246,8 +248,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel(jets_btag_veto_Src_.c_str(), jets_btag_veto);
    
    //MET
+ 
    edm::Handle<edm::View<pat::MET> > metHandle;
-   iEvent.getByLabel(metSrc_.c_str(), metHandle);
+   iEvent.getByToken(metToken_, metHandle);
    
    //electrons
    edm::Handle<edm::View<reco::Candidate> > looseElectrons;
@@ -329,7 +332,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     Wboson_had.phi = hadronicV.phi();
     Wboson_had.mass = hadronicV.mass();
     Wboson_had.mt = hadronicV.mt();
-    m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedLinks");   
+    m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedMass");   
 
     tau1 = hadronicV.userFloat("Njettiness:tau1");
     tau2 = hadronicV.userFloat("Njettiness:tau2");
@@ -368,13 +371,23 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
    
    //MET quantities   
-   const pat::MET& metCand = metHandle->at(0);
+   if (metHandle->size() > 0)
+   {
+      const pat::MET& metCand = metHandle->at(0);
+      
+      METCand.pt = metCand.pt();
+      METCand.phi = metCand.phi();
+      METCand.mass = metCand.mass();
+      METCand.mt = metCand.mt();
+   }
    
-   METCand.pt = metCand.pt();
-   METCand.phi = metCand.phi();
-   METCand.mass = metCand.mass();
-   METCand.mt = metCand.mt();
-   
+    else
+   {
+      METCand.pt = -99.;
+      METCand.phi = -99.;
+      METCand.mass = -99.;
+      METCand.mt = -99.;
+   }
   NAK8jet = jets -> size();
 
    
@@ -407,13 +420,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   for (unsigned int iBtag = 0; iBtag < jets_btag_veto -> size(); iBtag ++)
   {
     //WP for 8 TeV and preliminary. Should be updated at some point
-    if(((jets_btag_veto -> at(iBtag)).bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) nbtag ++;
+    if(((jets_btag_veto -> at(iBtag)).bDiscriminator("bDiscriminatorICSV_v2")) > 0.814) nbtag ++;
   }
   
   if (jets_btag_veto -> size() > 0)
   {
     jet2_pt = (jets_btag_veto -> at(0)).pt();
-    jet2_btag = (jets_btag_veto -> at(0)).bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags");
+    jet2_btag = (jets_btag_veto -> at(0)).bDiscriminator("bDiscriminatorICSV_v2");
   }
   
   else 
@@ -425,7 +438,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   if (jets_btag_veto -> size() > 1)
   {
     jet3_pt = (jets_btag_veto -> at(1)).pt();
-    jet3_btag = (jets_btag_veto -> at(1)).bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags");
+    jet3_btag = (jets_btag_veto -> at(1)).bDiscriminator("bDiscriminatorICSV_v2");
   } 
   else 
   {
