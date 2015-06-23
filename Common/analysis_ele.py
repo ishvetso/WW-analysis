@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100000)
+    input = cms.untracked.int32(10)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -55,7 +55,7 @@ process.leptonFilter = cms.EDFilter("CandViewCountFilter",
 process.leptonSequence = cms.Sequence(process.leptonFilter +
 				      process.muSequence +
 				      process.eleSequence +
-                                      process.leptonicVSequence )
+                                      process.leptonicWtoenuSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("slimmedJetsAK8"),
@@ -71,7 +71,7 @@ process.jetSequence = cms.Sequence(process.jetFilter +
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     hadronicVSrc = cms.string("hadronicV"),
                                     leptonicVSrc = cms.string("Wtoenu"),
-                                    metSrc = cms.string("slimmedMETs"),
+                                    metSrc = cms.InputTag("METele"),
                                     genSrc = cms.string("prunedGenParticles"),
                                     jetSrc = cms.string("goodJets"),
                                     jets_btag_veto_Src  = cms.string("goodAK4Jets"),
@@ -86,7 +86,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.DecayChannel + process.metSequence +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.DecayChannel + process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
 
 
 #process.maxEvents.input = 1000
@@ -103,13 +103,13 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 
-'''process.out = cms.OutputModule("PoolOutputModule",
+process.out = cms.OutputModule("PoolOutputModule",
  fileName = cms.untracked.string('patTuple.root'),
   outputCommands = cms.untracked.vstring('keep *')
 )
 
-process.outpath = cms.EndPath(process.out)'''
+process.outpath = cms.EndPath(process.out)
 
 process.TFileService = cms.Service("TFileService",
-                                 fileName = cms.string("tree_mu.root")
+                                 fileName = cms.string("tree_ele.root")
                                   )

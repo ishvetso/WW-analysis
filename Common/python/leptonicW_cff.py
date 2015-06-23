@@ -13,20 +13,17 @@ bestElectron =cms.EDFilter("LargestPtCandViewSelector",
 Wtomunu = cms.EDProducer("WLeptonicProducer",
                          leptons = cms.InputTag("bestMuon"),
                          MET = cms.InputTag("slimmedMETs"),
-                         cut = cms.string("")
+                         cut = cms.string("pt > 200")
                          )
 
 
 Wtoenu = cms.EDProducer("WLeptonicProducer",
                         leptons = cms.InputTag("bestElectron"),
                         MET = cms.InputTag("slimmedMETs"),
-                        cut = cms.string("")
+                        cut = cms.string("pt > 200")
                         )
 
-leptonicV = cms.EDProducer("CandViewMerger",
-                           src = cms.VInputTag( "Wtoenu", "Wtomunu"),
-                           cut = cms.string("")
-                           ) 
 
-leptonicVSequence = cms.Sequence(bestElectron + bestMuon + Wtomunu + Wtoenu + leptonicV)
+leptonicWtomunuSequence = cms.Sequence(bestMuon + Wtomunu )
+leptonicWtoenuSequence  = cms.Sequence(bestElectron + Wtoenu)
 

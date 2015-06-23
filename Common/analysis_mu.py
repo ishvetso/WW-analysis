@@ -55,7 +55,7 @@ process.leptonFilter = cms.EDFilter("CandViewCountFilter",
 process.leptonSequence = cms.Sequence(process.leptonFilter +
 				      process.muSequence +
 				      process.eleSequence +
-                                      process.leptonicVSequence )
+                                      process.leptonicWtomunuSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("slimmedJetsAK8"),
@@ -71,9 +71,9 @@ process.jetSequence = cms.Sequence(process.jetFilter +
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     hadronicVSrc = cms.string("hadronicV"),
                                     leptonicVSrc = cms.string("Wtomunu"),
-                                    metSrc = cms.string("slimmedMETs"),
+                                    metSrc = cms.string("METmu"),
                                     genSrc = cms.string("prunedGenParticles"),
-                                    jetSrc = cms.string("goodJets"),
+                                    jetSrc = cms.string("bestJet"),
                                     jets_btag_veto_Src  = cms.string("goodAK4Jets"),
                                     vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
                                     looseEleSrc = cms.string("looseElectrons"),
@@ -86,7 +86,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.DecayChannel + process.metSequence +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.DecayChannel + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
 
 
 #process.maxEvents.input = 1000
