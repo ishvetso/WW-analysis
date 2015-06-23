@@ -334,9 +334,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     Wboson_had.mt = hadronicV.mt();
     m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedMass");   
 
-    tau1 = hadronicV.userFloat("Njettiness:tau1");
-    tau2 = hadronicV.userFloat("Njettiness:tau2");
-    tau3 = hadronicV.userFloat("Njettiness:tau3");
+    tau1 = hadronicV.userFloat("NjettinessAK8:tau1");
+    tau2 = hadronicV.userFloat("NjettinessAK8:tau2");
+    tau3 = hadronicV.userFloat("NjettinessAK8:tau3");
     tau21 = tau2/tau1;
   }
    
@@ -396,9 +396,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_pt = (jets -> at(0)).pt();
     jet_eta = (jets -> at(0)).eta();
     jet_phi = (jets -> at(0)).phi();
-    jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedLinks");
-    jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropLinks");
-    jet_tau2tau1 = ((jets -> at(0)).userFloat("Njettiness:tau2"))/((jets -> at(0)).userFloat("Njettiness:tau1"));
+    jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
+    jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
+    jet_tau2tau1 = ((jets -> at(0)).userFloat(" NjettinessAK8:tau2"))/((jets -> at(0)).userFloat(" NjettinessAK8:tau1"));
   }
   
   else 
