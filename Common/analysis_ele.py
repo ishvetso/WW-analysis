@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(1000)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -47,14 +47,18 @@ for idmod in my_id_modules:
 # Configure an example module for user analysis with electrons
 #
 
-process.leptonFilter = cms.EDFilter("CandViewCountFilter",
-				    src = cms.InputTag("slimmedElectrons"),
-                                    minNumber = cms.uint32(1),
+process.leptonFilter = cms.EDFilter("LeptonVeto",
+				    looseLeptonSrc = cms.InputTag("looseElectrons"),
+				    tightLeptonSrc = cms.InputTag("tightElectrons"),
+                                    minNLoose = cms.int32(1),
+                                    maxNLoose = cms.int32(1),
+                                    minNTight = cms.int32(1),
+                                    maxNTight = cms.int32(1),
 				   )
 
-process.leptonSequence = cms.Sequence(process.leptonFilter +
-				      process.muSequence +
+process.leptonSequence = cms.Sequence(process.muSequence +
 				      process.eleSequence +
+				      process.leptonFilter +
                                       process.leptonicWtoenuSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
