@@ -455,7 +455,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    else m_lvj = -99.;
 
 
-   outTree_->Fill();
+ if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2.) outTree_->Fill();
 
 }
 
