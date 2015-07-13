@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(10000)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -58,18 +58,17 @@ process.leptonFilter = cms.EDFilter("LeptonVeto",
 
 process.leptonSequence = cms.Sequence(process.muSequence +
 				      process.eleSequence +
-				      process.leptonFilter +
-                                      process.leptonicWtoenuSequence )
+				      process.leptonFilter +  process.leptonicWtoenuSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
-                                 src = cms.InputTag("slimmedJetsAK8"),
+                                 src = cms.InputTag("goodJets"),
                                  minNumber = cms.uint32(1),
                                 )
 
-process.jetSequence = cms.Sequence(process.jetFilter +
-				   process.fatJetsSequence +
-				   process.AK4JetsSequence +
-				   process.hadronicV)
+process.jetSequence = cms.Sequence(process.fatJetsSequence +
+				                            process.jetFilter+
+                          				   process.AK4JetsSequence +
+                          				   process.hadronicV)
 
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
