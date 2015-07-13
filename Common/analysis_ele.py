@@ -37,7 +37,7 @@ dataFormat = DataFormat.MiniAOD
 switchOnVIDElectronIdProducer(process, dataFormat)
 
 # define which IDs we want to produce
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
 
 #add them to the VID producer
 for idmod in my_id_modules:
@@ -105,13 +105,13 @@ process.source = cms.Source("PoolSource",
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
-
+'''
 process.out = cms.OutputModule("PoolOutputModule",
  fileName = cms.untracked.string('patTuple.root'),
   outputCommands = cms.untracked.vstring('keep *')
 )
 
-process.outpath = cms.EndPath(process.out)
+process.outpath = cms.EndPath(process.out)'''
 
 process.TFileService = cms.Service("TFileService",
                                  fileName = cms.string("tree_ele.root")
