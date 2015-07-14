@@ -37,7 +37,7 @@ dataFormat = DataFormat.MiniAOD
 switchOnVIDElectronIdProducer(process, dataFormat)
 
 # define which IDs we want to produce
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
 
 #add them to the VID producer
 for idmod in my_id_modules:
@@ -47,33 +47,33 @@ for idmod in my_id_modules:
 # Configure an example module for user analysis with electrons
 #
 
-process.leptonFilter = cms.EDFilter("CandViewCountFilter",
-				    src = cms.InputTag("slimmedMuons"),
-                                    minNumber = cms.uint32(1),
-				   )
+process.leptonFilter = cms.EDFilter("LeptonVeto",
+            looseLeptonSrc = cms.InputTag("looseMuons"),
+            tightLeptonSrc = cms.InputTag("tightMuons"),
+                                    minNLoose = cms.int32(1),
+                                    maxNLoose = cms.int32(1),
+                                    minNTight = cms.int32(1),
+                                    maxNTight = cms.int32(1),
+           )
 
-process.leptonSequence = cms.Sequence(process.leptonFilter +
-				      process.muSequence +
-				      process.eleSequence +
-                                      process.leptonicWtomunuSequence )
+process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.leptonFilter + process.leptonicWtomunuSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
-                                 src = cms.InputTag("slimmedJetsAK8"),
+                                 src = cms.InputTag("goodJets"),
                                  minNumber = cms.uint32(1),
                                 )
 
-process.jetSequence = cms.Sequence(process.jetFilter +
-				   process.fatJetsSequence +
-				   process.AK4JetsSequence +
-				   process.hadronicV)
-
+process.jetSequence = cms.Sequence(process.fatJetsSequence +
+                                    process.jetFilter+
+                                     process.AK4JetsSequence +
+                                     process.hadronicV)
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     hadronicVSrc = cms.string("hadronicV"),
                                     leptonicVSrc = cms.string("Wtomunu"),
-                                    metSrc = cms.string("METmu"),
+                                    metSrc = cms.InputTag("METmu"),
                                     genSrc = cms.string("prunedGenParticles"),
-                                    jetSrc = cms.string("bestJet"),
+                                    jetSrc = cms.string("goodJets"),
                                     jets_btag_veto_Src  = cms.string("goodAK4Jets"),
                                     vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
                                     looseEleSrc = cms.string("looseElectrons"),
