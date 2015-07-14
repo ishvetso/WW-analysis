@@ -322,6 +322,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Wboson_lep.charge = -99.;
   }
   
+  std::cout << "size "<< hadronicVs -> size() << std::endl;
   //hadronically W 
   if (hadronicVs -> size() > 0)
   {
@@ -338,6 +339,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     tau2 = hadronicV.userFloat("NjettinessAK8:tau2");
     tau3 = hadronicV.userFloat("NjettinessAK8:tau3");
     tau21 = tau2/tau1;
+    std::cout << "tau21  "<< tau21 << std::endl;
   }
    
    else 
@@ -398,7 +400,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_phi = (jets -> at(0)).phi();
     jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
     jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
-    jet_tau2tau1 = ((jets -> at(0)).userFloat(" NjettinessAK8:tau2"))/((jets -> at(0)).userFloat(" NjettinessAK8:tau1"));
+    jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
+    std::cout << jet_tau2tau1 << std::endl;
   }
   
   else 

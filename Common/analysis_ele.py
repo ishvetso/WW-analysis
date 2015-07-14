@@ -47,7 +47,7 @@ for idmod in my_id_modules:
 # Configure an example module for user analysis with electrons
 #
 
-process.leptonFilter = cms.EDFilter("LeptonVeto",
+process.ElectronVeto = cms.EDFilter("LeptonVeto",
 				    looseLeptonSrc = cms.InputTag("looseElectrons"),
 				    tightLeptonSrc = cms.InputTag("tightElectrons"),
                                     minNLoose = cms.int32(1),
@@ -56,9 +56,16 @@ process.leptonFilter = cms.EDFilter("LeptonVeto",
                                     maxNTight = cms.int32(1),
 				   )
 
-process.leptonSequence = cms.Sequence(process.muSequence +
-				      process.eleSequence +
-				      process.leptonFilter +  process.leptonicWtoenuSequence )
+process.MuonVeto = cms.EDFilter("LeptonVeto",
+            looseLeptonSrc = cms.InputTag("looseMuons"),
+            tightLeptonSrc = cms.InputTag("tightMuons"),
+                                    minNLoose = cms.int32(1),
+                                    maxNLoose = cms.int32(1),
+                                    minNTight = cms.int32(1),
+                                    maxNTight = cms.int32(1),
+           )
+
+process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto +  process.leptonicWtoenuSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("goodJets"),
@@ -103,7 +110,7 @@ process.source = cms.Source("PoolSource",
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 '''
 process.out = cms.OutputModule("PoolOutputModule",
