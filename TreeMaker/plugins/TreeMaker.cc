@@ -423,13 +423,14 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   for (unsigned int iBtag = 0; iBtag < jets_btag_veto -> size(); iBtag ++)
   {
     //WP for 8 TeV and preliminary. Should be updated at some point
-    if(((jets_btag_veto -> at(iBtag)).bDiscriminator("bDiscriminatorICSV_v2")) > 0.814) nbtag ++;
+    if(((jets_btag_veto -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) nbtag ++;
+     std::cout << ((jets_btag_veto -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) << std::endl;
   }
-  
+ 
   if (jets_btag_veto -> size() > 0)
   {
     jet2_pt = (jets_btag_veto -> at(0)).pt();
-    jet2_btag = (jets_btag_veto -> at(0)).bDiscriminator("bDiscriminatorICSV_v2");
+    jet2_btag = (jets_btag_veto -> at(0)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   }
   
   else 
@@ -441,7 +442,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   if (jets_btag_veto -> size() > 1)
   {
     jet3_pt = (jets_btag_veto -> at(1)).pt();
-    jet3_btag = (jets_btag_veto -> at(1)).bDiscriminator("bDiscriminatorICSV_v2");
+    jet3_btag = (jets_btag_veto -> at(1)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   } 
   else 
   {
@@ -459,7 +460,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
 
- if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1) outTree_->Fill();
+ if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1 && Wboson_lep.pt > 200.) outTree_->Fill();
 
 }
 

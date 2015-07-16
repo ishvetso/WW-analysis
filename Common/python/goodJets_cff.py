@@ -4,11 +4,16 @@ from RecoJets.JetProducers.ak4PFJets_cfi import *
 import PhysicsTools.PatAlgos.cleaningLayer1.jetCleaner_cfi as jetCleaner_cfi
 
 # fat jets
-selectedPatJetsAK8 = cms.EDFilter("PATJetSelector",
+selectedPatJetsAK8ByPt = cms.EDFilter("PATJetSelector",
     src = cms.InputTag("slimmedJetsAK8"),
-    cut = cms.string("pt > 200 & abs(eta) < 2.4")
+    cut = cms.string("pt > 200"),
+    filter = cms.bool(True)
 )               
 
+selectedPatJetsAK8 = cms.EDFilter("PATJetSelector",
+    src = cms.InputTag("selectedPatJetsAK8ByPt"),
+    cut = cms.string("abs(eta) < 2.4")
+)     
 
 cleanJets = jetCleaner_cfi.cleanPatJets.clone()
 cleanJets.src = "selectedPatJetsAK8"
@@ -26,10 +31,14 @@ cleanJets.checkOverlaps.tkIsoElectrons = cms.PSet()
 cleanJets.finalCut = ""
 
 
-goodJets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
+goodJetsNotUsed = cms.EDFilter("PFJetIDSelectionFunctorFilter",
                         filterParams = pfJetIDSelector.clone(),
                         src = cms.InputTag("cleanJets")
                         )
+goodJets = cms.EDFilter("jetID",
+                        filter_flag = cms.bool(False),
+                        jets_src = cms.InputTag("cleanJets"),
+                        ID = cms.string("loose"))
 
 
 bestJet =cms.EDFilter("LargestPtCandViewSelector",
@@ -37,7 +46,9 @@ bestJet =cms.EDFilter("LargestPtCandViewSelector",
     maxNumber = cms.uint32(1)
   )
 
-fatJetsSequence = cms.Sequence(selectedPatJetsAK8 + cleanJets + goodJets + bestJet)
+
+
+fatJetsSequence = cms.Sequence( selectedPatJetsAK8ByPt + selectedPatJetsAK8 + cleanJets + goodJets + bestJet)
 
 
 # Create a different collection of jets which  contains b-tagging information. This is necessary because slimmedJetsAK8 jets don't contain BTagInfo
@@ -72,10 +83,15 @@ cleanAK4Jets.checkOverlaps.jets = cms.PSet(
 					requireNoOverlaps = cms.bool(True), # overlaps don't cause the jet to be discared
 				      )
 
-goodAK4Jets = cms.EDFilter("PFJetIDSelectionFunctorFilter",
+goodAK4JetsNotUsed = cms.EDFilter("PFJetIDSelectionFunctorFilter",
                         filterParams = pfJetIDSelector.clone(),
                         src = cms.InputTag("cleanAK4Jets")
                         )
+goodAK4Jets = cms.EDFilter("jetID",
+                        filter_flag = cms.bool(False),
+                        jets_src = cms.InputTag("cleanAK4Jets"),
+                        ID = cms.string("loose"))
+
 
 
 
