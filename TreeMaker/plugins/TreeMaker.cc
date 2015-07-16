@@ -26,6 +26,7 @@
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "TLorentzVector.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -322,7 +323,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Wboson_lep.charge = -99.;
   }
   
-  std::cout << "size "<< hadronicVs -> size() << std::endl;
   //hadronically W 
   if (hadronicVs -> size() > 0)
   {
@@ -339,7 +339,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     tau2 = hadronicV.userFloat("NjettinessAK8:tau2");
     tau3 = hadronicV.userFloat("NjettinessAK8:tau3");
     tau21 = tau2/tau1;
-    std::cout << "tau21  "<< tau21 << std::endl;
   }
    
    else 
@@ -356,23 +355,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      tau3 = -99.;
      tau21 = -99.;     
    }
-   
-    if (hadronicVs -> size() > 0 && leptonicVs -> size() > 0)
-    {
-      deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,Wboson_had.eta,Wboson_had.phi); 
-      deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
-      deltaPhi_WJetMet = deltaPhi(Wboson_had.phi, METCand.phi);
-      deltaPhi_WJetWlep = deltaPhi(Wboson_had.phi, Wboson_lep.phi);
-    }
-    else 
-    {
-      deltaR_LepWJet = -99.; 
-      deltaPhi_LepMet = -99.;
-      deltaPhi_WJetMet = -99.;
-      deltaPhi_WJetWlep = -99.;
-    }
-   
-   //MET quantities   
+
+    //MET quantities   
    if (metHandle->size() > 0)
    {
       const pat::MET& metCand = metHandle->at(0);
@@ -390,6 +374,23 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       METCand.mass = -99.;
       METCand.mt = -99.;
    }
+   
+    if (hadronicVs -> size() > 0 && leptonicVs -> size() > 0)
+    {
+      deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,Wboson_had.eta,Wboson_had.phi); 
+      deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
+      deltaPhi_WJetMet = deltaPhi(Wboson_had.phi, METCand.phi);
+      deltaPhi_WJetWlep = deltaPhi(Wboson_had.phi, Wboson_lep.phi);
+    }
+    else 
+    {
+      deltaR_LepWJet = -99.; 
+      deltaPhi_LepMet = -99.;
+      deltaPhi_WJetMet = -99.;
+      deltaPhi_WJetWlep = -99.;
+    }
+   
+  
   NAK8jet = jets -> size();
 
    
@@ -401,7 +402,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
     jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
     jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
-    std::cout << jet_tau2tau1 << std::endl;
   }
   
   else 
@@ -458,7 +458,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    else m_lvj = -99.;
 
 
- if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2.) outTree_->Fill();
+
+ if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1) outTree_->Fill();
 
 }
 
