@@ -25,6 +25,7 @@
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "TLorentzVector.h"
 
@@ -86,31 +87,35 @@ private:
   //m_lvj
   double m_lvj;
   
-  /// Parameters to steer the treeDumper
-  std::string hadronicVSrc_, leptonicVSrc_, genSrc_, jetsSrc_, jets_btag_veto_Src_, vertexSrc_, looseEleSrc_, looseMuSrc_, leptonSrc_;
-  
+  //Defining Tokens
   edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
+  edm::EDGetTokenT<edm::View<pat::Jet>> hadronicVToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate>> leptonicVToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate>> genParticlesToken_;
+  edm::EDGetTokenT<edm::View<pat::Jet>> fatJetsToken_;
+  edm::EDGetTokenT<edm::View<pat::Jet>> AK4JetsToken_;
+  edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate>> looseMuToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate>> looseEleToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate>>leptonsToken_;
+
 };
 
 //
 // constructors and destructor
 //
 TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
-  metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc")))
-
+  metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc"))),
+  hadronicVToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("hadronicVSrc"))),
+  leptonicVToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonicVSrc"))),
+  genParticlesToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("genSrc"))),
+  fatJetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetSrc"))),
+  AK4JetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("AK4JetSrc"))),
+  vertexToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("vertexSrc"))),
+  looseMuToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("looseMuSrc"))),
+  looseEleToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("looseEleSrc"))),
+  leptonsToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonSrc")))
 {
-  // Sources
-  hadronicVSrc_ = iConfig.getParameter<std::string>("hadronicVSrc");
-  leptonicVSrc_ = iConfig.getParameter<std::string>("leptonicVSrc");
-  genSrc_ = iConfig.getParameter<std::string>("genSrc");
-  jetsSrc_ = iConfig.getParameter<std::string>("jetSrc");
-  jets_btag_veto_Src_ = iConfig.getParameter<std::string>("jets_btag_veto_Src");
-  vertexSrc_ = iConfig.getParameter<std::string>("vertex_Src");
-  looseEleSrc_ = iConfig.getParameter<std::string>("looseEleSrc");
-  looseMuSrc_ = iConfig.getParameter<std::string>("looseMuSrc");
-  leptonSrc_ = iConfig.getParameter<std::string>("leptonSrc");
-
-  
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
   outTree_ = fs->make<TTree>("BasicTree","BasicTree");
@@ -226,44 +231,43 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    //Hadronic Ws
    edm::Handle<edm::View<pat::Jet> > hadronicVs;
-   iEvent.getByLabel(hadronicVSrc_.c_str(), hadronicVs);
+   iEvent.getByToken(hadronicVToken_, hadronicVs);
    
    //Leptonic Ws
    edm::Handle<edm::View<reco::Candidate> > leptonicVs;
-   iEvent.getByLabel(leptonicVSrc_.c_str(), leptonicVs);
+   iEvent.getByToken(leptonicVToken_, leptonicVs);
    
    //GenParticles
    edm::Handle<edm::View<reco::Candidate> > genParticles;
-   iEvent.getByLabel(genSrc_.c_str(), genParticles); 
+   iEvent.getByToken(genParticlesToken_, genParticles); 
    
    //Vertices 
    edm::Handle<edm::View<reco::Vertex> > vertices;
-   iEvent.getByLabel(vertexSrc_.c_str(), vertices);
+   iEvent.getByToken(vertexToken_, vertices);
    
    //Jets
    edm::Handle<edm::View<pat::Jet> > jets; 
-   iEvent.getByLabel(jetsSrc_.c_str(), jets);
+   iEvent.getByToken(fatJetsToken_, jets);
    
-   //Jets for Btag veto
-   edm::Handle<edm::View<pat::Jet> > jets_btag_veto;
-   iEvent.getByLabel(jets_btag_veto_Src_.c_str(), jets_btag_veto);
+   //JAK4 ets (for Btag veto )
+   edm::Handle<edm::View<pat::Jet> > AK4Jets;
+   iEvent.getByToken(AK4JetsToken_, AK4Jets);
    
    //MET
- 
    edm::Handle<edm::View<pat::MET> > metHandle;
    iEvent.getByToken(metToken_, metHandle);
    
-   //electrons
+   //loose electrons
    edm::Handle<edm::View<reco::Candidate> > looseElectrons;
-   iEvent.getByLabel(looseEleSrc_.c_str(), looseElectrons);
+   iEvent.getByToken(looseEleToken_, looseElectrons);
    
-   //muons
+   //loose muons
    edm::Handle<edm::View<reco::Candidate> > looseMuons;
-   iEvent.getByLabel(looseMuSrc_.c_str(), looseMuons); 
+   iEvent.getByToken(looseMuToken_, looseMuons); 
    
    //leptons (tight)
    edm::Handle<edm::View<reco::Candidate> > leptons;
-   iEvent.getByLabel(leptonSrc_.c_str(), leptons); 
+   iEvent.getByToken(leptonsToken_, leptons); 
    nPV = vertices->size();
       
    //  Defining decay channel on the gen level
@@ -417,20 +421,20 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   
    
   //Loop over the collection of the AK4 jets which contain b-tagging information (to veto b-jets)
-  njets = jets_btag_veto -> size(); 
+  njets = AK4Jets -> size(); 
   nbtag = 0;
   
-  for (unsigned int iBtag = 0; iBtag < jets_btag_veto -> size(); iBtag ++)
+  for (unsigned int iBtag = 0; iBtag < AK4Jets -> size(); iBtag ++)
   {
     //WP for 8 TeV and preliminary. Should be updated at some point
-    if(((jets_btag_veto -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) nbtag ++;
-     std::cout << ((jets_btag_veto -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) << std::endl;
+    if(((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) nbtag ++;
+     std::cout << ((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) << std::endl;
   }
  
-  if (jets_btag_veto -> size() > 0)
+  if (AK4Jets -> size() > 0)
   {
-    jet2_pt = (jets_btag_veto -> at(0)).pt();
-    jet2_btag = (jets_btag_veto -> at(0)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+    jet2_pt = (AK4Jets -> at(0)).pt();
+    jet2_btag = (AK4Jets -> at(0)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   }
   
   else 
@@ -439,10 +443,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet2_btag = -99.;
   }
   
-  if (jets_btag_veto -> size() > 1)
+  if (AK4Jets -> size() > 1)
   {
-    jet3_pt = (jets_btag_veto -> at(1)).pt();
-    jet3_btag = (jets_btag_veto -> at(1)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+    jet3_pt = (AK4Jets -> at(1)).pt();
+    jet3_btag = (AK4Jets -> at(1)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   } 
   else 
   {
@@ -460,7 +464,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
 
- if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1 && Wboson_lep.pt > 200.) outTree_->Fill();
+ if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1 && Wboson_lep.pt > 200. && jet_mass_pruned > 40. && jet_mass_pruned < 130. && jet_tau2tau1 < 0.5) outTree_->Fill();
 
 }
 
