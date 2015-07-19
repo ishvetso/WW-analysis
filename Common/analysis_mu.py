@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100000)
+    input = cms.untracked.int32(10000000)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -37,7 +37,7 @@ dataFormat = DataFormat.MiniAOD
 switchOnVIDElectronIdProducer(process, dataFormat)
 
 # define which IDs we want to produce
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
 
 #add them to the VID producer
 for idmod in my_id_modules:
@@ -47,7 +47,16 @@ for idmod in my_id_modules:
 # Configure an example module for user analysis with electrons
 #
 
-process.leptonFilter = cms.EDFilter("LeptonVeto",
+process.ElectronVeto = cms.EDFilter("LeptonVeto",
+            looseLeptonSrc = cms.InputTag("looseElectrons"),
+            tightLeptonSrc = cms.InputTag("tightElectrons"),
+                                    minNLoose = cms.int32(0),
+                                    maxNLoose = cms.int32(0),
+                                    minNTight = cms.int32(0),
+                                    maxNTight = cms.int32(0),
+           )
+
+process.MuonVeto = cms.EDFilter("LeptonVeto",
             looseLeptonSrc = cms.InputTag("looseMuons"),
             tightLeptonSrc = cms.InputTag("tightMuons"),
                                     minNLoose = cms.int32(1),
@@ -56,7 +65,8 @@ process.leptonFilter = cms.EDFilter("LeptonVeto",
                                     maxNTight = cms.int32(1),
            )
 
-process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.leptonFilter + process.leptonicWtomunuSequence )
+
+process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto +  process.leptonicWtomunuSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("goodJets"),
@@ -69,16 +79,16 @@ process.jetSequence = cms.Sequence(process.fatJetsSequence +
                                      process.hadronicV)
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
-                                    hadronicVSrc = cms.string("hadronicV"),
-                                    leptonicVSrc = cms.string("Wtomunu"),
+                                    hadronicVSrc = cms.InputTag("hadronicV"),
+                                    leptonicVSrc = cms.InputTag("Wtomunu"),
                                     metSrc = cms.InputTag("METmu"),
-                                    genSrc = cms.string("prunedGenParticles"),
-                                    jetSrc = cms.string("goodJets"),
-                                    jets_btag_veto_Src  = cms.string("goodAK4Jets"),
-                                    vertex_Src = cms.string("offlineSlimmedPrimaryVertices"),
-                                    looseEleSrc = cms.string("looseElectrons"),
-                                    looseMuSrc = cms.string("looseMuons"),
-                                    leptonSrc = cms.string("tightMuons"),
+                                    genSrc = cms.InputTag("prunedGenParticles"),
+                                    fatJetSrc = cms.InputTag("goodJets"),
+                                    AK4JetSrc  = cms.InputTag("goodAK4Jets"),
+                                    vertexSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
+                                    looseEleSrc = cms.InputTag("looseElectrons"),
+                                    looseMuSrc = cms.InputTag("looseMuons"),
+                                    leptonSrc = cms.InputTag("tightMuons"),
                                     )
 
 
@@ -92,7 +102,7 @@ process.analysis = cms.Path(process.DecayChannel + process.METmu +  process.egmG
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/WW_74X.root')
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/samples_MINIAOD/RSGrav1000.root')
     
 )
 
