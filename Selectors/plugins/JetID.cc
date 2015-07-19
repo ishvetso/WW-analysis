@@ -124,8 +124,17 @@ bool jetID::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       bool looseJetID = (NHF<0.99 && NEMF<0.99 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4);
       bool tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || abs(eta)>2.4);
    
-      if(ID == "tight" && tightJetID)	JetsSelected -> push_back( Jets -> at(iJet));
-      else if (ID == "loose" && looseJetID) JetsSelected -> push_back( Jets -> at(iJet));
+      if(ID == "tight" && tightJetID)	
+        {
+          JetsSelected -> push_back( Jets -> at(iJet));
+          pass = true;
+        }
+      else if (ID == "loose" && looseJetID)
+      {
+        JetsSelected -> push_back( Jets -> at(iJet)); 
+        pass = true;
+      } 
+
       else if (ID != "tight" && ID != "loose")std::cout << "Smth is going wrong ... " << std::endl;
    }
   
