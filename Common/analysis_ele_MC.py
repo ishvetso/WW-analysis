@@ -89,7 +89,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseEleSrc = cms.InputTag("looseElectrons"),
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightElectrons"),
-                                    isMC = cms.bool(False)
+                                    isMC = cms.bool(True)
                                     )
 
 

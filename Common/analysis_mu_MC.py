@@ -48,24 +48,25 @@ for idmod in my_id_modules:
 #
 
 process.ElectronVeto = cms.EDFilter("LeptonVeto",
-				    looseLeptonSrc = cms.InputTag("looseElectrons"),
-				    tightLeptonSrc = cms.InputTag("tightElectrons"),
-                                    minNLoose = cms.int32(1),
-                                    maxNLoose = cms.int32(1),
-                                    minNTight = cms.int32(1),
-                                    maxNTight = cms.int32(1),
-				   )
-
-process.MuonVeto = cms.EDFilter("LeptonVeto",
-            looseLeptonSrc = cms.InputTag("looseMuons"),
-            tightLeptonSrc = cms.InputTag("tightMuons"),
+            looseLeptonSrc = cms.InputTag("looseElectrons"),
+            tightLeptonSrc = cms.InputTag("tightElectrons"),
                                     minNLoose = cms.int32(0),
                                     maxNLoose = cms.int32(0),
                                     minNTight = cms.int32(0),
                                     maxNTight = cms.int32(0),
            )
 
-process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto +  process.leptonicWtoenuSequence )
+process.MuonVeto = cms.EDFilter("LeptonVeto",
+            looseLeptonSrc = cms.InputTag("looseMuons"),
+            tightLeptonSrc = cms.InputTag("tightMuons"),
+                                    minNLoose = cms.int32(1),
+                                    maxNLoose = cms.int32(1),
+                                    minNTight = cms.int32(1),
+                                    maxNTight = cms.int32(1),
+           )
+
+
+process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto +  process.leptonicWtomunuSequence )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("goodJets"),
@@ -73,23 +74,22 @@ process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                 )
 
 process.jetSequence = cms.Sequence(process.fatJetsSequence +
-				                            process.jetFilter+
-                          				   process.AK4JetsSequence +
-                          				   process.hadronicV)
-
+                                    process.jetFilter+
+                                     process.AK4JetsSequence +
+                                     process.hadronicV)
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     hadronicVSrc = cms.InputTag("hadronicV"),
-                                    leptonicVSrc = cms.InputTag("Wtoenu"),
-                                    metSrc = cms.InputTag("METele"),
+                                    leptonicVSrc = cms.InputTag("Wtomunu"),
+                                    metSrc = cms.InputTag("METmu"),
                                     genSrc = cms.InputTag("prunedGenParticles"),
                                     fatJetSrc = cms.InputTag("goodJets"),
                                     AK4JetSrc  = cms.InputTag("goodAK4Jets"),
                                     vertexSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                     looseEleSrc = cms.InputTag("looseElectrons"),
                                     looseMuSrc = cms.InputTag("looseMuons"),
-                                    leptonSrc = cms.InputTag("tightElectrons"),
-                                    isMC = cms.bool(False)
+                                    leptonSrc = cms.InputTag("tightMuons"),
+                                    isMC = cms.bool(True)
                                     )
 
 
@@ -97,14 +97,13 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
-#process.analysis = cms.Path(process.mytestJets)
+process.analysis = cms.Path(process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+
 
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/samples_MINIAOD/RSGrav1000.root'),
-    #eventsToProcess = cms.untracked.VEventRange('1:75:72317')
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/samples_MINIAOD/RSGrav1000.root')
     
 )
 
@@ -112,10 +111,10 @@ process.source = cms.Source("PoolSource",
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
-'''
-process.out = cms.OutputModule("PoolOutputModule",
+
+'''process.out = cms.OutputModule("PoolOutputModule",
  fileName = cms.untracked.string('patTuple.root'),
   outputCommands = cms.untracked.vstring('keep *')
 )
@@ -123,5 +122,5 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.outpath = cms.EndPath(process.out)'''
 
 process.TFileService = cms.Service("TFileService",
-                                 fileName = cms.string("tree_ele.root")
+                                 fileName = cms.string("tree_mu.root")
                                   )
