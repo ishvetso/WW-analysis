@@ -24,8 +24,7 @@
 void addWeight(string FileName, float xsection, float lumi, int Nevents)
 {
   TFile file(FileName.c_str(), "UPDATE");
-  TDirectoryFile *tdir = (TDirectoryFile*) file.Get("treeDumper");
-  TTree * tree = (TTree*) tdir -> Get("Basic Info");
+  TTree * tree = (TTree*) file.Get("treeDumper/BasicTree");
   float weight = (xsection*lumi)/Nevents;
   TBranch * br = tree -> Branch("weight", &weight, "weight/F"); 
   
@@ -40,6 +39,8 @@ void addWeight(string FileName, float xsection, float lumi, int Nevents)
 
 void addWeightSamples()
 {
-  addWeight("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_2_2_patch1/src/WW-analysis/Common/test/crab_projects_Phys14_btag/crab_WJetsToLNu_13TeV-madgraph-pythia8-tauola/results/Wjets.root", 20508.9,20000., 10017462); //W + jets
-  addWeight("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_2_2_patch1/src/WW-analysis/Common/test/crab_projects_Phys14_btag/crab_TT_Tune4C_13TeV-pythia8-tauola/results/ttbar.root", 831.76 ,20000., 2991609 );//ttbar
+  addWeight("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/crab_projects/crab_WW_analysis_ele/results/WW_ele.root", 118.7, 5.590, 989608); //WW
+  addWeight("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/crab_projects/crab_WJets_analysis_ele/results/WJets_ele.root", 20508.9, 5.590, 24089991); //W + jets
+  addWeight("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/crab_projects/crab_TTBar_analysis_ele/results/ttbar_ele.root",  831.76, 5.590, 4994250); //ttbar
+ 
 }
