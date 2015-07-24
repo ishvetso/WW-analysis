@@ -25,6 +25,12 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.GlobalTag.globaltag = 'MCRUN2_74_V9::All'
 
+
+process.NoiseFilters = cms.EDFilter("NoiseFilter",
+            noiseFilter = cms.InputTag("TriggerResults"),
+            filterNames = cms.vstring("Flag_CSCTightHaloFilter", "Flag_hcalLaserEventFilter", "Flag_hcalLaserEventFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_trackingFailureFilter", "Flag_eeBadScFilter", "Flag_ecalLaserCorrFilter",
+  "Flag_trkPOGFilters", "Flag_trkPOG_manystripclus53X", "Flag_trkPOG_toomanystripclus53X", "Flag_trkPOG_logErrorTooManyClusters")  )
+
 #
 # Set up electron ID (VID framework)
 #
@@ -97,7 +103,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.NoiseFilters + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
 
 
 #process.maxEvents.input = 1000
@@ -111,7 +117,7 @@ process.source = cms.Source("PoolSource",
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 
 '''process.out = cms.OutputModule("PoolOutputModule",

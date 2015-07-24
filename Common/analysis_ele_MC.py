@@ -25,6 +25,12 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.GlobalTag.globaltag = 'MCRUN2_74_V9::All'
 
+rocess.NoiseFilters = cms.EDFilter("NoiseFilter",
+            noiseFilter = cms.InputTag("TriggerResults"),
+            filterNames = cms.vstring("Flag_CSCTightHaloFilter", "Flag_hcalLaserEventFilter", "Flag_hcalLaserEventFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_trackingFailureFilter", "Flag_eeBadScFilter", "Flag_ecalLaserCorrFilter",
+  "Flag_trkPOGFilters", "Flag_trkPOG_manystripclus53X", "Flag_trkPOG_toomanystripclus53X", "Flag_trkPOG_logErrorTooManyClusters")  )
+
+
 #
 # Set up electron ID (VID framework)
 #

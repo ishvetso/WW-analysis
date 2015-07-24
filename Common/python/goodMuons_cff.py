@@ -4,14 +4,17 @@ HighPtMuons = cms.EDProducer("HighPtMuonSelector",
                          src = cms.InputTag("slimmedMuons"),
                          vertex = cms.InputTag("offlineSlimmedPrimaryVertices")
                          )
+
 looseMuons = cms.EDFilter("CandViewSelector",
                          src = cms.InputTag("HighPtMuons"),
-                         cut = cms.string("pt > 20 & trackIso/pt < 0.1 & abs(eta) < 2.4")
+                         cut = cms.string("pt > 20 & trackIso/pt < 0.1 & abs(eta) < 2.4"),
+                         filter = cms.bool(False)
                          )
 
 tightMuons = cms.EDFilter("CandViewSelector",
                          src = cms.InputTag("HighPtMuons"),
-                         cut = cms.string("pt > 50 & trackIso/pt < 0.1 & abs(eta) < 2.1")
+                         cut = cms.string("pt > 50 & trackIso/pt < 0.1 & abs(eta) < 2.1"),
+                         filter = cms.bool(False)
                          )
 
 
