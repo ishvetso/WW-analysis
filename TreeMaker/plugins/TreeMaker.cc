@@ -430,7 +430,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   for (unsigned int iBtag = 0; iBtag < AK4Jets -> size(); iBtag ++)
   {
     //WP for 8 TeV and preliminary. Should be updated at some point
-    if(((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) nbtag ++;
+    if(((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.890) nbtag ++;
   }
  
   if (AK4Jets -> size() > 0)
@@ -465,9 +465,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    else m_lvj = -99.;
 
 
- //comment the line used in the synchronization exercise!
- // if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1 && Wboson_lep.pt > 200. && jet_mass_pruned > 40. && jet_mass_pruned < 130. && jet_tau2tau1 < 0.5) outTree_->Fill();
-   outTree_->Fill();
+ // uncomment the line used in the synchronization exercise!
+ if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1 && Wboson_lep.pt > 200. && jet_mass_pruned > 40. && jet_mass_pruned < 130. && jet_tau2tau1 < 0.5) outTree_->Fill();
+   //outTree_->Fill();
 
 }
 
