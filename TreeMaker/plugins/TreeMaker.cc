@@ -97,7 +97,8 @@ private:
   edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> looseMuToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> looseEleToken_;
-  edm::EDGetTokenT<edm::View<reco::Candidate>>leptonsToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate>> leptonsToken_;
+  bool isMC;
 
 };
 
@@ -108,13 +109,14 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc"))),
   hadronicVToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("hadronicVSrc"))),
   leptonicVToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonicVSrc"))),
-  genParticlesToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("genSrc"))),
+  genParticlesToken_(mayConsume<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("genSrc"))),
   fatJetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetSrc"))),
   AK4JetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("AK4JetSrc"))),
   vertexToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("vertexSrc"))),
   looseMuToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("looseMuSrc"))),
   looseEleToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("looseEleSrc"))),
-  leptonsToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonSrc")))
+  leptonsToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
+  isMC(iConfig.getParameter<bool>("isMC"))
 {
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
@@ -239,7 +241,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    //GenParticles
    edm::Handle<edm::View<reco::Candidate> > genParticles;
-   iEvent.getByToken(genParticlesToken_, genParticles); 
+   if(isMC)iEvent.getByToken(genParticlesToken_, genParticles); 
    
    //Vertices 
    edm::Handle<edm::View<reco::Vertex> > vertices;
@@ -268,12 +270,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //leptons (tight)
    edm::Handle<edm::View<reco::Candidate> > leptons;
    iEvent.getByToken(leptonsToken_, leptons); 
+
    nPV = vertices->size();
       
    //  Defining decay channel on the gen level
    N_had_Wgen  = 0, N_lep_Wgen = 0 ;
 
-   DefineDecayChannel(genParticles, N_lep_Wgen , N_had_Wgen );
+   if (isMC) DefineDecayChannel(genParticles, N_lep_Wgen , N_had_Wgen );
    
    if (N_lep_Wgen == 0 && N_had_Wgen == 2  ) WDecayClass = Hadronic;
    else if (N_lep_Wgen == 1 && N_had_Wgen == 1 ) WDecayClass = Semileptonic;
@@ -428,7 +431,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   {
     //WP for 8 TeV and preliminary. Should be updated at some point
     if(((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.814) nbtag ++;
-     std::cout << ((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) << std::endl;
   }
  
   if (AK4Jets -> size() > 0)
@@ -459,12 +461,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    hadronicVp4.SetPtEtaPhiM(Wboson_had.pt,Wboson_had.eta,Wboson_had.phi,Wboson_had.mass);
    leptonicVp4.SetPtEtaPhiM(Wboson_lep.pt,Wboson_lep.eta,Wboson_lep.phi,Wboson_lep.mass);
    lvj_p4 = hadronicVp4 + leptonicVp4;
-   if (leptonicVs -> size() > 0)  m_lvj = lvj_p4.M();
+   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)   m_lvj = lvj_p4.M();
    else m_lvj = -99.;
 
 
-
- if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1 && Wboson_lep.pt > 200. && jet_mass_pruned > 40. && jet_mass_pruned < 130. && jet_tau2tau1 < 0.5) outTree_->Fill();
+ //comment the line used in the synchronization exercise!
+ // if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && nbtag < 1 && Wboson_lep.pt > 200. && jet_mass_pruned > 40. && jet_mass_pruned < 130. && jet_tau2tau1 < 0.5) outTree_->Fill();
+   outTree_->Fill();
 
 }
 
