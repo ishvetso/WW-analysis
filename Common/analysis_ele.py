@@ -20,10 +20,22 @@ process.load("WW-analysis.Common.leptonicW_cff")
 process.load("WW-analysis.Common.hadronicW_cff")
 
 # Electrons
-
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.Geometry_cff")
-process.GlobalTag.globaltag = 'MCRUN2_74_V9::All'
+process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v1'
+
+##___________________________HCAL_Noise_Filter________________________________||
+process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
+process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
+
+process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
+   inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
+   reverseDecision = cms.bool(False)
+)
+
+process.NoiseFilters = cms.EDFilter("NoiseFilter",
+            noiseFilter = cms.InputTag("TriggerResults"),
+            filterNames = cms.vstring("Flag_CSCTightHaloFilter", "Flag_goodVertices ")  )
 
 #
 # Set up electron ID (VID framework)
@@ -97,13 +109,13 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
+process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter +  process.NoiseFilters  +  process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
 #process.analysis = cms.Path(process.mytestJets)
 
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/samples_MINIAOD/RSGrav1000.root'),
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/samples_MINIAOD/SingleMuonPromptRECO.root'),
     #eventsToProcess = cms.untracked.VEventRange('1:75:72317')
     
 )
