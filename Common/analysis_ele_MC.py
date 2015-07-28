@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(10000)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -111,7 +111,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter + process.NoiseFilters  + process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
+process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter + process.NoiseFilters  + process.TriggerElectron + process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
 
 
 #process.maxEvents.input = 1000
@@ -126,7 +126,7 @@ process.source = cms.Source("PoolSource",
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 '''
 process.out = cms.OutputModule("PoolOutputModule",

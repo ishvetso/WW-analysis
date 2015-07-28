@@ -110,7 +110,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter +  process.NoiseFilters  + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter +  process.NoiseFilters  + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
 
 
 #process.maxEvents.input = 1000
