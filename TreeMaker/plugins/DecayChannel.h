@@ -1,11 +1,15 @@
-#include "DataFormats/Candidate/interface/Candidate.h"
+
 /*
  * 
  * Function to define the decay of WW. Valid for GenParticles only.
  * 
  */
+#ifndef Decay_Channel_h
+#define Decay_Channel_h
 
-void DefineDecayChannel (edm::Handle<edm::View<reco::Candidate> > genParticles_, int & N_lep, int & N_had)
+ #include "DataFormats/Candidate/interface/Candidate.h"
+
+inline void DefineDecayChannel ( edm::Handle<edm::View<reco::Candidate> > genParticles_, int & N_lep, int & N_had)
 {
   std::vector <int> index_W;
   bool isLeptonic, isHadronic;
@@ -47,3 +51,5 @@ void DefineDecayChannel (edm::Handle<edm::View<reco::Candidate> > genParticles_,
   
   
 }
+
+#endif

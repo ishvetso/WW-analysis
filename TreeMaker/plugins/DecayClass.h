@@ -1,3 +1,5 @@
+#ifndef DECAY_CLASS_H
+#define DECAY_CLASS_H
 enum DecayClass
 {
   Hadronic,
@@ -5,3 +7,4 @@ enum DecayClass
   Leptonic,
   UnDefined
 };
+#endif
