@@ -12,10 +12,12 @@
 #include <TCanvas.h>
 #include <TLegend.h>
 #include <iostream>
-#include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include <stdio.h>      
+#include <stdlib.h>  
 #include <Sample.hpp>
 #include <var.hpp>
 #include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/tdrstyle.C>
@@ -37,6 +39,7 @@ class Plotter
 	public:
 	Plotter();
 	Sample DataSample;
+	bool withData = true;
 	void SetNbins(int Nbins_);
 	void SetVar(vector <Var> variables_);
 	void SetSamples(vector <Sample> samples_);	

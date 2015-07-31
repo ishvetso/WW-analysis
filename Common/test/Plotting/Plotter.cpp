@@ -28,6 +28,7 @@ void Plotter::SetVar(vector <Var> variables_)
 
 void Plotter::Plotting(std::string OutPrefix_)
 {
+	system(("mkdir -p " + OutPrefix_ ).c_str());
 	gStyle->SetOptStat(0);
 	gStyle->SetOptTitle(0);
 	setTDRStyle();
@@ -90,7 +91,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	      
 		data->SetFillColor(78);
 		data->SetFillStyle(3004);
-		data -> GetYaxis() -> SetRangeUser(0.1, (data -> GetMaximum())*1.2);
+		data -> GetYaxis() -> SetRangeUser(0.1, (data -> GetMaximum())*7.);
 		data->GetXaxis()->SetTitle((variables.at(var_i)).VarName.c_str());
 		data->GetYaxis()->SetTitle("Number of events");
 		data->SetMarkerColor(DataSample.color);
@@ -101,9 +102,13 @@ void Plotter::Plotting(std::string OutPrefix_)
 	    pad1->Draw();
 	    //pad2->Draw();
 	    pad1 -> cd();
-		data -> Draw("E1");
-	    hs->Draw("hist SAME");
-	    data -> Draw("E1 SAME");
+		if(withData)
+		{	
+			data -> Draw("E1");
+	    	hs->Draw("hist SAME");
+	    	data -> Draw("E1 SAME");
+		} 
+		else hs->Draw("hist");
 	    c1 -> cd();
 	    leg->Draw();
            //  hs->Draw(); I'm currently not sure, may be this line is needed for data, check when using data

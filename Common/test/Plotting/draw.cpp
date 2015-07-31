@@ -106,7 +106,7 @@ void draw()
 	variables.push_back(var);
 
 	var.VarName = "m_lvj";
-	var.SetRange(0., 1000.);
+	var.SetRange(400., 1800.);
 	variables.push_back(var);
 
 	var.VarName = "njets";
@@ -115,6 +115,14 @@ void draw()
 
 	var.VarName = "nbtag";
 	var.SetRange(0., 6.);
+	variables.push_back(var);
+
+	var.VarName = "nLooseEle";
+	var.SetRange(0., 2.);
+	variables.push_back(var);
+
+	var.VarName = "nLooseMu";
+	var.SetRange(0., 2.);
 	variables.push_back(var);
 
 
@@ -139,9 +147,13 @@ void draw()
 	vector <Sample> samples;
 	p.SetVar(variables);
 	p.SetNbins(30);
+
+	string addOnCutWjets = "(jet_mass_pruned < 65. || jet_mass_pruned > 95.)";
+	string addOnCutTtbar = "(nbtag >= 1)";
 	
-	string MCSelection = "weight";
-	string DataSelection = "1";
+	
+	string MCSelection = "weight*" + addOnCutWjets;
+	string DataSelection = addOnCutWjets;
 		
 	/*
 	 * Colors
@@ -152,30 +164,31 @@ void draw()
 	
 	Sample s, dataSample;
 	
-		  
+	string prefix = "/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/tuples_50ns_29July2015/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
- 	s.SetFileNames("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/crab_projects/crab_WW_analysis_ele/results/WW_ele.root");
+ 	s.SetFileNames( prefix + "WW_mu.root");
 	samples.push_back(s);
 	s.ReSet();
 
 	s.SetParameters("W+jets", MCSelection, kGreen);
- 	s.SetFileNames("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/crab_projects/crab_WJets_analysis_ele/results/WJets_ele.root");
+ 	s.SetFileNames(prefix + "WJets_mu.root");
 	samples.push_back(s);
 	s.ReSet();
 
 	s.SetParameters("ttbar", MCSelection, kOrange);
- 	s.SetFileNames("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/crab_projects/crab_TTBar_analysis_ele/results/ttbar_ele.root");
+ 	s.SetFileNames(prefix + "ttbar_mu.root");
 	samples.push_back(s);
 	s.ReSet();
 
 	dataSample.SetParameters("data", DataSelection, kBlack);
- 	dataSample.SetFileNames("/afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/crab_projects/crab_FirstDataSingleEle/results/data_ele.root");
+ 	dataSample.SetFileNames(prefix + "data_mu_all.root");
 	
 	
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
- 	p.Plotting("plots_ele/");
+	p.withData = true;
+ 	p.Plotting("plots_ele_50ns_30July_WJets_enriched/");
 	
 	
 }
