@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10000000)
+    input = cms.untracked.int32(10000)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -102,7 +102,8 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseEleSrc = cms.InputTag("looseElectrons"),
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightMuons"),
-                                    isMC = cms.bool(True)
+                                    isMC = cms.bool(True),
+                                    isMuonChannel = cms.bool(True)
                                     )
 
 

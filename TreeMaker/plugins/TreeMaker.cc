@@ -18,7 +18,7 @@
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
-#include <DataFormats/MuonReco/interface/Muon.h>
+#include "DataFormats/MuonReco/interface/Muon.h"
 
 
 #include "DataFormats/PatCandidates/interface/Jet.h"
@@ -80,6 +80,7 @@ private:
   //Jets
   int NAK8jet, njets, nbtag;
   double jet_pt, jet_eta, jet_phi, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1;
+  double pt_muon_TuneP;
   
   //AK4 jets
   double jet2_pt, jet2_btag, jet3_pt, jet3_btag;
@@ -98,7 +99,9 @@ private:
   edm::EDGetTokenT<edm::View<reco::Candidate>> looseMuToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> looseEleToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonsToken_;
+  edm::EDGetTokenT<edm::View<pat::Muon>> muonsToken_;
   bool isMC;
+  bool isMuonChannel;
 
 };
 
@@ -116,7 +119,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   looseMuToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("looseMuSrc"))),
   looseEleToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("looseEleSrc"))),
   leptonsToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
-  isMC(iConfig.getParameter<bool>("isMC"))
+  muonsToken_(mayConsume<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
+  isMC(iConfig.getParameter<bool>("isMC")),
+  isMuonChannel(iConfig.getParameter<bool>("isMuonChannel"))
 {
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
@@ -139,6 +144,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   
   //leptons (tight, ele or mu depends on the channel)
   outTree_->Branch("l_pt",	      &Lepton.pt,      "l_pt/D"         	);
+  outTree_->Branch("pt_muon_TuneP",        &pt_muon_TuneP,      "pt_muon_TuneP/D"           );
   outTree_->Branch("l_eta",	      &Lepton.eta,     "l_eta/D"        	);
   outTree_->Branch("l_phi",	      &Lepton.phi,     "l_phi/D"        	);
   
@@ -306,7 +312,17 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Lepton.eta = -99.;
      Lepton.phi = -99.;
    }
+
+   edm::Handle<edm::View<pat::Muon> > muons;
   
+  if (isMuonChannel){
+
+    iEvent.getByToken(muonsToken_, muons); 
+    if (muons -> size() > 0) pt_muon_TuneP =  (muons -> at(0)).tunePMuonBestTrack() -> pt();
+    else pt_muon_TuneP = -99.;
+  }
+
+  else pt_muon_TuneP = -99.;
 
    //leptonically decaying W
    if (leptonicVs -> size() > 0)
