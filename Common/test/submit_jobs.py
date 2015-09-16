@@ -21,10 +21,6 @@ parser.add_option('-p', '--pattern',
                   default='my_feature')
 (options, arg) = parser.parse_args()
 
-#createFileForJob(options.pattern, 'crabConfig_STop_s-channel_ele.py')
-
-#os.system("crab submit -c " + 'crabConfig_STop_s-channel_ele.py')
-
 MyListOfJobs = ["crabConfig_STop_s-channel_mu.py", "crabConfig_STop_t-channel_antitop_ele.py", "crabConfig_STop_t-channel_antitop_mu.py", "crabConfig_STop_t-channel_top_ele.py",
  "crabConfig_STop_t-channel_top_mu.py", "crabConfig_STop_tW-channel_antitop_ele.py", "crabConfig_STop_tW-channel_antitop_mu.py", "crabConfig_STop_tW-channel_top_ele.py",
  "crabConfig_STop_tW-channel_top_mu.py"]
