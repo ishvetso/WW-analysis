@@ -19,6 +19,11 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+#include "FWCore/Framework/interface/EventSetup.h"
 
 
 #include "DataFormats/PatCandidates/interface/Jet.h"
@@ -79,8 +84,12 @@ private:
   
   //Jets
   int NAK8jet, njets, nbtag;
-  double jet_pt, jet_eta, jet_phi, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1;
+  double jet_pt, jet_eta, jet_phi, jet_mass, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1;
   double pt_muon_TuneP;
+
+  //JEC uncertainties
+  double JECunc;
+  double jet_pt_JECUp, jet_pt_JECDown, jet_mass_JECUp, jet_mass_JECDown, jet_mass_pruned_JECUp, jet_mass_pruned_JECDown, jet_mass_softdrop_JECUp, jet_mass_softdrop_JECDown;
   
   //AK4 jets
   double jet2_pt, jet2_btag, jet3_pt, jet3_btag;
@@ -197,11 +206,24 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet_pt",  	      &jet_pt,	  	  "jet_pt/D"   );
   outTree_->Branch("jet_eta",  	      &jet_eta,	  	  "jet_eta/D"   );
   outTree_->Branch("jet_phi",  	      &jet_phi,	  	  "jet_phi/D"   );
+  outTree_->Branch("jet_mass",         &jet_mass,       "jet_mass/D"   );
   outTree_->Branch("jet_mass_pruned", &jet_mass_pruned,	  "jet_mass_pruned/D"   );
   outTree_->Branch("jet_mass_softdrop",&jet_mass_softdrop,"jet_mass_softdrop/D"   );
   outTree_->Branch("jet_tau2tau1",    &jet_tau2tau1,	  "jet_tau2tau1/D"   );
+
+  //JEC uncertainties
+  outTree_->Branch("JECunc",    &JECunc,    "JECunc/D"   ); 
+  outTree_->Branch("jet_pt_JECUp",    &jet_pt_JECUp,    "jet_pt_JECUp/D"   ); 
+  outTree_->Branch("jet_pt_JECDown",    &jet_pt_JECDown,    "jet_pt_JECDown/D"   );  
+  outTree_->Branch("jet_mass_JECUp",    &jet_mass_JECUp,    "jet_mass_JECUp/D"   ); 
+  outTree_->Branch("jet_mass_JECDown",    &jet_mass_JECDown,    "jet_mass_JECDown/D"   );  
   
+  outTree_->Branch("jet_mass_pruned_JECUp",    &jet_mass_pruned_JECUp,    "jet_mass_pruned_JECUp/D"   ); 
+  outTree_->Branch("jet_mass_pruned_JECDown",    &jet_mass_pruned_JECDown,    "jet_mass_pruned_JECDown/D"   );  
   
+  outTree_->Branch("jet_mass_softdrop_JECUp",    &jet_mass_softdrop_JECUp,    "jet_mass_softdrop_JECUp/D"   ); 
+  outTree_->Branch("jet_mass_softdrop_JECDown",    &jet_mass_softdrop_JECDown,    "jet_mass_softdrop_JECDown/D"   );  
+
   outTree_->Branch("njets",  	      &njets,	          "njets/I"   );
   outTree_->Branch("nbtag",  	      &nbtag,	          "nbtag/I"   );
   
@@ -211,6 +233,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet3_btag",	      &jet3_btag,         "jet3_btag/D"   );
   
   outTree_->Branch("m_lvj",	      &m_lvj,         "m_lvj/D"   );
+
+
+
 }
 
 
@@ -276,6 +301,18 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //leptons (tight)
    edm::Handle<edm::View<reco::Candidate> > leptons;
    iEvent.getByToken(leptonsToken_, leptons); 
+
+   edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
+   iSetup.get<JetCorrectionsRecord>().get("AK8PF",JetCorParCollAK8);
+
+   JetCorrectorParameters const & JetCorPar = (*JetCorParCollAK8)["Uncertainty"];
+   JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
+
+  jecUnc->setJetEta((jets -> at(0)).eta());
+  jecUnc->setJetPt((jets -> at(0)).pt()); // here you must use the CORRECTED jet pt
+   
+  JECunc = jecUnc->getUncertainty(true);
+
 
    nPV = vertices->size();
       
@@ -422,9 +459,21 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_pt = (jets -> at(0)).pt();
     jet_eta = (jets -> at(0)).eta();
     jet_phi = (jets -> at(0)).phi();
+    jet_mass = (jets -> at(0)).mass();
     jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
     jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
     jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
+
+    //JEC uncertainty
+    jet_pt_JECDown = (1 - JECunc)*jet_pt;
+    jet_pt_JECUp   = (1 + JECunc)*jet_pt;
+    jet_mass_JECDown = (1 - JECunc)*jet_mass;
+    jet_mass_JECUp   = (1 + JECunc)*jet_mass;
+    jet_mass_pruned_JECDown = (1 - JECunc)*jet_mass_pruned; 
+    jet_mass_pruned_JECUp = (1 + JECunc)*jet_mass_pruned; 
+    jet_mass_softdrop_JECDown = (1 - JECunc)*jet_mass_softdrop; 
+    jet_mass_softdrop_JECUp = (1 + JECunc)*jet_mass_softdrop; 
+
   }
   
   else 
@@ -435,6 +484,12 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_mass_pruned = -99.;
     jet_mass_softdrop = -99.;
     jet_tau2tau1 = -99.;
+
+    //JEC Uncertainty
+    jet_pt_JECDown = -99.;
+    jet_pt_JECUp   = -99.;
+    jet_mass_JECDown = -99.;
+    jet_mass_JECUp   = -99.;
   }
   
   
@@ -484,6 +539,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
  // uncomment the line used in the synchronization exercise!
  if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
    //outTree_->Fill();
+
+
 
 }
 
