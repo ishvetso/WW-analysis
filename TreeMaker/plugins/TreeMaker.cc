@@ -32,6 +32,8 @@
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
 #include "TLorentzVector.h"
 
 #include "TTree.h"
@@ -66,6 +68,8 @@ private:
   
   //number of primary vertices
   int nPV;
+
+  double PUweight;
   
   Particle Wboson_lep, Wboson_had, METCand, Electron, Muon, Lepton;
   double m_pruned;
@@ -98,6 +102,8 @@ private:
   double m_lvj;
   
   //Defining Tokens
+  edm::EDGetTokenT<std::vector< PileupSummaryInfo > > PUInfoToken_;
+  std::string filenamePUData, filenamePUMC;
   edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
   edm::EDGetTokenT<edm::View<pat::Jet>> hadronicVToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonicVToken_;
@@ -118,6 +124,9 @@ private:
 // constructors and destructor
 //
 TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
+  PUInfoToken_(mayConsume<std::vector< PileupSummaryInfo > >(iConfig.getParameter<edm::InputTag>("PUInfo"))),
+  filenamePUData( iConfig.getParameter<edm::FileInPath>("filenameData").fullPath() ),
+  filenamePUMC(iConfig.getParameter<edm::FileInPath>("filenameMC").fullPath()),
   metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc"))),
   hadronicVToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("hadronicVSrc"))),
   leptonicVToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonicVSrc"))),
@@ -143,6 +152,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   
   //number of primary vertices
   outTree_->Branch("nPV",	      &nPV,		  "nPV/I"  	       );
+  //PUweight
+  outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
   
   //number of loose leptons
   outTree_->Branch("nLooseEle",      &nLooseEle, 	  "nLooseEle/I"       );
@@ -302,11 +313,30 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle<edm::View<reco::Candidate> > leptons;
    iEvent.getByToken(leptonsToken_, leptons); 
 
-   edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
-   iSetup.get<JetCorrectionsRecord>().get("AK8PF",JetCorParCollAK8);
+   nPV = vertices->size();
+   edm::LumiReWeighting  LumiWeights_ = edm::LumiReWeighting(filenamePUData, filenamePUMC, "pileup", "PUTrueDist/pileup");
 
-   JetCorrectorParameters const & JetCorPar = (*JetCorParCollAK8)["Uncertainty"];
-   JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
+   edm::Handle<std::vector< PileupSummaryInfo > >  PUInfo;
+   iEvent.getByToken(PUInfoToken_, PUInfo);
+
+  std::vector<PileupSummaryInfo>::const_iterator PVI;
+
+  float Tnpv = -1;
+  for(PVI = PUInfo->begin(); PVI != PUInfo->end(); ++PVI) {
+   int BX = PVI->getBunchCrossing();
+   if(BX == 0) { 
+     Tnpv = PVI->getTrueNumInteractions();
+     continue;
+   }
+
+  }
+  PUweight = LumiWeights_.weight( Tnpv );
+
+  edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
+  iSetup.get<JetCorrectionsRecord>().get("AK8PF",JetCorParCollAK8);
+
+  JetCorrectorParameters const & JetCorPar = (*JetCorParCollAK8)["Uncertainty"];
+  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
   jecUnc->setJetEta((jets -> at(0)).eta());
   jecUnc->setJetPt((jets -> at(0)).pt()); // here you must use the CORRECTED jet pt
@@ -314,7 +344,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   JECunc = jecUnc->getUncertainty(true);
 
 
-   nPV = vertices->size();
+   
       
    //  Defining decay channel on the gen level
    N_had_Wgen  = 0, N_lep_Wgen = 0 ;
