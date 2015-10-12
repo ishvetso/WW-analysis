@@ -1,0 +1,15 @@
+/*
+this is a general information on how PU-reweighting should be done;
+
+info:
+
+https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupMCReweightingUtilities
+
+https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData
+*/
+
+1. get PU distribution from data:
+pileupCalc.py -i YOUR_JSON --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/PileUp/pileup_JSON_1.2_PRE_10-09-2015.txt --calcMode true --minBiasXsec 80000 --maxPileupBin 50 --numPileupBins 50 MyDataPileupHistogram.root 
+
+pileupCalc.py is located in RecoLuminosity/LumiDB/scripts/
+2. get PU distribution from MC, for this there is a script PU.py in PUTrueDistProducer/test, and you can run crab job with crab_PU.py 
