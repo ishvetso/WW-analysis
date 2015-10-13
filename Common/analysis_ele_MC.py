@@ -35,7 +35,7 @@ process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
 )
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
-            noiseFilter = cms.InputTag("TriggerResults"),
+            noiseFilter = cms.InputTag("TriggerResults", "", "HLT"),
             filterNames = cms.vstring("Flag_CSCTightHaloFilter", "Flag_goodVertices ")  )
 
 
@@ -93,6 +93,11 @@ process.jetSequence = cms.Sequence(process.fatJetsSequence +
 
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
+                                    PUInfo = cms.InputTag("addPileupInfo"),
+                                    filenameData = cms.FileInPath("WW-analysis/PUTrueDistProducer/test/MyDataPileupHistogram.root"),
+                                    filenameMC = cms.FileInPath("WW-analysis/PUTrueDistProducer/test/PU_dist.root"),
+                                    HistnameData = cms.string("pileup"),
+                                    HistnameMC = cms.string("PUTrueDist/pileup"),
                                     hadronicVSrc = cms.InputTag("hadronicV"),
                                     leptonicVSrc = cms.InputTag("Wtoenu"),
                                     metSrc = cms.InputTag("METele"),

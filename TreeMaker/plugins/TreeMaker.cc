@@ -103,7 +103,6 @@ private:
   
   //Defining Tokens
   edm::EDGetTokenT<std::vector< PileupSummaryInfo > > PUInfoToken_;
-  std::string filenamePUData, filenamePUMC;
   edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
   edm::EDGetTokenT<edm::View<pat::Jet>> hadronicVToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonicVToken_;
@@ -117,6 +116,9 @@ private:
   edm::EDGetTokenT<edm::View<pat::Muon>> muonsToken_;
   bool isMC;
   bool isMuonChannel;
+  edm::LumiReWeighting  LumiWeights_;
+  std::string filenamePUData, filenamePUMC;
+  std::string HistnameData, HistnameMC;
 
 };
 
@@ -124,9 +126,6 @@ private:
 // constructors and destructor
 //
 TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
-  PUInfoToken_(mayConsume<std::vector< PileupSummaryInfo > >(iConfig.getParameter<edm::InputTag>("PUInfo"))),
-  filenamePUData( iConfig.getParameter<edm::FileInPath>("filenameData").fullPath() ),
-  filenamePUMC(iConfig.getParameter<edm::FileInPath>("filenameMC").fullPath()),
   metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc"))),
   hadronicVToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("hadronicVSrc"))),
   leptonicVToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonicVSrc"))),
@@ -141,6 +140,18 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   isMC(iConfig.getParameter<bool>("isMC")),
   isMuonChannel(iConfig.getParameter<bool>("isMuonChannel"))
 {
+   if (isMC) {
+     //name of files and histograms with PU distribution in data and MC
+     filenamePUData = iConfig.getParameter<edm::FileInPath>("filenameData").fullPath();
+     filenamePUMC = iConfig.getParameter<edm::FileInPath>("filenameMC").fullPath();
+     HistnameData = iConfig.getParameter<std::string>("HistnameData");
+     HistnameMC = iConfig.getParameter<std::string>("HistnameMC");
+
+     PUInfoToken_ = consumes<std::vector< PileupSummaryInfo > >(iConfig.getParameter<edm::InputTag>("PUInfo"));
+
+     //PU-reweighting
+     LumiWeights_ = edm::LumiReWeighting(filenamePUData, filenamePUMC, HistnameData, HistnameMC);
+   }
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
   outTree_ = fs->make<TTree>("BasicTree","BasicTree");
@@ -153,7 +164,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   //number of primary vertices
   outTree_->Branch("nPV",	      &nPV,		  "nPV/I"  	       );
   //PUweight
-  outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
+  if (isMC) outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
   
   //number of loose leptons
   outTree_->Branch("nLooseEle",      &nLooseEle, 	  "nLooseEle/I"       );
@@ -314,24 +325,22 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByToken(leptonsToken_, leptons); 
 
    nPV = vertices->size();
-   edm::LumiReWeighting  LumiWeights_ = edm::LumiReWeighting(filenamePUData, filenamePUMC, "pileup", "PUTrueDist/pileup");
-
+   
    edm::Handle<std::vector< PileupSummaryInfo > >  PUInfo;
-   iEvent.getByToken(PUInfoToken_, PUInfo);
+  if (isMC) {
+    iEvent.getByToken(PUInfoToken_, PUInfo);
+    std::vector<PileupSummaryInfo>::const_iterator PVI;
+    float Tnpv = -1;
+    for(PVI = PUInfo->begin(); PVI != PUInfo->end(); ++PVI) {
+     int BX = PVI->getBunchCrossing();
+     if(BX == 0) { 
+       Tnpv = PVI->getTrueNumInteractions();
+       continue;
+     }
 
-  std::vector<PileupSummaryInfo>::const_iterator PVI;
-
-  float Tnpv = -1;
-  for(PVI = PUInfo->begin(); PVI != PUInfo->end(); ++PVI) {
-   int BX = PVI->getBunchCrossing();
-   if(BX == 0) { 
-     Tnpv = PVI->getTrueNumInteractions();
-     continue;
-   }
-
+    }
+    PUweight = LumiWeights_.weight( Tnpv );
   }
-  PUweight = LumiWeights_.weight( Tnpv );
-
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
   iSetup.get<JetCorrectionsRecord>().get("AK8PF",JetCorParCollAK8);
 

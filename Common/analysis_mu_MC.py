@@ -92,6 +92,11 @@ process.jetSequence = cms.Sequence(process.fatJetsSequence +
                                      process.hadronicV)
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
+                                    PUInfo = cms.InputTag("addPileupInfo"),
+                                    filenameData = cms.FileInPath("WW-analysis/PUTrueDistProducer/test/MyDataPileupHistogram.root"),
+                                    filenameMC = cms.FileInPath("WW-analysis/PUTrueDistProducer/test/PU_dist.root"),
+                                    HistnameData = cms.string("pileup"),
+                                    HistnameMC = cms.string("PUTrueDist/pileup"),
                                     hadronicVSrc = cms.InputTag("hadronicV"),
                                     leptonicVSrc = cms.InputTag("Wtomunu"),
                                     metSrc = cms.InputTag("METmu"),
@@ -117,7 +122,8 @@ process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.Appl
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/samples_MINIAOD/RSGrav1000.root')
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/samples_MINIAOD/RSGrav1000.root'),
+   # eventsToProcess = cms.untracked.VEventRange('1:509589:127270357')
     
 )
 
