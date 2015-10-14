@@ -97,6 +97,11 @@ private:
   
   //AK4 jets
   double jet2_pt, jet2_btag, jet3_pt, jet3_btag;
+
+  //MET uncertainties
+  double MET_UnclEnUp, MET_UnclEnDown, MET_JECUp, MET_JECDown, MET_JERUp, MET_JERDown, MET_MuonEnUp, MET_MuonEnDown, MET_ElectronEnUp, MET_ElectronEnDown;
+  //MET phi uncertainties
+  double MET_Phi_UnclEnUp, MET_Phi_UnclEnDown, MET_Phi_JECUp, MET_Phi_JECDown, MET_Phi_JERUp, MET_Phi_JERDown, MET_Phi_MuonEnUp, MET_Phi_MuonEnDown, MET_Phi_ElectronEnUp, MET_Phi_ElectronEnDown;
   
   //m_lvj
   double m_lvj;
@@ -218,6 +223,41 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("pfMETMass",	      &METCand.mass, 	  "pfMETMass/D"         );
   outTree_->Branch("pfMETMt",	      &METCand.mt, 	  "pfMETMt/D"           );
 
+  if (isMC) {
+    //MET uncertainties
+    //UnclEn
+    outTree_->Branch("pfMET_METUnclEnUp",         &MET_UnclEnUp,    "pfMET_METUnclEnUp/D"              );
+    outTree_->Branch("pfMET_METUnclEnDown",         &MET_UnclEnDown,    "pfMET_METUnclEnDown/D"              );
+    //JER
+    outTree_->Branch("pfMET_JERUp",         &MET_JERUp,    "pfMET_JERUp/D"              );
+    outTree_->Branch("pfMET_JERDown",         &MET_JERDown,    "pfMET_JERDown/D"              );
+    //JEC
+    outTree_->Branch("pfMET_JECUp",         &MET_JECUp,    "pfMET_JECUp/D"              );
+    outTree_->Branch("pfMET_JECDown",         &MET_JECDown,    "pfMET_JECDown/D"              );
+    //Muon energy
+    outTree_->Branch("pfMET_MuonEnUp",         &MET_MuonEnUp,    "pfMET_MuonEnUp/D"              );
+    outTree_->Branch("pfMET_MuonEnDown",         &MET_MuonEnDown,    "pfMET_MuonEnDown/D"              );
+    //Electron energy
+    outTree_->Branch("pfMET_ElectronEnUp",         &MET_ElectronEnUp,    "pfMET_ElectronEnUp/D"              );
+    outTree_->Branch("pfMET_ElectronEnDown",         &MET_ElectronEnDown,    "pfMET_ElectronEnDown/D"              );
+
+    //MET phi uncertainties
+    //UnclEn
+    outTree_->Branch("pfMETPhi_METUnclEnUp",         &MET_Phi_UnclEnUp,    "pfMETPhi_METUnclEnUp/D"              );
+    outTree_->Branch("pfMETPhi_METUnclEnDown",         &MET_Phi_UnclEnDown,    "pfMETPhi_METUnclEnDown/D"              );
+    //JER
+    outTree_->Branch("pfMETPhi_JERUp",         &MET_Phi_JERUp,    "pfMETPhi_JERUp/D"              );
+    outTree_->Branch("pfMETPhi_JERDown",         &MET_Phi_JERDown,    "pfMETPhi_JERDown/D"              );
+    //JEC
+    outTree_->Branch("pfMETPhi_JECUp",         &MET_Phi_JECUp,    "pfMETPhi_JECUp/D"              );
+    outTree_->Branch("pfMETPhi_JECDown",         &MET_Phi_JECDown,    "pfMETPhi_JECDown/D"              );
+    //Muon energy
+    outTree_->Branch("pfMETPhi_MuonEnUp",         &MET_Phi_MuonEnUp,    "pfMETPhi_MuonEnUp/D"              );
+    outTree_->Branch("pfMETPhi_MuonEnDown",         &MET_Phi_MuonEnDown,    "pfMETPhi_MuonEnDown/D"              );
+    //Electron energy
+    outTree_->Branch("pfMETPhi_ElectronEnUp",         &MET_Phi_ElectronEnUp,    "pfMETPhi_ElectronEnUp/D"              );
+    outTree_->Branch("pfMETPhi_ElectronEnDown",         &MET_Phi_ElectronEnDown,    "pfMETPhi_ElectronEnDown/D"              );
+  }
   /// Other observables
   outTree_->Branch("deltaR_LepWJet",  &deltaR_LepWJet,	  "deltaR_LepWJet/D"   );
   outTree_->Branch("deltaPhi_LepMet", &deltaPhi_LepMet,	  "deltaPhi_LepMet/D"  );
@@ -234,18 +274,19 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet_tau2tau1",    &jet_tau2tau1,	  "jet_tau2tau1/D"   );
 
   //JEC uncertainties
-  outTree_->Branch("JECunc",    &JECunc,    "JECunc/D"   ); 
-  outTree_->Branch("jet_pt_JECUp",    &jet_pt_JECUp,    "jet_pt_JECUp/D"   ); 
-  outTree_->Branch("jet_pt_JECDown",    &jet_pt_JECDown,    "jet_pt_JECDown/D"   );  
-  outTree_->Branch("jet_mass_JECUp",    &jet_mass_JECUp,    "jet_mass_JECUp/D"   ); 
-  outTree_->Branch("jet_mass_JECDown",    &jet_mass_JECDown,    "jet_mass_JECDown/D"   );  
-  
-  outTree_->Branch("jet_mass_pruned_JECUp",    &jet_mass_pruned_JECUp,    "jet_mass_pruned_JECUp/D"   ); 
-  outTree_->Branch("jet_mass_pruned_JECDown",    &jet_mass_pruned_JECDown,    "jet_mass_pruned_JECDown/D"   );  
-  
-  outTree_->Branch("jet_mass_softdrop_JECUp",    &jet_mass_softdrop_JECUp,    "jet_mass_softdrop_JECUp/D"   ); 
-  outTree_->Branch("jet_mass_softdrop_JECDown",    &jet_mass_softdrop_JECDown,    "jet_mass_softdrop_JECDown/D"   );  
-
+  if (isMC) {
+    outTree_->Branch("JECunc",    &JECunc,    "JECunc/D"   ); 
+    outTree_->Branch("jet_pt_JECUp",    &jet_pt_JECUp,    "jet_pt_JECUp/D"   ); 
+    outTree_->Branch("jet_pt_JECDown",    &jet_pt_JECDown,    "jet_pt_JECDown/D"   );  
+    outTree_->Branch("jet_mass_JECUp",    &jet_mass_JECUp,    "jet_mass_JECUp/D"   ); 
+    outTree_->Branch("jet_mass_JECDown",    &jet_mass_JECDown,    "jet_mass_JECDown/D"   );  
+    
+    outTree_->Branch("jet_mass_pruned_JECUp",    &jet_mass_pruned_JECUp,    "jet_mass_pruned_JECUp/D"   ); 
+    outTree_->Branch("jet_mass_pruned_JECDown",    &jet_mass_pruned_JECDown,    "jet_mass_pruned_JECDown/D"   );  
+    
+    outTree_->Branch("jet_mass_softdrop_JECUp",    &jet_mass_softdrop_JECUp,    "jet_mass_softdrop_JECUp/D"   ); 
+    outTree_->Branch("jet_mass_softdrop_JECDown",    &jet_mass_softdrop_JECDown,    "jet_mass_softdrop_JECDown/D"   );  
+  }
   outTree_->Branch("njets",  	      &njets,	          "njets/I"   );
   outTree_->Branch("nbtag",  	      &nbtag,	          "nbtag/I"   );
   
@@ -464,6 +505,39 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       METCand.phi = metCand.phi();
       METCand.mass = metCand.mass();
       METCand.mt = metCand.mt();
+      //MET uncertainties
+      //METUncl
+      MET_UnclEnUp = metCand.shiftedPt( pat::MET::UnclusteredEnUp, pat::MET::Type1) ;
+      MET_UnclEnDown = metCand.shiftedPt( pat::MET::UnclusteredEnDown, pat::MET::Type1) ;
+      //JER
+      MET_JERUp = metCand.shiftedPt( pat::MET::JetResUp, pat::MET::Type1) ;
+      MET_JERDown = metCand.shiftedPt( pat::MET::JetResDown, pat::MET::Type1) ;
+      //JEC
+      MET_JECUp = metCand.shiftedPt( pat::MET::JetEnUp, pat::MET::Type1) ;
+      MET_JECDown = metCand.shiftedPt( pat::MET::JetEnDown, pat::MET::Type1) ;
+      //Electron energy 
+      MET_ElectronEnUp = metCand.shiftedPt( pat::MET::ElectronEnUp, pat::MET::Type1) ;
+      MET_ElectronEnDown = metCand.shiftedPt( pat::MET::ElectronEnDown, pat::MET::Type1) ;
+      //Muon energy 
+      MET_MuonEnUp = metCand.shiftedPt( pat::MET::MuonEnUp, pat::MET::Type1) ;
+      MET_MuonEnDown = metCand.shiftedPt( pat::MET::MuonEnDown, pat::MET::Type1) ;
+
+      //MET phi uncertainties
+      //METUncl
+      MET_Phi_UnclEnUp = metCand.shiftedPhi( pat::MET::UnclusteredEnUp, pat::MET::Type1) ;
+      MET_Phi_UnclEnDown = metCand.shiftedPhi( pat::MET::UnclusteredEnDown, pat::MET::Type1) ;
+      //JER
+      MET_Phi_JERUp = metCand.shiftedPhi( pat::MET::JetResUp, pat::MET::Type1) ;
+      MET_Phi_JERDown = metCand.shiftedPhi( pat::MET::JetResDown, pat::MET::Type1) ;
+      //JEC
+      MET_Phi_JECUp = metCand.shiftedPhi( pat::MET::JetEnUp, pat::MET::Type1) ;
+      MET_Phi_JECDown = metCand.shiftedPhi( pat::MET::JetEnDown, pat::MET::Type1) ;
+      //Electron energy 
+      MET_Phi_ElectronEnUp = metCand.shiftedPhi( pat::MET::ElectronEnUp, pat::MET::Type1) ;
+      MET_Phi_ElectronEnDown = metCand.shiftedPhi( pat::MET::ElectronEnDown, pat::MET::Type1) ;
+      //Muon energy 
+      MET_Phi_MuonEnUp = metCand.shiftedPhi( pat::MET::MuonEnUp, pat::MET::Type1) ;
+      MET_Phi_MuonEnDown = metCand.shiftedPhi( pat::MET::MuonEnDown, pat::MET::Type1) ;
    }
    
     else
@@ -472,6 +546,41 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       METCand.phi = -99.;
       METCand.mass = -99.;
       METCand.mt = -99.;
+
+      //MET uncertainties
+       //METUncl
+      MET_UnclEnUp = -99. ;
+      MET_UnclEnUp = -99.;
+      //JER
+      MET_JERUp = -99.;
+      MET_JERDown = -99. ;
+      //JEC
+      MET_JECUp = -99. ;
+      MET_JECDown = -99. ;
+      //Electron energy 
+      MET_ElectronEnUp = -99.;
+      MET_ElectronEnDown = -99. ;
+      //Muon energy 
+      MET_MuonEnUp = -99.;
+      MET_MuonEnDown = -99.;
+
+      //MET phi uncertainties
+       //METUncl
+      MET_Phi_UnclEnUp = -99. ;
+      MET_Phi_UnclEnUp = -99.;
+      //JER
+      MET_Phi_JERUp = -99.;
+      MET_Phi_JERDown = -99. ;
+      //JEC
+      MET_Phi_JECUp = -99. ;
+      MET_Phi_JECDown = -99. ;
+      //Electron energy 
+      MET_Phi_ElectronEnUp = -99.;
+      MET_Phi_ElectronEnDown = -99. ;
+      //Muon energy 
+      MET_Phi_MuonEnUp = -99.;
+      MET_Phi_MuonEnDown = -99.;
+
    }
    
     if (hadronicVs -> size() > 0 && leptonicVs -> size() > 0)
