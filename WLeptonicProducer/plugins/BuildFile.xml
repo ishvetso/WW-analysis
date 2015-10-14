@@ -5,4 +5,5 @@ o<use name="FWCore/Framework"/>
 <use name="CommonTools/CandUtils"/>
 <use name="CommonTools/Utils"/>
 <use name="root"/>
+<use name="clhep"/>
 <flags EDM_PLUGIN="1"/>
