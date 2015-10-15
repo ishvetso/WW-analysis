@@ -4,6 +4,7 @@ from PhysicsTools.PatAlgos.tools.helpers import cloneProcessingSnippet
 
 def CreateWLepWithMETSystematicsSequence(process):
 	process.metSequenceSystematics = cms.Sequence()
+	process.EmptySequence = cms.Sequence()
 	ListOfSystematics = ["JetResUp", "JetResDown", "JetEnUp", "JetEnDown", "MuonEnUp", "MuonEnDown", "ElectronEnUp", "ElectronEnDown", "UnclusteredEnUp", "UnclusteredEnDown"]
 	clonedMET = cms.EDProducer("METSystematicProducer", 
                                      metSrc = cms.InputTag("slimmedMETs"),
@@ -22,10 +23,11 @@ def CreateWLepWithMETSystematicsSequence(process):
                         )
 	process.shiftedMETs = cms.Sequence()
 	for iSyst in ListOfSystematics:
-		setattr(process, 'MET' + ListOfSystematics[iSyst], clonedMET.clone(uncertaintyType = ListOfSystematics[iSyst]))
-		setattr(process, 'Wtomunu' + ListOfSystematics[iSyst], WtomunuCloned.clone(MET = 'MET' + ListOfSystematics[iSyst]))
-		setattr(process, 'Wtoenu' + ListOfSystematics[iSyst], WtoenuCloned.clone(MET = 'MET' + ListOfSystematics[iSyst]))
-		SystSequence = cms.Sequence(getattr(process, 'MET' + ListOfSystematics[iSyst]), getattr(process, 'Wtomunu' + ListOfSystematics[iSyst]), getattr(process, 'Wtoenu' + ListOfSystematics[iSyst]))
-		process.metSequenceSystematics =+ cloneProcessingSnippet(process, SystSequence, ListOfSystematics[iSyst])
+		setattr(process, 'MET' + iSyst, clonedMET.clone(uncertaintyType = iSyst))
+		setattr(process, 'Wtomunu' + iSyst, WtomunuCloned.clone(MET = 'MET' + iSyst))
+		setattr(process, 'Wtoenu' + iSyst, WtoenuCloned.clone(MET = 'MET' + iSyst))
+		#setattr(process, 'SystSequence' + iSyst, getattr(process, 'MET' + iSyst) + getattr(process, 'Wtomunu' + iSyst) + getattr(process, 'Wtoenu' + iSyst))
+		#process.SystSequence = cms.Sequence(getattr(process, 'MET' + iSyst) + getattr(process, 'Wtomunu' + iSyst) + getattr(process, 'Wtoenu' + iSyst))
+		process.metSequenceSystematics *= getattr(process, 'MET' + iSyst) * getattr(process, 'Wtomunu' + iSyst) * getattr(process, 'Wtoenu' + iSyst)
 
 	return process.metSequenceSystematics
