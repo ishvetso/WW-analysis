@@ -29,8 +29,8 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "WW-analysis/TreeMaker/plugins/DecayChannel.h"
-#include "WW-analysis/TreeMaker/plugins/DecayClass.h"
+#include "aTGCsAnalysis/TreeMaker/plugins/DecayChannel.h"
+#include "aTGCsAnalysis/TreeMaker/plugins/DecayClass.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Common/interface/View.h"
