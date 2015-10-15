@@ -8,16 +8,13 @@ process.maxEvents = cms.untracked.PSet(
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
 process.options.allowUnscheduled = cms.untracked.bool(False) 
 
-process.load("WW-analysis.Common.goodMuons_cff")
-process.load("WW-analysis.Common.goodElectrons_cff")
-process.load("WW-analysis.Common.MET_cff")
-process.load("WW-analysis.Common.goodJets_cff")
-process.load("WW-analysis.Common.trigger_cff")
-
-### Hadronic and leptonic boson.
-### Naturally, you should choose the one channel you need
-process.load("WW-analysis.Common.leptonicW_cff")
-process.load("WW-analysis.Common.hadronicW_cff")
+process.load("aTGCsAnalysis.Common.goodMuons_cff")
+process.load("aTGCsAnalysis.Common.goodElectrons_cff")
+process.load("aTGCsAnalysis.Common.MET_cff")
+process.load("aTGCsAnalysis.Common.goodJets_cff")
+process.load("aTGCsAnalysis.Common.trigger_cff")
+process.load("aTGCsAnalysis.Common.leptonicW_cff")
+process.load("aTGCsAnalysis.Common.hadronicW_cff")
 
 # Electrons
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
