@@ -46,7 +46,7 @@ class METSystematicProducer : public edm::EDProducer {
       virtual void beginJob() override;
       virtual void produce(edm::Event&, const edm::EventSetup&) override;
       virtual void endJob() override;
-      edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
+      edm::EDGetTokenT<std::vector<pat::MET> > metToken_;
       std::string uncertaintyType;
       //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
       //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
@@ -82,7 +82,7 @@ class METSystematicProducer : public edm::EDProducer {
 // constructors and destructor
 //
 METSystematicProducer::METSystematicProducer(const edm::ParameterSet& iConfig):
-  metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc"))),
+  metToken_(consumes<std::vector<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc"))),
   uncertaintyType(iConfig.getParameter<std::string>("uncertaintyType"))
 {
   produces<std::vector<pat::MET>>();
@@ -108,7 +108,7 @@ METSystematicProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 {
    using namespace edm;
    //MET
-   edm::Handle<edm::View<pat::MET> > metHandle;
+   edm::Handle<std::vector<pat::MET> > metHandle;
    iEvent.getByToken(metToken_, metHandle);
 
    std::auto_ptr<std::vector<pat::MET>> outCollection(new std::vector<pat::MET> );
@@ -119,6 +119,7 @@ METSystematicProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
    METShifted.setP4(ShiftedP4);
 
    outCollection -> push_back(METShifted);
+   iEvent.put(outCollection);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
