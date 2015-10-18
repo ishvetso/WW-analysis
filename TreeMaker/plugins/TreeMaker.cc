@@ -149,7 +149,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   muonsToken_(mayConsume<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   isMC(iConfig.getParameter<bool>("isMC")),
   isMuonChannel(iConfig.getParameter<bool>("isMuonChannel")),
-  SystematicsHelper (WLepSystematicsHelper("el", consumesCollector()))
+  SystematicsHelper (WLepSystematicsHelper(isMuonChannel?"mu":"el", consumesCollector()))
 {
    if (isMC) {
      //name of files and histograms with PU distribution in data and MC
