@@ -34,6 +34,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "TLorentzVector.h"
 
 #include "TTree.h"
@@ -43,6 +44,7 @@
 #include "DecayChannel.h"
 #include "DecayClass.h"
 #include "Particle.h"
+#include "WLepSystematicsHelper.h"
 
 
 //
@@ -105,6 +107,8 @@ private:
   
   //m_lvj
   double m_lvj;
+  //m_lvj systematics
+  double m_lvj_UnclEnUp, m_lvj_UnclEnDown, m_lvj_JECUp, m_lvj_JECDown;
   
   //Defining Tokens
   edm::EDGetTokenT<std::vector< PileupSummaryInfo > > PUInfoToken_;
@@ -124,6 +128,7 @@ private:
   edm::LumiReWeighting  LumiWeights_;
   std::string filenamePUData, filenamePUMC;
   std::string HistnameData, HistnameMC;
+  WLepSystematicsHelper SystematicsHelper;
 
 };
 
@@ -143,7 +148,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   leptonsToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   muonsToken_(mayConsume<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   isMC(iConfig.getParameter<bool>("isMC")),
-  isMuonChannel(iConfig.getParameter<bool>("isMuonChannel"))
+  isMuonChannel(iConfig.getParameter<bool>("isMuonChannel")),
+  SystematicsHelper (WLepSystematicsHelper("el", consumesCollector()))
 {
    if (isMC) {
      //name of files and histograms with PU distribution in data and MC
@@ -157,6 +163,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      //PU-reweighting
      LumiWeights_ = edm::LumiReWeighting(filenamePUData, filenamePUMC, HistnameData, HistnameMC);
    }
+
+ 
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
   outTree_ = fs->make<TTree>("BasicTree","BasicTree");
@@ -296,6 +304,12 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet3_btag",	      &jet3_btag,         "jet3_btag/D"   );
   
   outTree_->Branch("m_lvj",	      &m_lvj,         "m_lvj/D"   );
+  if (isMC) {
+    outTree_->Branch("m_lvj_UnclEnUp",       &m_lvj_UnclEnUp,         "m_lvj_UnclEnUp/D"   );
+    outTree_->Branch("m_lvj_UnclEnDown",       &m_lvj_UnclEnDown,         "m_lvj_UnclEnDown/D"   );      
+    outTree_->Branch("m_lvj_JECUp",       &m_lvj_JECUp,         "m_lvj_JECUp/D"   );
+    outTree_->Branch("m_lvj_JECDown",       &m_lvj_JECDown,         "m_lvj_JECDown/D"   );      
+  }
 
 
 
@@ -364,6 +378,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //leptons (tight)
    edm::Handle<edm::View<reco::Candidate> > leptons;
    iEvent.getByToken(leptonsToken_, leptons); 
+
+    std::map<std::string, math::XYZTLorentzVector>  SystMap = SystematicsHelper.getWLepSystematicsLoretzVectors(iEvent);
 
    nPV = vertices->size();
    
@@ -676,13 +692,51 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
   
   //diboson mass
-   TLorentzVector hadronicVp4, leptonicVp4, lvj_p4;
-   hadronicVp4.SetPtEtaPhiM(Wboson_had.pt,Wboson_had.eta,Wboson_had.phi,Wboson_had.mass);
-   leptonicVp4.SetPtEtaPhiM(Wboson_lep.pt,Wboson_lep.eta,Wboson_lep.phi,Wboson_lep.mass);
+   ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > hadronicVp4, leptonicVp4, lvj_p4;
+   //hadronic W
+   hadronicVp4.SetPt(Wboson_had.pt);
+   hadronicVp4.SetEta(Wboson_had.eta);
+   hadronicVp4.SetPhi(Wboson_had.phi);
+   hadronicVp4.SetM(Wboson_had.phi);
+   //leptonic W
+   leptonicVp4.SetPt(Wboson_lep.pt);
+   leptonicVp4.SetEta(Wboson_lep.eta);
+   leptonicVp4.SetPhi(Wboson_lep.phi);
+   leptonicVp4.SetM(Wboson_lep.phi);
+
+   //leptonicVp4.SetPtEtaPhiM(Wboson_lep.pt,Wboson_lep.eta,Wboson_lep.phi,Wboson_lep.mass);
    lvj_p4 = hadronicVp4 + leptonicVp4;
    if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)   m_lvj = lvj_p4.M();
    else m_lvj = -99.;
-
+   //systematics
+   //METUnclEn
+   math::XYZTLorentzVector lvj_p4_Up, lvj_p4_Down;
+   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)  {
+     lvj_p4_Up = hadronicVp4 + SystMap.at("UnclusteredEnUp");
+     lvj_p4_Down = hadronicVp4 + SystMap.at("UnclusteredEnDown");
+     m_lvj_UnclEnUp = lvj_p4_Up.M();
+     m_lvj_UnclEnDown = lvj_p4_Down.M();
+   }
+   else {
+     m_lvj_UnclEnUp = -99.;
+     m_lvj_UnclEnDown = -99.;
+   }
+   //JEC
+    math::XYZTLorentzVector hadronicVp4_Up, hadronicVp4_Down;
+    hadronicVp4_Up = hadronicVp4;
+    hadronicVp4_Down = hadronicVp4;
+    hadronicVp4_Up *= (1+JECunc); 
+    hadronicVp4_Down *= (1-JECunc);
+   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)  {
+     lvj_p4_Up = hadronicVp4_Up + SystMap.at("JetEnUp");
+     lvj_p4_Down = hadronicVp4_Down + SystMap.at("JetEnDown");
+     m_lvj_JECUp = lvj_p4_Up.M();
+     m_lvj_JECDown = lvj_p4_Down.M();
+   }
+   else {
+     m_lvj_JECUp = -99.;
+     m_lvj_JECDown = -99.;
+   }
 
  // uncomment the line used in the synchronization exercise!
  if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
