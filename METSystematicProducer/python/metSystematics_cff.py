@@ -1,5 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
+#Note that systematics on leptons is not added, 16.10.2015.
+
 def CreateWLepWithMETSystematicsSequence(process, channel):
 	process.metSequenceSystematics = cms.Sequence()
 	ListOfSystematics = ["JetResUp", "JetResDown", "JetEnUp", "JetEnDown", "MuonEnUp", "MuonEnDown", "ElectronEnUp", "ElectronEnDown", "UnclusteredEnUp", "UnclusteredEnDown"]
@@ -9,12 +11,12 @@ def CreateWLepWithMETSystematicsSequence(process, channel):
 	_Wtomunu = cms.EDProducer("WLeptonicProducer",
                          leptons = cms.InputTag("bestMuon"),
                          MET = cms.InputTag("slimmedMETs"),
-                         cut = cms.string("pt > 200")
+                         cut = cms.string("")
                          )
 	_Wtoenu = cms.EDProducer("WLeptonicProducer",
                         leptons = cms.InputTag("bestElectron"),
                         MET = cms.InputTag("slimmedMETs"),
-                        cut = cms.string("pt > 200")
+                        cut = cms.string("")
                         )
 	for iSyst in ListOfSystematics:
 		setattr(process, 'MET' + iSyst, _MET.clone(uncertaintyType = iSyst))
@@ -22,8 +24,8 @@ def CreateWLepWithMETSystematicsSequence(process, channel):
 			setattr(process, 'Wtomunu' + iSyst, _Wtomunu.clone(MET = cms.InputTag("MET" + iSyst)))
 			process.metSequenceSystematics *= getattr(process, 'MET' + iSyst) * getattr(process, 'Wtomunu' + iSyst) 
 		elif  channel == "el":
-			setattr(process, 'Wtoenu' + iSyst, _Wtoenu.clone(MET = cms.InputTag("MET" + iSyst)))
-			process.metSequenceSystematics *= getattr(process, 'MET' + iSyst) * getattr(process, 'Wtoenu' + iSyst)
+			setattr(process, 'Wtoelnu' + iSyst, _Wtoenu.clone(MET = cms.InputTag("MET" + iSyst)))
+			process.metSequenceSystematics *= getattr(process, 'MET' + iSyst) * getattr(process, 'Wtoelnu' + iSyst)
 		else :
 			raise ValueError('Only muon and electron channel are supported, mu or el.')
 
