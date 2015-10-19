@@ -35,7 +35,7 @@
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
-#include "TLorentzVector.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -72,6 +72,8 @@ private:
   int nPV;
 
   double PUweight;
+
+  double genWeight;
   
   Particle Wboson_lep, Wboson_had, METCand, Electron, Muon, Lepton;
   double m_pruned;
@@ -126,6 +128,7 @@ private:
   bool isMC;
   bool isMuonChannel;
   edm::LumiReWeighting  LumiWeights_;
+  edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
   std::string filenamePUData, filenamePUMC;
   std::string HistnameData, HistnameMC;
   WLepSystematicsHelper SystematicsHelper;
@@ -162,6 +165,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
 
      //PU-reweighting
      LumiWeights_ = edm::LumiReWeighting(filenamePUData, filenamePUMC, HistnameData, HistnameMC);
+
+    genInfoToken = mayConsume<GenEventInfoProduct> (iConfig.getParameter<edm::InputTag>( "genInfo" ) );
    }
 
  
@@ -177,7 +182,10 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   //number of primary vertices
   outTree_->Branch("nPV",	      &nPV,		  "nPV/I"  	       );
   //PUweight
-  if (isMC) outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
+  if (isMC) {
+     outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
+     outTree_->Branch("genWeight",       &genWeight,     "genWeight/D"          );
+   };
   
   //number of loose leptons
   outTree_->Branch("nLooseEle",      &nLooseEle, 	  "nLooseEle/I"       );
@@ -384,6 +392,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nPV = vertices->size();
    
    edm::Handle<std::vector< PileupSummaryInfo > >  PUInfo;
+   edm::Handle <GenEventInfoProduct> genInfo; 
   if (isMC) {
     iEvent.getByToken(PUInfoToken_, PUInfo);
     std::vector<PileupSummaryInfo>::const_iterator PVI;
@@ -397,6 +406,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     }
     PUweight = LumiWeights_.weight( Tnpv );
+
+   iEvent.getByToken( genInfoToken , genInfo);
+   genWeight = (genInfo -> weight());
   }
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
   iSetup.get<JetCorrectionsRecord>().get("AK8PF",JetCorParCollAK8);
