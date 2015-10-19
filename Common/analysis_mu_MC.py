@@ -1,5 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
+from aTGCsAnalysis.METSystematicProducer.metSystematics_cff import *
+
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(10000)
@@ -90,8 +92,8 @@ process.jetSequence = cms.Sequence(process.fatJetsSequence +
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     PUInfo = cms.InputTag("addPileupInfo"),
-                                    filenameData = cms.FileInPath("WW-analysis/PUTrueDistProducer/test/MyDataPileupHistogram.root"),
-                                    filenameMC = cms.FileInPath("WW-analysis/PUTrueDistProducer/test/PU_dist.root"),
+                                    filenameData = cms.FileInPath("aTGCsAnalysis/PUTrueDistProducer/data/MyDataPileupHistogram.root"),
+                                    filenameMC = cms.FileInPath("aTGCsAnalysis/PUTrueDistProducer/data/PU_dist.root"),
                                     HistnameData = cms.string("pileup"),
                                     HistnameMC = cms.string("PUTrueDist/pileup"),
                                     hadronicVSrc = cms.InputTag("hadronicV"),
@@ -112,8 +114,10 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 # Identify the channel 
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
+process.metSequenceSystematics = CreateWLepWithMETSystematicsSequence(process, "mu")
+
 # PATH
-process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter +  process.NoiseFilters + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter +  process.NoiseFilters + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.metSequenceSystematics +  process.treeDumper)
 
 
 #process.maxEvents.input = 1000
