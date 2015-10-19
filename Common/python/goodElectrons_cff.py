@@ -16,7 +16,7 @@ looseElectrons = cms.EDFilter("PATElectronSelector",
 
 tightElectrons = cms.EDFilter("PATElectronSelector",
                          src = cms.InputTag("electronIDs"),
-                         cut = cms.string("pt > 90"),
+                         cut = cms.string("pt > 140"),
                          filter = cms.bool(False)
                          )
 
