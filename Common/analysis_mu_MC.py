@@ -108,7 +108,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightMuons"),
                                     isMC = cms.bool(True),
-                                    isMuonChannel = cms.bool(True)
+                                    channel = cms.string("mu")
                                     )
 
 

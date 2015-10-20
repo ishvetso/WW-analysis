@@ -77,7 +77,7 @@ private:
   
   Particle Wboson_lep, Wboson_had, METCand, Electron, Muon, Lepton;
   double m_pruned;
-  
+
   //Decay Info (gen level)
   DecayClass WDecayClass;
   
@@ -93,7 +93,6 @@ private:
   //Jets
   int NAK8jet, njets, nbtag;
   double jet_pt, jet_eta, jet_phi, jet_mass, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1;
-  double pt_muon_TuneP;
 
   //JEC uncertainties
   double JECunc;
@@ -126,7 +125,7 @@ private:
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonsToken_;
   edm::EDGetTokenT<edm::View<pat::Muon>> muonsToken_;
   bool isMC;
-  bool isMuonChannel;
+  std::string channel;
   edm::LumiReWeighting  LumiWeights_;
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
   std::string filenamePUData, filenamePUMC;
@@ -151,8 +150,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   leptonsToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   muonsToken_(mayConsume<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   isMC(iConfig.getParameter<bool>("isMC")),
-  isMuonChannel(iConfig.getParameter<bool>("isMuonChannel")),
-  SystematicsHelper (WLepSystematicsHelper(isMuonChannel?"mu":"el", consumesCollector()))
+  channel(iConfig.getParameter<std::string>("channel")),
+  SystematicsHelper (WLepSystematicsHelper(channel, consumesCollector()))
 {
    if (isMC) {
      //name of files and histograms with PU distribution in data and MC
@@ -196,10 +195,13 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   
   //leptons (tight, ele or mu depends on the channel)
   outTree_->Branch("l_pt",	      &Lepton.pt,      "l_pt/D"         	);
-  outTree_->Branch("pt_muon_TuneP",        &pt_muon_TuneP,      "pt_muon_TuneP/D"           );
   outTree_->Branch("l_eta",	      &Lepton.eta,     "l_eta/D"        	);
   outTree_->Branch("l_phi",	      &Lepton.phi,     "l_phi/D"        	);
-  
+  //lepton uncertainties
+  if (isMC) {
+    outTree_->Branch("l_pt_EnUp",       &Lepton.pt_EnUp,     "l_pt_EnUp/D"          );
+    outTree_->Branch("l_pt_EnDown",       &Lepton.pt_EnDown,     "l_pt_EnDown/D"          );
+  }
   //W observables
   outTree_->Branch("W_pt",	      &Wboson_lep.pt,     "W_pt/D"         );
   outTree_->Branch("pt_W_had",	      &Wboson_had.pt,     "pt_W_had/D"         );
@@ -444,30 +446,42 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nLep = leptons -> size();
    
    //tight leptons
-   if ( ( leptons -> size() ) > 0 )
+   edm::Handle<edm::View<pat::Muon> > muons;//need this to retrieve kinematics for high pt muons
+   //electron channel
+   if ( ( leptons -> size() ) > 0 && channel == "el")
    {
      Lepton.pt = (leptons -> at(0)).pt();
      Lepton.eta = (leptons -> at(0)).eta();
      Lepton.phi = (leptons -> at(0)).phi();
+     double ElectronEnUncertainty = 0.001;//this  uncertainty is set temporary (after talking with Lindsey), not yet retrieved for 13 TeV
+     Lepton.pt_EnUp = (1 + ElectronEnUncertainty)*Lepton.pt;
+     Lepton.pt_EnDown = (1 - ElectronEnUncertainty)*Lepton.pt;
    }
-   
+   //muon channel
+   else if (( leptons -> size() ) > 0 && channel == "mu" ){
+    iEvent.getByToken(muonsToken_, muons); 
+    Lepton.pt =  (muons -> at(0)).tunePMuonBestTrack() -> pt();//according to the recomendation from muon POG need to use this for high pt muons
+    Lepton.eta =  (muons -> at(0)).tunePMuonBestTrack() -> eta();
+    Lepton.phi =  (muons -> at(0)).tunePMuonBestTrack() -> phi();
+    //systematics: muons
+    double MuonEnUncertainty = 0.002;// 13 TeV uncertainty not yet available, use recommendation from Run I: if pt of muon < 200, uncertainty is 0.2%, else the uncertainty on the 1/pT bias is about 0.05 c/TeV : https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceResolution#General_recommendations_for_muon
+    if (Lepton.pt > 200. ) {
+           double extraEnUncertainty = (Lepton.pt/1000.)*0.05;
+           MuonEnUncertainty = sqrt(pow(MuonEnUncertainty,2) + pow(extraEnUncertainty,2));
+    }
+    Lepton.pt_EnUp = (1 + MuonEnUncertainty)*Lepton.pt;
+    Lepton.pt_EnDown = (1 - MuonEnUncertainty)*Lepton.pt;
+
+   }
+    
    else 
    {
      Lepton.pt = -99.;
      Lepton.eta = -99.;
      Lepton.phi = -99.;
+     Lepton.pt_EnUp = -99.;
+     Lepton.pt_EnDown = -99.;
    }
-
-   edm::Handle<edm::View<pat::Muon> > muons;
-  
-  if (isMuonChannel){
-
-    iEvent.getByToken(muonsToken_, muons); 
-    if (muons -> size() > 0) pt_muon_TuneP =  (muons -> at(0)).tunePMuonBestTrack() -> pt();
-    else pt_muon_TuneP = -99.;
-  }
-
-  else pt_muon_TuneP = -99.;
 
    //leptonically decaying W
    if (leptonicVs -> size() > 0)
