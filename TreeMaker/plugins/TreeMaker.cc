@@ -723,12 +723,12 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    hadronicVp4.SetPt(Wboson_had.pt);
    hadronicVp4.SetEta(Wboson_had.eta);
    hadronicVp4.SetPhi(Wboson_had.phi);
-   hadronicVp4.SetM(Wboson_had.phi);
+   hadronicVp4.SetM(Wboson_had.mass);
    //leptonic W
    leptonicVp4.SetPt(Wboson_lep.pt);
    leptonicVp4.SetEta(Wboson_lep.eta);
    leptonicVp4.SetPhi(Wboson_lep.phi);
-   leptonicVp4.SetM(Wboson_lep.phi);
+   leptonicVp4.SetM(Wboson_lep.mass);
 
    //leptonicVp4.SetPtEtaPhiM(Wboson_lep.pt,Wboson_lep.eta,Wboson_lep.phi,Wboson_lep.mass);
    lvj_p4 = hadronicVp4 + leptonicVp4;
