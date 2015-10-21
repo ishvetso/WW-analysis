@@ -5,6 +5,31 @@ bestMuon =cms.EDFilter("LargestPtCandViewSelector",
     maxNumber = cms.uint32(1)
   )
 
+bestMuonEnUp =cms.EDProducer("LeptonSystematicsProducer",
+    leptonSource = cms.InputTag("bestMuon"), 
+    channel = cms.string("mu"),
+    variation = cms.string("up")
+  )
+
+bestMuonEnDown =cms.EDProducer("LeptonSystematicsProducer",
+    leptonSource = cms.InputTag("bestMuon"), 
+    channel = cms.string("mu"),
+    variation = cms.string("down")
+  )
+
+
+bestElectronEnUp =cms.EDProducer("LeptonSystematicsProducer",
+    leptonSource = cms.InputTag("bestElectron"), 
+    channel = cms.string("el"),
+    variation = cms.string("up")
+  )
+
+bestElectronEnDown =cms.EDProducer("LeptonSystematicsProducer",
+    leptonSource = cms.InputTag("bestElectron"), 
+    channel = cms.string("el"),
+    variation = cms.string("down")
+  )
+
 bestElectron =cms.EDFilter("LargestPtCandViewSelector",
     src = cms.InputTag("tightElectrons"), 
     maxNumber = cms.uint32(1)
@@ -24,6 +49,6 @@ Wtoenu = cms.EDProducer("WLeptonicProducer",
                         )
 
 
-leptonicWtomunuSequence = cms.Sequence(bestMuon + Wtomunu )
-leptonicWtoenuSequence  = cms.Sequence(bestElectron + Wtoenu)
+leptonicWtomunuSequence = cms.Sequence(bestMuon + bestMuonEnUp+ bestMuonEnDown + Wtomunu )
+leptonicWtoenuSequence  = cms.Sequence(bestElectron + bestElectronEnUp + bestElectronEnDown + Wtoenu)
 
