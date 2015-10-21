@@ -115,7 +115,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 # Identify the channel 
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
-process.metSequenceSystematics = CreateWLepWithMETSystematicsSequence(process, "mu")
+process.metSequenceSystematics = CreateWLepWithSystematicsSequence(process, "mu")
 
 # PATH
 process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter +  process.NoiseFilters + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.metSequenceSystematics +  process.treeDumper)
@@ -136,12 +136,12 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 
-'''process.out = cms.OutputModule("PoolOutputModule",
+process.out = cms.OutputModule("PoolOutputModule",
  fileName = cms.untracked.string('patTuple.root'),
   outputCommands = cms.untracked.vstring('keep *')
 )
 
-process.outpath = cms.EndPath(process.out)'''
+process.outpath = cms.EndPath(process.out)
 
 process.TFileService = cms.Service("TFileService",
                                  fileName = cms.string("tree_mu.root")

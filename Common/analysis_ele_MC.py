@@ -114,7 +114,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 # Identify the channel 
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
-process.metSequenceSystematics = CreateWLepWithMETSystematicsSequence(process, "el")
+process.metSequenceSystematics = CreateWLepWithSystematicsSequence(process, "el")
 
 # PATH
 process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.ApplyBaselineHBHENoiseFilter + process.NoiseFilters  + process.TriggerElectron + process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.metSequenceSystematics  + process.treeDumper)
