@@ -5,4 +5,5 @@
 <use name="DataFormats/Candidate"/>
 <use name="DataFormats/PatCandidates"/>
 <use name="DataFormats/Math"/>
+<use name="DataFormats/Common"/>
 <flags EDM_PLUGIN="1"/>
