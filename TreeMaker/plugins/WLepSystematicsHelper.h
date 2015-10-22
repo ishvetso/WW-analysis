@@ -49,13 +49,24 @@ public:
     WLepSystematicsHelper(std::string channel, edm::ConsumesCollector iC){
 	ListOfSystematics.push_back("UnclusteredEn");
 	ListOfSystematics.push_back("JetEn");
+  ListOfSystematics.push_back("LeptonEn");
 	tokens.resize(2 * ListOfSystematics.size());
      int iSystUp, iSystDown;
      for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++) {	
      	iSystUp = 2*iSyst;
      	iSystDown = 2*iSyst + 1;
+      if (ListOfSystematics.at(iSyst) != "LeptonEn"){
         tokens.at(iSystUp)  =  iC.mayConsume<std::vector<reco::CompositeCandidate>>(edm::InputTag("Wto" + channel + "nu" + ListOfSystematics.at(iSyst) + "Up"));
         tokens.at(iSystDown) = iC.mayConsume<std::vector<reco::CompositeCandidate>>(edm::InputTag("Wto" + channel + "nu" + ListOfSystematics.at(iSyst) + "Down"));
+      }
+      else{
+          std::string name;
+          if ( channel == "el") name = "ElectronEn";
+          else if ( channel == "mu") name = "MuonEn";
+          else std::cerr << "Invalid channel, use el or mu" <<  std::endl;
+          tokens.at(iSystUp)  =  iC.mayConsume<std::vector<reco::CompositeCandidate>>(edm::InputTag("Wto" + channel + "nu" + name + "Up"));
+          tokens.at(iSystDown) = iC.mayConsume<std::vector<reco::CompositeCandidate>>(edm::InputTag("Wto" + channel + "nu" + name + "Down"));
+      }
 	 }
 }
 
