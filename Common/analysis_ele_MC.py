@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-from aTGCsAnalysis.METSystematicProducer.metSystematics_cff import *
+from aTGCsAnalysis.SystematicsProducers.metSystematics_cff import *
 process = cms.Process( "WWanalysis" )
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(10000)
