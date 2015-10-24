@@ -4,16 +4,24 @@ bestMuon =cms.EDFilter("LargestPtCandViewSelector",
     src = cms.InputTag("tightMuons"), 
     maxNumber = cms.uint32(1)
   )
+bestElectron =cms.EDFilter("LargestPtCandViewSelector",
+    src = cms.InputTag("tightElectrons"), 
+    maxNumber = cms.uint32(1)
+  )
+
+# lepton energy scale uncertainties
 
 bestMuonEnUp =cms.EDProducer("LeptonSystematicsProducer",
     leptonSource = cms.InputTag("bestMuon"), 
     channel = cms.string("mu"),
+    type = cms.string("scale"),
     variation = cms.string("up")
   )
 
 bestMuonEnDown =cms.EDProducer("LeptonSystematicsProducer",
     leptonSource = cms.InputTag("bestMuon"), 
     channel = cms.string("mu"),
+    type = cms.string("scale"),
     variation = cms.string("down")
   )
 
@@ -21,18 +29,49 @@ bestMuonEnDown =cms.EDProducer("LeptonSystematicsProducer",
 bestElectronEnUp =cms.EDProducer("LeptonSystematicsProducer",
     leptonSource = cms.InputTag("bestElectron"), 
     channel = cms.string("el"),
+    type = cms.string("scale"),
     variation = cms.string("up")
   )
 
 bestElectronEnDown =cms.EDProducer("LeptonSystematicsProducer",
     leptonSource = cms.InputTag("bestElectron"), 
     channel = cms.string("el"),
-    variation = cms.string("down")
+    type = cms.string("scale"),
+    variation = cms.string("down"),
   )
 
-bestElectron =cms.EDFilter("LargestPtCandViewSelector",
-    src = cms.InputTag("tightElectrons"), 
-    maxNumber = cms.uint32(1)
+#resolution uncertainties 
+
+bestElectronResUp =cms.EDProducer("LeptonSystematicsProducer",
+    leptonSource = cms.InputTag("tightElectrons"), 
+    channel = cms.string("el"),
+    type = cms.string("resolution"),
+    variation = cms.string("up"),
+    genSource = cms.InputTag("prunedGenParticles"),
+  )
+
+bestElectronResDown =cms.EDProducer("LeptonSystematicsProducer",
+    leptonSource = cms.InputTag("tightElectrons"), 
+    channel = cms.string("el"),
+    type = cms.string("resolution"),
+    variation = cms.string("down"),
+    genSource = cms.InputTag("prunedGenParticles"),
+  )
+
+bestMuonResUp =cms.EDProducer("LeptonSystematicsProducer",
+    leptonSource = cms.InputTag("bestMuon"), 
+    channel = cms.string("mu"),
+    type = cms.string("resolution"),
+    variation = cms.string("up"),
+    genSource = cms.InputTag("prunedGenParticles"),
+  )
+
+bestMuonResDown =cms.EDProducer("LeptonSystematicsProducer",
+    leptonSource = cms.InputTag("bestMuon"), 
+    channel = cms.string("mu"),
+    type = cms.string("resolution"),
+    variation = cms.string("down"),
+    genSource = cms.InputTag("prunedGenParticles"),
   )
 
 Wtomunu = cms.EDProducer("WLeptonicProducer",
@@ -49,6 +88,6 @@ Wtoenu = cms.EDProducer("WLeptonicProducer",
                         )
 
 
-leptonicWtomunuSequence = cms.Sequence(bestMuon + bestMuonEnUp+ bestMuonEnDown + Wtomunu )
-leptonicWtoenuSequence  = cms.Sequence(bestElectron + bestElectronEnUp + bestElectronEnDown + Wtoenu)
+leptonicWtomunuSequence = cms.Sequence(bestMuon + bestMuonEnUp+ bestMuonEnDown + bestMuonResUp + bestMuonResDown + Wtomunu )
+leptonicWtoenuSequence  = cms.Sequence(bestElectron + bestElectronEnUp + bestElectronEnDown + bestElectronResUp + bestElectronResDown +  Wtoenu)
 
