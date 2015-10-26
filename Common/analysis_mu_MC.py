@@ -92,10 +92,6 @@ process.jetSequence = cms.Sequence(process.fatJetsSequence +
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     PUInfo = cms.InputTag("addPileupInfo"),
-                                    filenameData = cms.FileInPath("aTGCsAnalysis/PUTrueDistProducer/data/MyDataPileupHistogram.root"),
-                                    filenameMC = cms.FileInPath("aTGCsAnalysis/PUTrueDistProducer/data/PU_dist.root"),
-                                    HistnameData = cms.string("pileup"),
-                                    HistnameMC = cms.string("PUTrueDist/pileup"),
                                     genInfo = cms.InputTag("generator"),
                                     hadronicVSrc = cms.InputTag("hadronicV"),
                                     leptonicVSrc = cms.InputTag("Wtomunu"),

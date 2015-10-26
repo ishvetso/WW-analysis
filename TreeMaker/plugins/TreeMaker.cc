@@ -45,6 +45,7 @@
 #include "DecayClass.h"
 #include "Particle.h"
 #include "WLepSystematicsHelper.h"
+#include "PU.h"
 
 
 //
@@ -128,8 +129,6 @@ private:
   std::string channel;
   edm::LumiReWeighting  LumiWeights_;
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
-  std::string filenamePUData, filenamePUMC;
-  std::string HistnameData, HistnameMC;
   WLepSystematicsHelper SystematicsHelper;
 
 };
@@ -154,16 +153,10 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   SystematicsHelper (WLepSystematicsHelper(channel, consumesCollector()))
 {
    if (isMC) {
-     //name of files and histograms with PU distribution in data and MC
-     filenamePUData = iConfig.getParameter<edm::FileInPath>("filenameData").fullPath();
-     filenamePUMC = iConfig.getParameter<edm::FileInPath>("filenameMC").fullPath();
-     HistnameData = iConfig.getParameter<std::string>("HistnameData");
-     HistnameMC = iConfig.getParameter<std::string>("HistnameMC");
-
      PUInfoToken_ = consumes<std::vector< PileupSummaryInfo > >(iConfig.getParameter<edm::InputTag>("PUInfo"));
 
      //PU-reweighting
-     LumiWeights_ = edm::LumiReWeighting(filenamePUData, filenamePUMC, HistnameData, HistnameMC);
+     LumiWeights_ = edm::LumiReWeighting(data_dist(), MC_dist());
 
     genInfoToken = mayConsume<GenEventInfoProduct> (iConfig.getParameter<edm::InputTag>( "genInfo" ) );
    }
