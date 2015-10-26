@@ -110,7 +110,7 @@ private:
   //m_lvj
   double m_lvj;
   //m_lvj systematics
-  double m_lvj_UnclEnUp, m_lvj_UnclEnDown, m_lvj_JECUp, m_lvj_JECDown, m_lvj_LeptonEnUp, m_lvj_LeptonEnDown;
+  double m_lvj_UnclEnUp, m_lvj_UnclEnDown, m_lvj_JECUp, m_lvj_JECDown, m_lvj_LeptonEnUp, m_lvj_LeptonEnDown, m_lvj_LeptonResUp, m_lvj_LeptonResDown;
   
   //Defining Tokens
   edm::EDGetTokenT<std::vector< PileupSummaryInfo > > PUInfoToken_;
@@ -314,6 +314,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     outTree_->Branch("m_lvj_JECDown",       &m_lvj_JECDown,         "m_lvj_JECDown/D"   );  
     outTree_->Branch("m_lvj_LeptonEnUp",       &m_lvj_LeptonEnUp,         "m_lvj_LeptonEnUp/D"   );
     outTree_->Branch("m_lvj_LeptonEnDown",       &m_lvj_LeptonEnDown,         "m_lvj_LeptonEnDown/D"   );      
+    outTree_->Branch("m_lvj_LeptonResUp",       &m_lvj_LeptonResUp,         "m_lvj_LeptonResUp/D"   );
+    outTree_->Branch("m_lvj_LeptonResDown",       &m_lvj_LeptonResDown,         "m_lvj_LeptonResDown/D"   );      
   }
 
 
@@ -765,6 +767,23 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     m_lvj_LeptonEnUp = lvj_p4_Up.M();
     m_lvj_LeptonEnDown = lvj_p4_Down.M();
 
+   }
+   else {
+    m_lvj_LeptonEnUp = -99.;
+    m_lvj_LeptonEnDown = -99.;
+   }
+
+   //lepton energy scale uncertainty
+   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)  {
+    lvj_p4_Up = hadronicVp4 + SystMap.at("LeptonResUp");
+    lvj_p4_Down = hadronicVp4 + SystMap.at("LeptonResDown");
+    m_lvj_LeptonResUp = lvj_p4_Up.M();
+    m_lvj_LeptonResDown = lvj_p4_Down.M();
+
+   }
+   else {
+    m_lvj_LeptonResUp = -99.;
+    m_lvj_LeptonResDown = -99.;
    }
 
  // uncomment the line used in the synchronization exercise!

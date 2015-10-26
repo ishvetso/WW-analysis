@@ -50,6 +50,7 @@ public:
 	ListOfSystematics.push_back("UnclusteredEn");
 	ListOfSystematics.push_back("JetEn");
   ListOfSystematics.push_back("LeptonEn");
+  ListOfSystematics.push_back("LeptonRes");
 	tokens.resize(2 * ListOfSystematics.size());
      int iSystUp, iSystDown;
      for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++) {	

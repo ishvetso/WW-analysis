@@ -88,7 +88,7 @@ LeptonSystematicsProducer::LeptonSystematicsProducer(const edm::ParameterSet& iC
    channel = iConfig.getParameter<std::string>("channel");
    if (channel != "mu" && channel != "el") std::cerr << "Invalid channel used, use el or mu" << std::endl; 
    type = iConfig.getParameter<std::string>("type");  
-   if (type != "scale" && channel != "resolution") std::cerr << "Invalid type of uncertainty used, use scale or resolution" << std::endl; 
+   if (type != "scale" && type != "resolution") std::cerr << "Invalid type of uncertainty used, use scale or resolution" << std::endl; 
    leptonsToken = consumes<edm::View<reco::Candidate> >(iConfig.getParameter<edm::InputTag>("leptonSource"));
    if (channel == "el") electronsToken = mayConsume<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("leptonSource"));
    if (type == "resolution") genParticlesToken = mayConsume<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genSource"));
