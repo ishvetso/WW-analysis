@@ -156,7 +156,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      PUInfoToken_ = consumes<std::vector< PileupSummaryInfo > >(iConfig.getParameter<edm::InputTag>("PUInfo"));
 
      //PU-reweighting
-     LumiWeights_ = edm::LumiReWeighting(data_dist(), MC_dist());
+     LumiWeights_ = edm::LumiReWeighting(MC_dist(), data_dist());
 
     genInfoToken = mayConsume<GenEventInfoProduct> (iConfig.getParameter<edm::InputTag>( "genInfo" ) );
    }
