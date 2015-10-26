@@ -56,7 +56,7 @@ float PU_data_f[52] = {
 			2.19227e-16 
 };
 
-float PU_MC_f[52] {
+float PU_MC_f[52]  {
 			4.8551E-07,
             1.74806E-06,
             3.30868E-06,
