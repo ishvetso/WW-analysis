@@ -42,6 +42,7 @@
 
 namespace reco {
   typedef edm::Ptr<reco::GsfElectron> GsfElectronPtr;
+  typedef edm::Ptr<reco::Muon> MuonPtr;
 }
 
 //
@@ -60,7 +61,6 @@ class LeptonSystematicsProducer : public edm::EDProducer {
       virtual void produce(edm::Event&, const edm::EventSetup&) override;
       virtual void endJob() override;
       edm::EDGetTokenT<edm::View<reco::Candidate> > leptonsToken;
-      edm::EDGetTokenT<edm::View<reco::GsfElectron> > electronsToken;
       edm::EDGetTokenT<edm::View<reco::GenParticle> > genParticlesToken;
       std::string channel;
       std::string variation;
@@ -90,7 +90,6 @@ LeptonSystematicsProducer::LeptonSystematicsProducer(const edm::ParameterSet& iC
    type = iConfig.getParameter<std::string>("type");  
    if (type != "scale" && type != "resolution") std::cerr << "Invalid type of uncertainty used, use scale or resolution" << std::endl; 
    leptonsToken = consumes<edm::View<reco::Candidate> >(iConfig.getParameter<edm::InputTag>("leptonSource"));
-   if (channel == "el") electronsToken = mayConsume<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("leptonSource"));
    if (type == "resolution") genParticlesToken = mayConsume<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genSource"));
    produces<std::vector<reco::LeafCandidate>>();
   
@@ -128,25 +127,43 @@ LeptonSystematicsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
    reco::LeafCandidate lepton;
    lepton = (reco::LeafCandidate)leptons->at(0);
 
+   auto leptonPtr = leptons -> ptrAt(0);
+   reco::MuonPtr asmuonPtr(leptonPtr);
+   reco::GsfElectronPtr aselectronPtr(leptonPtr);
+
+    math::XYZTLorentzVector SmearedP4;   
+
 //lepton scale uncertainties
      if (type == "scale") {
       
        //set the lepton uncertainty
        double LeptonUncertainty =0.;
-       if (channel == "el") LeptonUncertainty = 0.001;//this  uncertainty is set temporary (after talking with Lindsey), not yet retrieved for 13 TeV
+       if (channel == "el") {
+        LeptonUncertainty = 0.001;//this  uncertainty is set temporary (after talking with Lindsey), not yet retrieved for 13 TeV
+        if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(lepton.px()),(1 + LeptonUncertainty)*(lepton.py()), lepton.pz()  ,(1 + LeptonUncertainty)*(lepton.energy()) ) ;
+        else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(lepton.px()),(1 - LeptonUncertainty)*(lepton.py()), lepton.pz()  ,(1 - LeptonUncertainty)*(lepton.energy()) ) ;
+        else std::cerr << "Invalid variation used in systematics, use up or down.";
+      }
        else if (channel == "mu")  {
         LeptonUncertainty = 0.002;// 13 TeV uncertainty not yet available, use recommendation from Run I: if pt of muon < 200, uncertainty is 0.2%, else the uncertainty on the 1/pT bias is about 0.05 c/TeV : https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceResolution#General_recommendations_for_muon
-        if (lepton.pt() > 200. ) {
-               double extraEnUncertainty = (lepton.pt()/1000.)*0.05;
+        if (asmuonPtr -> tunePMuonBestTrack() -> pt() > 200. ) {
+               double extraEnUncertainty = ((asmuonPtr -> tunePMuonBestTrack() -> pt())/1000.)*0.05;
                LeptonUncertainty = sqrt(pow(LeptonUncertainty,2) + pow(extraEnUncertainty,2));
         }
-       }
-       else std::cerr << "Invalid channel used, use el or mu" << std::endl;
 
-        math::XYZTLorentzVector SmearedP4;   
-       if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(lepton.px()),(1 + LeptonUncertainty)*(lepton.py()), lepton.pz()  ,(1 + LeptonUncertainty)*(lepton.energy()) ) ;
-       else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(lepton.px()),(1 - LeptonUncertainty)*(lepton.py()), lepton.pz()  ,(1 - LeptonUncertainty)*(lepton.energy()) ) ;
-       else std::cerr << "Invalid variation used in systematics, use up or down.";
+        double muon_energy = sqrt((asmuonPtr -> tunePMuonBestTrack() -> pt())*(asmuonPtr -> tunePMuonBestTrack() -> pt()) + (asmuonPtr -> tunePMuonBestTrack() -> pz())*(asmuonPtr -> tunePMuonBestTrack() -> pz()) + lepton.mass() * lepton.mass());
+        if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> px()),(1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> py()), asmuonPtr -> tunePMuonBestTrack() -> pz()  ,(1 + LeptonUncertainty)*muon_energy ) ;
+        else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> px()),(1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> py()), asmuonPtr -> tunePMuonBestTrack() -> pz()  ,(1 - LeptonUncertainty)*muon_energy ) ;
+        else {
+         std::cerr << "Invalid variation used in systematics, use up or down.";
+         exit(0);
+        }
+       }
+       else {
+        std::cerr << "Invalid channel used, use el or mu" << std::endl;
+        exit(0);
+       }
+       
        lepton.setP4(SmearedP4);
     }
 
@@ -156,58 +173,83 @@ LeptonSystematicsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
       iEvent.getByToken(genParticlesToken, genParticles);
       bool isEB = false;
       double pt_gen = -1., pz_gen = -1. ;
-      double pt = lepton.pt(), pz = lepton.pz();
-      double pt_reco = lepton.pt(), pz_reco = lepton.pz();
+      double pt = 0., pz = 0.;
+      double pt_reco = 0., pz_reco = 0.;
+      
+     
 
-      //do  matching 
       if (channel == "mu") {
-     for (unsigned iGen = 0; iGen < genParticles -> size(); iGen ++){
+        pt = asmuonPtr -> tunePMuonBestTrack() -> pt();
+        pz = asmuonPtr -> tunePMuonBestTrack() -> pz();
+        pt_reco = asmuonPtr -> tunePMuonBestTrack() -> pt();
+        pz_reco = asmuonPtr -> tunePMuonBestTrack() -> pz();
+
+        //do  matching 
+        for (unsigned iGen = 0; iGen < genParticles -> size(); iGen ++){
         if ( deltaR(genParticles -> at(iGen), lepton) < 0.3 && lepton.pdgId() == genParticles -> at(iGen).pdgId() ) {
          pt_gen = genParticles -> at(iGen).pt();
          pz_gen = genParticles -> at(iGen).pz();
-        }  
-       }
-     }
-    // in electron channel need to define isEB, for that need to allocate reco::GsfElectron (or pat::Electron)
-    if (channel == "el") {
-      edm::Handle<edm::View<reco::GsfElectron>> electrons;
-      iEvent.getByToken(electronsToken, electrons);
+         }  
+        }
 
-      auto elePtr = electrons -> ptrAt(0);
-      reco::GsfElectronPtr eleGsfPtr(elePtr);
-      const reco::CaloClusterPtr& seed = eleGsfPtr -> superCluster()->seed();
-      isEB = ( seed->seed().subdetId() == EcalBarrel );
-    }
-     
-   
-     double ElectronResUncertainty = 0.1* (isEB ? 0.02 : 0.04 );//http://arxiv.org/pdf/1502.02701v2.pdf
-     double MuonResUncertainty = 0.006; // https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceResolution#General_recommendations_for_muon
-     if (channel == "el" && variation == "up"){
-          pt = pt + ElectronResUncertainty*pt;
-          pz = pz + ElectronResUncertainty*pz;
-      }
-     else if (channel == "el" && variation == "down"){
-          pt = pt - ElectronResUncertainty*pt;
-          pz = pz - ElectronResUncertainty*pz;
-      }
-     else if (pt_gen > 0. && channel == "mu" && variation == "up") {
+        double MuonResUncertainty = 0.006; // https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceResolution#General_recommendations_for_muon
+        if (pt_gen > 0.  && variation == "up") {
           pt = pt_gen + (1. + MuonResUncertainty)*(pt_reco - pt_gen);
           pz = pz_gen + (1. + MuonResUncertainty)*(pz_reco - pz_gen);
-     }
-     else if (pt_gen > 0. && channel == "mu" && variation == "down") {
+        }
+        else if (pt_gen > 0. && variation == "down") {
           pt = pt_gen + (1. - MuonResUncertainty)*(pt_reco - pt_gen);
           pz = pz_gen + (1. - MuonResUncertainty)*(pz_reco - pz_gen);
-     }
-     else if (pt_gen ==  -1. && pz_gen == -1. && channel == "mu") {
-      pt = pt_reco;
-      pz = pz_reco;
-    }
-     else std::cerr << "Smth is wrong, either the variation is not correct (should be up or down) or channel is not correct (should be mu or el). Please check!" << std::endl;
-     math::XYZTLorentzVector SmearedP4 = lepton.p4();
-     SmearedP4.SetPx(pt * cos(lepton.phi()));
-     SmearedP4.SetPy(pt * sin(lepton.phi()));
-     SmearedP4.SetPz(pz);
-     SmearedP4.SetE(sqrt(pt*pt + pz*pz + (lepton.mass()) * (lepton.mass()) ) );
+        }
+        else if (pt_gen ==  -1. && pz_gen == -1. && ( variation == "up" || variation == "down" ) ) {
+          pt = pt_reco;
+          pz = pz_reco;
+        }
+        else {
+          std::cerr << "Smth is wrong,  you have specied the wrong type of variation, probably ... Exit ..." << std::endl;
+          exit(0);
+        }
+
+        SmearedP4.SetPx(pt * cos(asmuonPtr -> tunePMuonBestTrack()->phi()));
+        SmearedP4.SetPy(pt * sin(asmuonPtr -> tunePMuonBestTrack()->phi()));
+        SmearedP4.SetPz(pz);
+        SmearedP4.SetE(sqrt(pt*pt + pz*pz + (lepton.mass()) * (lepton.mass()) ) );
+
+       }
+      else  if (channel == "el") {
+        pt = aselectronPtr -> pt();
+        pz = aselectronPtr -> pz();
+        pt_reco = aselectronPtr -> pt();
+        pz_reco = aselectronPtr -> pz();
+
+        const reco::CaloClusterPtr& seed = aselectronPtr -> superCluster()->seed();
+        isEB = ( seed->seed().subdetId() == EcalBarrel );
+        double ElectronResUncertainty = 0.1* (isEB ? 0.02 : 0.04 );//http://arxiv.org/pdf/1502.02701v2.pdf
+
+        if ( variation == "up"){
+          pt = pt + ElectronResUncertainty*pt;
+          pz = pz + ElectronResUncertainty*pz;
+        }
+        else if (variation == "down"){
+          pt = pt - ElectronResUncertainty*pt;
+          pz = pz - ElectronResUncertainty*pz;
+        }
+        else {
+          std::cerr << "Invalid type of variation, use up or down" << std::endl;
+          exit(0);
+        }
+
+       SmearedP4.SetPx(pt * cos(lepton.phi()));
+       SmearedP4.SetPy(pt * sin(lepton.phi()));
+       SmearedP4.SetPz(pz);
+       SmearedP4.SetE(sqrt(pt*pt + pz*pz + (lepton.mass()) * (lepton.mass()) ) );
+      }
+      else {
+        std::cerr << "Invalid channel used. Please use mu or el." << std::endl;
+        exit(0);
+      }
+
+
      lepton.setP4(SmearedP4);
 
    }
