@@ -410,7 +410,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    genWeight = (genInfo -> weight());
   }
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
-  iSetup.get<JetCorrectionsRecord>().get("AK8PF",JetCorParCollAK8);
+  iSetup.get<JetCorrectionsRecord>().get("AK8PFchs",JetCorParCollAK8);
 
   JetCorrectorParameters const & JetCorPar = (*JetCorParCollAK8)["Uncertainty"];
   JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
@@ -773,7 +773,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     m_lvj_LeptonEnDown = -99.;
    }
 
-   //lepton energy scale uncertainty
+   //lepton energy resolution uncertainty
    if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)  {
     lvj_p4_Up = hadronicVp4 + SystMap.at("LeptonResUp");
     lvj_p4_Down = hadronicVp4 + SystMap.at("LeptonResDown");
