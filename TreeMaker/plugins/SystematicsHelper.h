@@ -32,6 +32,7 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Candidate/interface/CompositeCandidate.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "DataFormats/Candidate/interface/LeafCandidate.h"
 #include <map>
 #include <utility>
 #include <string>
@@ -42,25 +43,30 @@
 // class declaration
 //
 
-class WLepSystematicsHelper {
+class SystematicsHelper {
 	std::vector< edm::EDGetTokenT<std::vector<reco::CompositeCandidate> > > tokens;
+  edm::EDGetTokenT<edm::View<reco::LeafCandidate>> TokenResUp;
+  edm::EDGetTokenT<edm::View<reco::LeafCandidate>> TokenResDown;
+  edm::EDGetTokenT<edm::View<reco::LeafCandidate>> TokenEnUp;
+  edm::EDGetTokenT<edm::View<reco::LeafCandidate>> TokenEnDown;
 	std::vector<std::string> ListOfSystematics;
 public:
-    WLepSystematicsHelper(std::string channel, edm::ConsumesCollector iC){
+    SystematicsHelper(std::string channel, edm::ConsumesCollector iC){
 	ListOfSystematics.push_back("UnclusteredEn");
 	ListOfSystematics.push_back("JetEn");
   ListOfSystematics.push_back("LeptonEn");
   ListOfSystematics.push_back("LeptonRes");
 	tokens.resize(2 * ListOfSystematics.size());
-     int iSystUp, iSystDown;
-     for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++) {	
+  int iSystUp, iSystDown;
+  
+  for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++) {	
      	iSystUp = 2*iSyst;
      	iSystDown = 2*iSyst + 1;
-      if (ListOfSystematics.at(iSyst) != "LeptonEn"){
+      if (ListOfSystematics.at(iSyst) != "LeptonEn" ){
         tokens.at(iSystUp)  =  iC.mayConsume<std::vector<reco::CompositeCandidate>>(edm::InputTag("Wto" + channel + "nu" + ListOfSystematics.at(iSyst) + "Up"));
         tokens.at(iSystDown) = iC.mayConsume<std::vector<reco::CompositeCandidate>>(edm::InputTag("Wto" + channel + "nu" + ListOfSystematics.at(iSyst) + "Down"));
       }
-      else{
+      else if (ListOfSystematics.at(iSyst) == "LeptonEn" ){
           std::string name;
           if ( channel == "el") name = "ElectronEn";
           else if ( channel == "mu") name = "MuonEn";
@@ -68,7 +74,30 @@ public:
           tokens.at(iSystUp)  =  iC.mayConsume<std::vector<reco::CompositeCandidate>>(edm::InputTag("Wto" + channel + "nu" + name + "Up"));
           tokens.at(iSystDown) = iC.mayConsume<std::vector<reco::CompositeCandidate>>(edm::InputTag("Wto" + channel + "nu" + name + "Down"));
       }
-	 }
+      else {
+        std::cerr << "smth is going wrong... stopping ..." << std::endl;
+        exit(0);
+      }
+      if (ListOfSystematics.at(iSyst) == "LeptonEn" && channel == "el") {
+          TokenEnUp =  iC.mayConsume<edm::View<reco::LeafCandidate>>(edm::InputTag("bestElectronEnUp"));
+          TokenEnDown =  iC.mayConsume<edm::View<reco::LeafCandidate>>(edm::InputTag("bestElectronEnDown"));
+      }
+
+      if (ListOfSystematics.at(iSyst) == "LeptonEn" && channel == "mu") {
+          TokenEnUp =  iC.mayConsume<edm::View<reco::LeafCandidate>>(edm::InputTag("bestMuonEnUp"));
+          TokenEnDown =  iC.mayConsume<edm::View<reco::LeafCandidate>>(edm::InputTag("bestMuonEnDown"));
+      }
+
+      if (ListOfSystematics.at(iSyst) == "LeptonRes" && channel == "el") {
+          TokenResUp =  iC.mayConsume<edm::View<reco::LeafCandidate>>(edm::InputTag("bestElectronResUp"));
+          TokenResDown =  iC.mayConsume<edm::View<reco::LeafCandidate>>(edm::InputTag("bestElectronResDown"));
+      }
+
+      if (ListOfSystematics.at(iSyst) == "LeptonRes" && channel == "mu") {
+          TokenResUp =  iC.mayConsume<edm::View<reco::LeafCandidate>>(edm::InputTag("bestMuonResUp"));
+          TokenResDown =  iC.mayConsume<edm::View<reco::LeafCandidate>>(edm::InputTag("bestMuonResDown"));
+      }
+    }
 }
 
    std::map<std::string, math::XYZTLorentzVector> getWLepSystematicsLoretzVectors(const edm::Event& iEvent){
@@ -101,5 +130,40 @@ public:
 
 
    }
+
+
+   std::map<std::string, math::XYZTLorentzVector> getLeptonSystematicsLoretzVectors(const edm::Event& iEvent){
+   edm::Handle<edm::View<reco::LeafCandidate>>  LeptonEnUp;
+   edm::Handle<edm::View<reco::LeafCandidate>>  LeptonEnDown;
+   
+   edm::Handle<edm::View<reco::LeafCandidate>>  LeptonResUp;
+   edm::Handle<edm::View<reco::LeafCandidate>>  LeptonResDown; 
+   
+   std::map<std::string, math::XYZTLorentzVector>  LeptonSystMap;
+
+   iEvent.getByToken(TokenEnUp, LeptonEnUp);
+   iEvent.getByToken(TokenEnDown, LeptonEnDown);
+   iEvent.getByToken(TokenResUp, LeptonResUp);
+   iEvent.getByToken(TokenResDown, LeptonResDown);
+
+   reco::LeafCandidate _LeptonEnUp    = LeptonEnUp -> at(0); 
+   reco::LeafCandidate _LeptonEnDown  = LeptonEnDown -> at(0);
+   reco::LeafCandidate _LeptonResUp   = LeptonResUp -> at(0);
+   reco::LeafCandidate _LeptonResDown = LeptonResDown -> at(0); 
+   
+
+  math::XYZTLorentzVector P4EnUp = _LeptonEnUp.p4();  
+  math::XYZTLorentzVector P4EnDown = _LeptonEnDown.p4();  
+  math::XYZTLorentzVector P4ResUp = _LeptonResUp.p4();  
+  math::XYZTLorentzVector P4ResDown = _LeptonResDown.p4(); 
+
+  LeptonSystMap.insert( std::pair<std::string,math::XYZTLorentzVector>("LeptonEnUp", P4EnUp) );
+  LeptonSystMap.insert( std::pair<std::string,math::XYZTLorentzVector>("LeptonEnDown", P4EnDown) );
+
+  LeptonSystMap.insert( std::pair<std::string,math::XYZTLorentzVector>("LeptonResUp", P4ResUp) );
+  LeptonSystMap.insert( std::pair<std::string,math::XYZTLorentzVector>("LeptonResDown", P4ResDown) );
+
+  return LeptonSystMap;
+}
    
 };

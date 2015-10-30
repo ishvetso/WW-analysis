@@ -44,7 +44,7 @@
 #include "DecayChannel.h"
 #include "DecayClass.h"
 #include "Particle.h"
-#include "WLepSystematicsHelper.h"
+#include "SystematicsHelper.h"
 #include "PU.h"
 
 
@@ -129,7 +129,7 @@ private:
   std::string channel;
   edm::LumiReWeighting  LumiWeights_;
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
-  WLepSystematicsHelper SystematicsHelper;
+  SystematicsHelper SystematicsHelper_;
 
 };
 
@@ -150,7 +150,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   muonsToken_(mayConsume<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   isMC(iConfig.getParameter<bool>("isMC")),
   channel(iConfig.getParameter<std::string>("channel")),
-  SystematicsHelper (WLepSystematicsHelper(channel, consumesCollector()))
+  SystematicsHelper_ (SystematicsHelper(channel, consumesCollector()))
 {
    if (isMC) {
      PUInfoToken_ = consumes<std::vector< PileupSummaryInfo > >(iConfig.getParameter<edm::InputTag>("PUInfo"));
@@ -193,7 +193,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   //lepton uncertainties
   if (isMC) {
     outTree_->Branch("l_pt_EnUp",       &Lepton.pt_EnUp,     "l_pt_EnUp/D"          );
-    outTree_->Branch("l_pt_EnDown",       &Lepton.pt_EnDown,     "l_pt_EnDown/D"          );
+    outTree_->Branch("l_pt_EnDown",     &Lepton.pt_EnDown,   "l_pt_EnDown/D"          );
+    outTree_->Branch("l_pt_ResUp",      &Lepton.pt_ResUp,    "l_pt_ResUp/D"          );
+    outTree_->Branch("l_pt_ResDown",    &Lepton.pt_ResDown,  "l_pt_ResDown/D"          );
   }
   //W observables
   outTree_->Branch("W_pt",	      &Wboson_lep.pt,     "W_pt/D"         );
@@ -386,7 +388,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle<edm::View<reco::Candidate> > leptons;
    iEvent.getByToken(leptonsToken_, leptons); 
 
-    std::map<std::string, math::XYZTLorentzVector>  SystMap = SystematicsHelper.getWLepSystematicsLoretzVectors(iEvent);
+   std::map<std::string, math::XYZTLorentzVector>  SystMap = SystematicsHelper_.getWLepSystematicsLoretzVectors(iEvent);
+   std::map<std::string, math::XYZTLorentzVector>  LeptonSystMap = SystematicsHelper_.getLeptonSystematicsLoretzVectors(iEvent);
 
    nPV = vertices->size();
    
@@ -445,31 +448,17 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //tight leptons
    edm::Handle<edm::View<pat::Muon> > muons;//need this to retrieve kinematics for high pt muons
    //electron channel
-   if ( ( leptons -> size() ) > 0 && channel == "el")
+   if ( ( leptons -> size() ) > 0 )
    {
      Lepton.pt = (leptons -> at(0)).pt();
      Lepton.eta = (leptons -> at(0)).eta();
      Lepton.phi = (leptons -> at(0)).phi();
-     double ElectronEnUncertainty = 0.001;//this  uncertainty is set temporary (after talking with Lindsey), not yet retrieved for 13 TeV
-     Lepton.pt_EnUp = (1 + ElectronEnUncertainty)*Lepton.pt;
-     Lepton.pt_EnDown = (1 - ElectronEnUncertainty)*Lepton.pt;
+     Lepton.pt_EnUp = LeptonSystMap.at("LeptonEnUp").Pt();
+     Lepton.pt_EnDown = LeptonSystMap.at("LeptonEnDown").Pt();
+     Lepton.pt_ResUp = LeptonSystMap.at("LeptonResUp").Pt();
+     Lepton.pt_ResDown = LeptonSystMap.at("LeptonResDown").Pt();
    }
-   //muon channel
-   else if (( leptons -> size() ) > 0 && channel == "mu" ){
-    iEvent.getByToken(muonsToken_, muons); 
-    Lepton.pt =  (muons -> at(0)).tunePMuonBestTrack() -> pt();//according to the recomendation from muon POG need to use this for high pt muons
-    Lepton.eta =  (muons -> at(0)).tunePMuonBestTrack() -> eta();
-    Lepton.phi =  (muons -> at(0)).tunePMuonBestTrack() -> phi();
-    //systematics: muons
-    double MuonEnUncertainty = 0.002;// 13 TeV uncertainty not yet available, use recommendation from Run I: if pt of muon < 200, uncertainty is 0.2%, else the uncertainty on the 1/pT bias is about 0.05 c/TeV : https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceResolution#General_recommendations_for_muon
-    if (Lepton.pt > 200. ) {
-           double extraEnUncertainty = (Lepton.pt/1000.)*0.05;
-           MuonEnUncertainty = sqrt(pow(MuonEnUncertainty,2) + pow(extraEnUncertainty,2));
-    }
-    Lepton.pt_EnUp = (1 + MuonEnUncertainty)*Lepton.pt;
-    Lepton.pt_EnDown = (1 - MuonEnUncertainty)*Lepton.pt;
 
-   }
     
    else 
    {
@@ -478,6 +467,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Lepton.phi = -99.;
      Lepton.pt_EnUp = -99.;
      Lepton.pt_EnDown = -99.;
+     Lepton.pt_ResUp = -99.;
+     Lepton.pt_ResDown = -99.;
    }
 
    //leptonically decaying W
