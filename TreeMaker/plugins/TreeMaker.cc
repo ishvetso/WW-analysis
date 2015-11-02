@@ -48,7 +48,9 @@
 #include "SystematicsHelper.h"
 #include "PU.h"
 
-
+namespace reco {
+  typedef edm::Ptr<reco::Muon> MuonPtr;
+}
 //
 // class declaration
 //
@@ -485,16 +487,15 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    nLep = leptons -> size();
    
-   //tight leptons
-   edm::Handle<edm::View<pat::Muon> > muons;//need this to retrieve kinematics for high pt muons
-   if (channel == "mu") iEvent.getByToken(muonsToken_, muons);
+   auto leptonPtr = leptons -> ptrAt(0);
+   reco::MuonPtr asmuonPtr(leptonPtr);
    //electron channel
    if ( ( leptons -> size() ) > 0)
    {
      if (channel == "mu"){
-      Lepton.pt = (muons -> at(0).tunePMuonBestTrack()) -> pt();
-      Lepton.eta = (muons -> at(0).tunePMuonBestTrack()) -> eta();
-      Lepton.phi = (muons -> at(0).tunePMuonBestTrack()) -> phi();
+      Lepton.pt =  asmuonPtr -> tunePMuonBestTrack() -> pt();
+      Lepton.eta = asmuonPtr -> tunePMuonBestTrack() -> eta();
+      Lepton.phi = asmuonPtr -> tunePMuonBestTrack() -> phi();
     }
     else if (channel == "el"){
       Lepton.pt = (leptons -> at(0)).pt();
@@ -591,37 +592,39 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       METCand.mt = metCand.mt();
       //MET uncertainties
       //METUncl
-      MET_UnclEnUp = metCand.shiftedPt( pat::MET::UnclusteredEnUp, pat::MET::Type1) ;
-      MET_UnclEnDown = metCand.shiftedPt( pat::MET::UnclusteredEnDown, pat::MET::Type1) ;
-      //JER
-      MET_JERUp = metCand.shiftedPt( pat::MET::JetResUp, pat::MET::Type1) ;
-      MET_JERDown = metCand.shiftedPt( pat::MET::JetResDown, pat::MET::Type1) ;
-      //JEC
-      MET_JECUp = metCand.shiftedPt( pat::MET::JetEnUp, pat::MET::Type1) ;
-      MET_JECDown = metCand.shiftedPt( pat::MET::JetEnDown, pat::MET::Type1) ;
-      //Electron energy 
-      MET_ElectronEnUp = metCand.shiftedPt( pat::MET::ElectronEnUp, pat::MET::Type1) ;
-      MET_ElectronEnDown = metCand.shiftedPt( pat::MET::ElectronEnDown, pat::MET::Type1) ;
-      //Muon energy 
-      MET_MuonEnUp = metCand.shiftedPt( pat::MET::MuonEnUp, pat::MET::Type1) ;
-      MET_MuonEnDown = metCand.shiftedPt( pat::MET::MuonEnDown, pat::MET::Type1) ;
+      if (isMC){
+          MET_UnclEnUp = metCand.shiftedPt( pat::MET::UnclusteredEnUp, pat::MET::Type1) ;
+          MET_UnclEnDown = metCand.shiftedPt( pat::MET::UnclusteredEnDown, pat::MET::Type1) ;
+          //JER
+          MET_JERUp = metCand.shiftedPt( pat::MET::JetResUp, pat::MET::Type1) ;
+          MET_JERDown = metCand.shiftedPt( pat::MET::JetResDown, pat::MET::Type1) ;
+          //JEC
+          MET_JECUp = metCand.shiftedPt( pat::MET::JetEnUp, pat::MET::Type1) ;
+          MET_JECDown = metCand.shiftedPt( pat::MET::JetEnDown, pat::MET::Type1) ;
+          //Electron energy 
+          MET_ElectronEnUp = metCand.shiftedPt( pat::MET::ElectronEnUp, pat::MET::Type1) ;
+          MET_ElectronEnDown = metCand.shiftedPt( pat::MET::ElectronEnDown, pat::MET::Type1) ;
+          //Muon energy 
+          MET_MuonEnUp = metCand.shiftedPt( pat::MET::MuonEnUp, pat::MET::Type1) ;
+          MET_MuonEnDown = metCand.shiftedPt( pat::MET::MuonEnDown, pat::MET::Type1) ;
 
-      //MET phi uncertainties
-      //METUncl
-      MET_Phi_UnclEnUp = metCand.shiftedPhi( pat::MET::UnclusteredEnUp, pat::MET::Type1) ;
-      MET_Phi_UnclEnDown = metCand.shiftedPhi( pat::MET::UnclusteredEnDown, pat::MET::Type1) ;
-      //JER
-      MET_Phi_JERUp = metCand.shiftedPhi( pat::MET::JetResUp, pat::MET::Type1) ;
-      MET_Phi_JERDown = metCand.shiftedPhi( pat::MET::JetResDown, pat::MET::Type1) ;
-      //JEC
-      MET_Phi_JECUp = metCand.shiftedPhi( pat::MET::JetEnUp, pat::MET::Type1) ;
-      MET_Phi_JECDown = metCand.shiftedPhi( pat::MET::JetEnDown, pat::MET::Type1) ;
-      //Electron energy 
-      MET_Phi_ElectronEnUp = metCand.shiftedPhi( pat::MET::ElectronEnUp, pat::MET::Type1) ;
-      MET_Phi_ElectronEnDown = metCand.shiftedPhi( pat::MET::ElectronEnDown, pat::MET::Type1) ;
-      //Muon energy 
-      MET_Phi_MuonEnUp = metCand.shiftedPhi( pat::MET::MuonEnUp, pat::MET::Type1) ;
-      MET_Phi_MuonEnDown = metCand.shiftedPhi( pat::MET::MuonEnDown, pat::MET::Type1) ;
+          //MET phi uncertainties
+          //METUncl
+          MET_Phi_UnclEnUp = metCand.shiftedPhi( pat::MET::UnclusteredEnUp, pat::MET::Type1) ;
+          MET_Phi_UnclEnDown = metCand.shiftedPhi( pat::MET::UnclusteredEnDown, pat::MET::Type1) ;
+          //JER
+          MET_Phi_JERUp = metCand.shiftedPhi( pat::MET::JetResUp, pat::MET::Type1) ;
+          MET_Phi_JERDown = metCand.shiftedPhi( pat::MET::JetResDown, pat::MET::Type1) ;
+          //JEC
+          MET_Phi_JECUp = metCand.shiftedPhi( pat::MET::JetEnUp, pat::MET::Type1) ;
+          MET_Phi_JECDown = metCand.shiftedPhi( pat::MET::JetEnDown, pat::MET::Type1) ;
+          //Electron energy 
+          MET_Phi_ElectronEnUp = metCand.shiftedPhi( pat::MET::ElectronEnUp, pat::MET::Type1) ;
+          MET_Phi_ElectronEnDown = metCand.shiftedPhi( pat::MET::ElectronEnDown, pat::MET::Type1) ;
+          //Muon energy 
+          MET_Phi_MuonEnUp = metCand.shiftedPhi( pat::MET::MuonEnUp, pat::MET::Type1) ;
+          MET_Phi_MuonEnDown = metCand.shiftedPhi( pat::MET::MuonEnDown, pat::MET::Type1) ;
+      }
    }
    
     else
