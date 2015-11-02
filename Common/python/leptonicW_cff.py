@@ -88,6 +88,9 @@ Wtoenu = cms.EDProducer("WLeptonicProducer",
                         )
 
 
-leptonicWtomunuSequence = cms.Sequence(bestMuon + bestMuonEnUp+ bestMuonEnDown + bestMuonResUp + bestMuonResDown + Wtomunu )
-leptonicWtoenuSequence  = cms.Sequence(bestElectron + bestElectronEnUp + bestElectronEnDown + bestElectronResUp + bestElectronResDown +  Wtoenu)
+leptonicWtomunuSequenceMC = cms.Sequence( bestMuon + bestMuonEnUp+ bestMuonEnDown + bestMuonResUp + bestMuonResDown + Wtomunu )
+leptonicWtoenuSequenceMC  = cms.Sequence(bestElectron + bestElectronEnUp + bestElectronEnDown + bestElectronResUp + bestElectronResDown +  Wtoenu)
+
+leptonicWtomunuSequenceData = cms.Sequence(bestMuon + Wtomunu)
+leptonicWtoenuSequenceData  = cms.Sequence(bestElectron + Wtoenu)
 

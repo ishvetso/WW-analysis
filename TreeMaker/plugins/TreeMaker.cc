@@ -36,6 +36,7 @@
 #include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -75,6 +76,7 @@ private:
   double PUweight;
 
   double genWeight;
+  double rho_;
   
   Particle Wboson_lep, Wboson_had, METCand, Electron, Muon, Lepton;
   double m_pruned;
@@ -126,9 +128,13 @@ private:
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonsToken_;
   edm::EDGetTokenT<edm::View<pat::Muon>> muonsToken_;
   bool isMC;
+  edm::EDGetTokenT<double> rhoToken_;
   std::string channel;
   edm::LumiReWeighting  LumiWeights_;
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
+ 
+  //for JEC
+  boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
   SystematicsHelper SystematicsHelper_;
 
 };
@@ -149,9 +155,34 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   leptonsToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   muonsToken_(mayConsume<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   isMC(iConfig.getParameter<bool>("isMC")),
+  rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
   channel(iConfig.getParameter<std::string>("channel")),
-  SystematicsHelper_ (SystematicsHelper(channel, consumesCollector()))
+  SystematicsHelper_(SystematicsHelper())
 {
+  //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
+
+  edm::FileInPath L2("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L2Relative_AK8PFchs.txt");
+  edm::FileInPath L3("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L3Absolute_AK8PFchs.txt");
+  edm::FileInPath L2L3Res("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_DATA_L2L3Residual_AK8PFchs.txt"); 
+  std::vector<std::string> jecAK8PayloadNames_;
+  if (isMC){
+    jecAK8PayloadNames_.push_back(L2.fullPath());
+    jecAK8PayloadNames_.push_back(L3.fullPath()); 
+    SystematicsHelper_  = SystematicsHelper(channel, consumesCollector());
+  }
+  if(!isMC) jecAK8PayloadNames_.push_back(L2L3Res.fullPath()); 
+
+  std::vector<JetCorrectorParameters> vPar;
+  for ( std::vector<std::string>::const_iterator payloadBegin = jecAK8PayloadNames_.begin(), payloadEnd = jecAK8PayloadNames_.end(), ipayload = payloadBegin; ipayload != payloadEnd; ++ipayload ) {
+    JetCorrectorParameters pars(*ipayload);
+    vPar.push_back(pars);
+  }
+  
+  // Make the FactorizedJetCorrector
+  jecAK8_ = boost::shared_ptr<FactorizedJetCorrector> ( new FactorizedJetCorrector(vPar) );
+
+
+  //loading PU and generator information for MC
    if (isMC) {
      PUInfoToken_ = consumes<std::vector< PileupSummaryInfo > >(iConfig.getParameter<edm::InputTag>("PUInfo"));
 
@@ -173,6 +204,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   
   //number of primary vertices
   outTree_->Branch("nPV",	      &nPV,		  "nPV/I"  	       );
+  outTree_->Branch("rho",       &rho_,     "rho/I"          );
   //PUweight
   if (isMC) {
      outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
@@ -347,6 +379,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nevent = iEvent.eventAuxiliary().event();
    run    = iEvent.eventAuxiliary().run();
    lumi   = iEvent.eventAuxiliary().luminosityBlock();
+
+   edm::Handle< double > rhoH;
+   iEvent.getByToken(rhoToken_,rhoH);
+   rho_ = *rhoH;
    
    //Hadronic Ws
    edm::Handle<edm::View<pat::Jet> > hadronicVs;
@@ -388,8 +424,12 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle<edm::View<reco::Candidate> > leptons;
    iEvent.getByToken(leptonsToken_, leptons); 
 
-   std::map<std::string, math::XYZTLorentzVector>  SystMap = SystematicsHelper_.getWLepSystematicsLoretzVectors(iEvent);
-   std::map<std::string, math::XYZTLorentzVector>  LeptonSystMap = SystematicsHelper_.getLeptonSystematicsLoretzVectors(iEvent);
+   std::map<std::string, math::XYZTLorentzVector>  SystMap; 
+   std::map<std::string, math::XYZTLorentzVector>  LeptonSystMap;
+   if (isMC) {
+      SystMap = SystematicsHelper_.getWLepSystematicsLoretzVectors(iEvent);
+      LeptonSystMap = SystematicsHelper_.getLeptonSystematicsLoretzVectors(iEvent);
+   }
 
    nPV = vertices->size();
    
@@ -447,16 +487,30 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    //tight leptons
    edm::Handle<edm::View<pat::Muon> > muons;//need this to retrieve kinematics for high pt muons
+   if (channel == "mu") iEvent.getByToken(muonsToken_, muons);
    //electron channel
-   if ( ( leptons -> size() ) > 0 )
+   if ( ( leptons -> size() ) > 0)
    {
-     Lepton.pt = (leptons -> at(0)).pt();
-     Lepton.eta = (leptons -> at(0)).eta();
-     Lepton.phi = (leptons -> at(0)).phi();
-     Lepton.pt_EnUp = LeptonSystMap.at("LeptonEnUp").Pt();
-     Lepton.pt_EnDown = LeptonSystMap.at("LeptonEnDown").Pt();
-     Lepton.pt_ResUp = LeptonSystMap.at("LeptonResUp").Pt();
-     Lepton.pt_ResDown = LeptonSystMap.at("LeptonResDown").Pt();
+     if (channel == "mu"){
+      Lepton.pt = (muons -> at(0).tunePMuonBestTrack()) -> pt();
+      Lepton.eta = (muons -> at(0).tunePMuonBestTrack()) -> eta();
+      Lepton.phi = (muons -> at(0).tunePMuonBestTrack()) -> phi();
+    }
+    else if (channel == "el"){
+      Lepton.pt = (leptons -> at(0)).pt();
+      Lepton.eta = (leptons -> at(0)).eta();
+      Lepton.phi = (leptons -> at(0)).phi();
+    }
+    else {
+      std::cerr << "Invalid channel used, use el or mu." << std::endl;
+      exit(0);
+    }
+     if (isMC){
+       Lepton.pt_EnUp = LeptonSystMap.at("LeptonEnUp").Pt();
+       Lepton.pt_EnDown = LeptonSystMap.at("LeptonEnDown").Pt();
+       Lepton.pt_ResUp = LeptonSystMap.at("LeptonResUp").Pt();
+       Lepton.pt_ResDown = LeptonSystMap.at("LeptonResDown").Pt();
+    }
    }
 
     
@@ -638,9 +692,20 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_eta = (jets -> at(0)).eta();
     jet_phi = (jets -> at(0)).phi();
     jet_mass = (jets -> at(0)).mass();
-    jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
-    jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
+    //jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
+    //jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
     jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
+
+    math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
+    jecAK8_->setJetEta( uncorrJet.eta() );
+    jecAK8_->setJetPt ( uncorrJet.pt() );
+    jecAK8_->setJetE  ( uncorrJet.energy() );
+    jecAK8_->setJetA  ( (jets -> at(0)).jetArea() );
+    jecAK8_->setRho   ( rho_ );
+    jecAK8_->setNPV   (  vertices->size());
+    double corr = jecAK8_->getCorrection();
+    jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
+    jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
 
     //JEC uncertainty
     jet_pt_JECDown = (1 - JECunc)*jet_pt;
@@ -725,7 +790,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //systematics
    //METUnclEn
    math::XYZTLorentzVector lvj_p4_Up, lvj_p4_Down;
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)  {
+   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0 && isMC)  {
      lvj_p4_Up = hadronicVp4 + SystMap.at("UnclusteredEnUp");
      lvj_p4_Down = hadronicVp4 + SystMap.at("UnclusteredEnDown");
      m_lvj_UnclEnUp = lvj_p4_Up.M();
@@ -741,7 +806,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     hadronicVp4_Down = hadronicVp4;
     hadronicVp4_Up *= (1+JECunc); 
     hadronicVp4_Down *= (1-JECunc);
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)  {
+   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0 && isMC)  {
      lvj_p4_Up = hadronicVp4_Up + SystMap.at("JetEnUp");
      lvj_p4_Down = hadronicVp4_Down + SystMap.at("JetEnDown");
      m_lvj_JECUp = lvj_p4_Up.M();
@@ -752,7 +817,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      m_lvj_JECDown = -99.;
    }
    //lepton energy scale uncertainty
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)  {
+   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0 && isMC)  {
     lvj_p4_Up = hadronicVp4 + SystMap.at("LeptonEnUp");
     lvj_p4_Down = hadronicVp4 + SystMap.at("LeptonEnDown");
     m_lvj_LeptonEnUp = lvj_p4_Up.M();
@@ -765,7 +830,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
 
    //lepton energy resolution uncertainty
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)  {
+   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0 && isMC)  {
     lvj_p4_Up = hadronicVp4 + SystMap.at("LeptonResUp");
     lvj_p4_Down = hadronicVp4 + SystMap.at("LeptonResDown");
     m_lvj_LeptonResUp = lvj_p4_Up.M();

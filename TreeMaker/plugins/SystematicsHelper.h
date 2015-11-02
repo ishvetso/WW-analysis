@@ -51,6 +51,7 @@ class SystematicsHelper {
   edm::EDGetTokenT<edm::View<reco::LeafCandidate>> TokenEnDown;
 	std::vector<std::string> ListOfSystematics;
 public:
+    SystematicsHelper(){}
     SystematicsHelper(std::string channel, edm::ConsumesCollector iC){
 	ListOfSystematics.push_back("UnclusteredEn");
 	ListOfSystematics.push_back("JetEn");

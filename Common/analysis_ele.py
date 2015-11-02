@@ -74,7 +74,7 @@ process.MuonVeto = cms.EDFilter("LeptonVeto",
                                     maxNTight = cms.int32(0),
            )
 
-process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto +  process.leptonicWtoenuSequence )
+process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto +  process.leptonicWtoenuSequenceData )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("goodJets"),
@@ -88,6 +88,7 @@ process.jetSequence = cms.Sequence(process.fatJetsSequence +
 
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
+                                    rho = cms.InputTag("fixedGridRhoFastjetAll"),
                                     hadronicVSrc = cms.InputTag("hadronicV"),
                                     leptonicVSrc = cms.InputTag("Wtoenu"),
                                     metSrc = cms.InputTag("METele"),
@@ -99,7 +100,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightElectrons"),
                                     isMC = cms.bool(False),
-                                    isMuonChannel = cms.bool(False)
+                                    channel = cms.string("el")
                                     )
 
 

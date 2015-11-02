@@ -78,7 +78,7 @@ process.MuonVeto = cms.EDFilter("LeptonVeto",
            )
 
 
-process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto +  process.leptonicWtomunuSequence )
+process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto +  process.leptonicWtomunuSequenceMC )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("goodJets"),
@@ -93,6 +93,7 @@ process.jetSequence = cms.Sequence(process.fatJetsSequence +
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     PUInfo = cms.InputTag("addPileupInfo"),
                                     genInfo = cms.InputTag("generator"),
+                                    rho = cms.InputTag("fixedGridRhoFastjetAll"),
                                     hadronicVSrc = cms.InputTag("hadronicV"),
                                     leptonicVSrc = cms.InputTag("Wtomunu"),
                                     metSrc = cms.InputTag("METmu"),
