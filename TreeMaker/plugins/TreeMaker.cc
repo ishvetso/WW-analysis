@@ -162,16 +162,21 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   SystematicsHelper_(SystematicsHelper())
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
-
+  std::cout << "here 1" << std::endl;
+  edm::FileInPath L1("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L1FastJet_AK8PFchs.txt");
   edm::FileInPath L2("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L2Relative_AK8PFchs.txt");
   edm::FileInPath L3("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L3Absolute_AK8PFchs.txt");
+  edm::FileInPath JECUncertainty("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_Uncertainty_AK8PFchs.txt");
   edm::FileInPath L2L3Res("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_DATA_L2L3Residual_AK8PFchs.txt"); 
   std::vector<std::string> jecAK8PayloadNames_;
   if (isMC){
+    jecAK8PayloadNames_.push_back(L1.fullPath());
     jecAK8PayloadNames_.push_back(L2.fullPath());
     jecAK8PayloadNames_.push_back(L3.fullPath()); 
+    jecAK8PayloadNames_.push_back(JECUncertainty.fullPath()); 
     SystematicsHelper_  = SystematicsHelper(channel, consumesCollector());
   }
+  std::cout << "here " << std::endl;
   if(!isMC) jecAK8PayloadNames_.push_back(L2L3Res.fullPath()); 
 
   std::vector<JetCorrectorParameters> vPar;
@@ -454,11 +459,14 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByToken( genInfoToken , genInfo);
    genWeight = (genInfo -> weight());
   }
-  edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
+  /*edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
   iSetup.get<JetCorrectionsRecord>().get("AK8PFchs",JetCorParCollAK8);
 
   JetCorrectorParameters const & JetCorPar = (*JetCorParCollAK8)["Uncertainty"];
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
+  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);*/
+  //edm::FileInPath JECUncertainty("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_Uncertainty_AK8PFchs.txt");
+
+  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_Uncertainty_AK8PFchs.txt");
 
   jecUnc->setJetEta((jets -> at(0)).eta());
   jecUnc->setJetPt((jets -> at(0)).pt()); // here you must use the CORRECTED jet pt
