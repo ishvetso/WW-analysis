@@ -16,11 +16,9 @@ process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
 process.load("aTGCsAnalysis.Common.hadronicW_cff")
 
-# Electrons
-
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.Geometry_cff")
-process.GlobalTag.globaltag = 'MCRUN2_74_V9::All'
+process.GlobalTag.globaltag = '74X_mcRun2_asymptotic_v2'
 
 ##___________________________HCAL_Noise_Filter________________________________||
 process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
@@ -32,8 +30,8 @@ process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
 )
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
-            noiseFilter = cms.InputTag("TriggerResults", "", "HLT"),
-            filterNames = cms.vstring("Flag_CSCTightHaloFilter", "Flag_goodVertices ")  )
+            noiseFilter = cms.InputTag("TriggerResults", "", "PAT"),
+            filterNames = cms.vstring("Flag_CSCTightHaloFilter", "Flag_goodVertices", "Flag_eeBadScFilter")  )
 
 
 #
@@ -90,7 +88,7 @@ process.jetSequence = cms.Sequence(process.fatJetsSequence +
 
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
-                                    PUInfo = cms.InputTag("addPileupInfo"),
+                                    PUInfo = cms.InputTag("slimmedAddPileupInfo"),
                                     genInfo = cms.InputTag("generator"),
                                     rho = cms.InputTag("fixedGridRhoFastjetAll"),
                                     hadronicVSrc = cms.InputTag("hadronicV"),
@@ -120,7 +118,7 @@ process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.Appl
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/CMSSW_7_4_7/src/WW-analysis/Common/test/samples_MINIAOD/RSGrav1000.root'),
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/aTGCRun2/samples/WW.root'),
     #eventsToProcess = cms.untracked.VEventRange('1:75:72317')
     
 )
