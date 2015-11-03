@@ -6,7 +6,7 @@ import PhysicsTools.PatAlgos.cleaningLayer1.jetCleaner_cfi as jetCleaner_cfi
 # fat jets
 selectedPatJetsAK8ByPt = cms.EDFilter("PATJetSelector",
     src = cms.InputTag("slimmedJetsAK8"),
-    cut = cms.string("pt > 200"),
+    cut = cms.string("pt > 170"),
     filter = cms.bool(True)
 )               
 
