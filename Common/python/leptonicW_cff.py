@@ -76,14 +76,14 @@ bestMuonResDown =cms.EDProducer("LeptonSystematicsProducer",
 
 Wtomunu = cms.EDProducer("WLeptonicProducer",
                          leptons = cms.InputTag("bestMuon"),
-                         MET = cms.InputTag("slimmedMETs"),
+                         MET = cms.InputTag("METmu"),
                          cut = cms.string("")
                          )
 
 
 Wtoenu = cms.EDProducer("WLeptonicProducer",
                         leptons = cms.InputTag("bestElectron"),
-                        MET = cms.InputTag("slimmedMETs"),
+                        MET = cms.InputTag("METele"),
                         cut = cms.string("")
                         )
 
