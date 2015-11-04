@@ -19,9 +19,9 @@ def CreateWLepWithSystematicsSequence(process, channel):
                         cut = cms.string("")
                         )
 	for iSyst in ListOfSystematics:
-		setattr(process, 'MET' + iSyst +'Up', _MET.clone(uncertaintyType = iSyst + 'Up'))
-		setattr(process, 'MET' + iSyst +'Down', _MET.clone(uncertaintyType = iSyst + 'Down'))
 		if channel == "mu" :
+			setattr(process, 'MET' + iSyst +'Up', _MET.clone(metSrc = cms.InputTag("METmu"), uncertaintyType = iSyst + 'Up'))
+			setattr(process, 'MET' + iSyst +'Down', _MET.clone(metSrc = cms.InputTag("METmu"), uncertaintyType = iSyst + 'Down'))
 			if iSyst != "MuonEn" and iSyst!= "ElectronEn" and iSyst!= "LeptonRes" :
 				setattr(process, 'Wtomunu' + iSyst + 'Up', _Wtomunu.clone(MET = cms.InputTag('MET' + iSyst + 'Up')))
 				setattr(process, 'Wtomunu' + iSyst + 'Down', _Wtomunu.clone(MET = cms.InputTag('MET' + iSyst + 'Down')))
@@ -37,6 +37,8 @@ def CreateWLepWithSystematicsSequence(process, channel):
 			else :
 				continue
 		elif  channel == "el":
+			setattr(process, 'MET' + iSyst +'Up', _MET.clone(metSrc = cms.InputTag("METele"), uncertaintyType = iSyst + 'Up'))
+			setattr(process, 'MET' + iSyst +'Down', _MET.clone(metSrc = cms.InputTag("METele"), uncertaintyType = iSyst + 'Down'))
 			if iSyst != "MuonEn" and iSyst!= "ElectronEn"  and iSyst != "LeptonRes" :
 				setattr(process, 'Wtoelnu' + iSyst + 'Up', _Wtoenu.clone(MET = cms.InputTag('MET' + iSyst + 'Up')))
 				setattr(process, 'Wtoelnu' + iSyst + 'Down', _Wtoenu.clone(MET = cms.InputTag('MET' + iSyst + 'Down')))
