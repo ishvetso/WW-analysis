@@ -206,7 +206,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   
   //number of primary vertices
   outTree_->Branch("nPV",	      &nPV,		  "nPV/I"  	       );
-  outTree_->Branch("rho",       &rho_,     "rho/I"          );
+  outTree_->Branch("rho",       &rho_,     "rho/D"          );
   //PUweight
   if (isMC) {
      outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
