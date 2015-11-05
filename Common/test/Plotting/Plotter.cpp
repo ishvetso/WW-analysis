@@ -38,13 +38,14 @@ void Plotter::Plotting(std::string OutPrefix_)
 	
 	//beginning of cycle over variables
 	for (uint var_i = 0; var_i < variables.size(); ++ var_i )
-	{
-	  TPad *pad1 = new TPad("pad1","This is pad1",0.0,0.0,0.8,1.);
-	  //TPad *pad2 = new TPad("pad2","This is pad2",0.0,0.02,0.8,0.07);
+	{	
+	  TPad *pad1 = new TPad("pad1","This is pad1",0.0,0.15,0.8,1.0);
+	  TPad *pad2 = new TPad("pad2","This is pad2",0.0,0.02,0.8,0.15);
+
 	  
 	  THStack *hs = new THStack("hs",(";"+ variables.at(var_i).VarName +";Number of events").c_str());
 	  c1 -> cd();
-	  TLegend *leg = new TLegend(0.8,0.93,0.98,0.8);
+	  TLegend *leg = new TLegend(0.8,0.7,0.98,0.93);
 	  leg ->  SetFillColor(kWhite);
 	  TH1D *hist_summed = new TH1D();
 	//beginning of cycle over processes
@@ -100,7 +101,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	  	
 	  	pad1 -> SetLogy();
 	    pad1->Draw();
-	    //pad2->Draw();
+	    pad2->Draw();
 	    pad1 -> cd();
 		if(withData)
 		{	
@@ -110,15 +111,21 @@ void Plotter::Plotting(std::string OutPrefix_)
 		} 
 		else hs->Draw("hist");
 	    c1 -> cd();
-	    leg->Draw();
-           //  hs->Draw(); I'm currently not sure, may be this line is needed for data, check when using data
-	   /* pad2 -> cd();
-
+	    leg->Draw("SAME");
+        
+	    pad2 -> cd();
+	    TH1D *data_dif = new TH1D((variables.at(var_i).VarName + "_dif").c_str(),( variables.at(var_i).VarName + "_dif").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
 	    for (int iBin = 1; iBin <hist_summed -> GetNbinsX(); ++iBin)
 	    {
-			hist_summed -> SetBinContent(iBin, ((data -> GetBinContent(iBin)) - (hist_summed -> GetBinContent(iBin)))/(hist_summed -> GetBinContent(iBin)));
+			if (hist_summed -> GetBinContent(iBin) == 0.) data_dif -> SetBinContent(iBin,10000000.);
+			else data_dif -> SetBinContent(iBin, ((data -> GetBinContent(iBin)) - (hist_summed -> GetBinContent(iBin)))/(hist_summed -> GetBinContent(iBin)));
 	    }
-	    hist_summed -> Draw("hist SAME");*/
+	    data_dif -> SetMaximum(1.);
+	    data_dif ->  SetMinimum(-1.);
+	    data_dif -> GetYaxis() -> SetNdivisions(5);
+	    data_dif -> GetYaxis() -> SetLabelSize(0.15);
+	    data_dif -> GetXaxis() -> SetLabelSize(0.15);
+	    data_dif -> Draw("hist");
 	   
 	    CMS_lumi( c1, 4, 0 );
 	    c1 -> SaveAs((OutPrefix_ + variables.at(var_i).VarName + ".png").c_str());
