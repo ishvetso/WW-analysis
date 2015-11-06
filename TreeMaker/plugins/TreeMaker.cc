@@ -164,6 +164,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
   edm::FileInPath L2("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L2Relative_AK8PFchs.txt");
   edm::FileInPath L3("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L3Absolute_AK8PFchs.txt");
+  edm::FileInPath L2Data("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_DATA_L2Relative_AK8PFchs.txt");
+  edm::FileInPath L3Data("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_DATA_L3Absolute_AK8PFchs.txt");
   edm::FileInPath L2L3Res("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_DATA_L2L3Residual_AK8PFchs.txt"); 
   std::vector<std::string> jecAK8PayloadNames_;
   if (isMC){
@@ -172,7 +174,11 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     SystematicsHelper_  = SystematicsHelper(channel, consumesCollector());
   }
 
-  if(!isMC) jecAK8PayloadNames_.push_back(L2L3Res.fullPath()); 
+  if(!isMC) {
+    jecAK8PayloadNames_.push_back(L2Data.fullPath()); 
+    jecAK8PayloadNames_.push_back(L3Data.fullPath()); 
+    jecAK8PayloadNames_.push_back(L2L3Res.fullPath()); 
+  }
 
   std::vector<JetCorrectorParameters> vPar;
   for ( std::vector<std::string>::const_iterator payloadBegin = jecAK8PayloadNames_.begin(), payloadEnd = jecAK8PayloadNames_.end(), ipayload = payloadBegin; ipayload != payloadEnd; ++ipayload ) {
