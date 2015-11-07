@@ -21,6 +21,7 @@ struct range
 struct Var 
 {
 	string VarName;
+  string Title;
 	range Range;
 	
 	void SetRange(double xlow, double xhigh);
