@@ -22,6 +22,8 @@
 #include <var.hpp>
 #include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/tdrstyle.C>
 #include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/CMS_lumi.cpp>
+#include <boost/algorithm/string/replace.hpp>
+#include "boost/algorithm/string.hpp"
 
 /*
  * Class to make data-MC comparison plots
@@ -31,7 +33,7 @@ typedef unsigned int uint;
 
 class Plotter
 {
-        int Nbins;
+    int Nbins;
 	vector <Sample> samples;
 	
 	vector <Var> variables;
@@ -45,6 +47,7 @@ class Plotter
 	void SetSamples(vector <Sample> samples_);	
 	void SetDataSample(Sample sample_);
 	void Plotting(std::string OutPrefix_);
+	void Systematics(Var var, TH1D * hist_nominal);
 
 };
 

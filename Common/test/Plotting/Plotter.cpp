@@ -83,6 +83,10 @@ void Plotter::Plotting(std::string OutPrefix_)
 	   
 
 	  }
+	 
+	  Systematics(variables.at(var_i), hist_summed);
+	  
+	  //hist_summed -> SetError(&errors[0]);
 	  //end of cycle over processes
 	  TH1D *data = new TH1D((DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(),(DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
 	  data -> Sumw2();
@@ -115,6 +119,9 @@ void Plotter::Plotting(std::string OutPrefix_)
 		{	
 			data -> Draw("E1");
 	    	hs->Draw("hist SAME");
+	    	hist_summed -> SetFillColor(kBlack);
+  			hist_summed -> SetFillStyle(3018);
+	    	hist_summed -> Draw("E2 SAME");
 	    	data -> Draw("E1 SAME");
 	    	data -> GetXaxis() -> Draw("SAME");
 		} 
@@ -158,4 +165,100 @@ void Plotter::Plotting(std::string OutPrefix_)
 	}
 	//end of cycle over variables
 	
+}
+
+
+void Plotter::Systematics(Var var, TH1D * hist_nominal)
+{
+	std::vector<std::string> ListOfSystematics;
+	ListOfSystematics.push_back("JEC");
+	ListOfSystematics.push_back("En");
+	std::map <std::string, std::vector<std::string>> VariablesAffected;
+
+	//JEC
+	std::vector<std::string> VarsJEC;
+	VarsJEC.push_back("jet_pt");
+	VarsJEC.push_back("jet_mass_pruned");
+	VarsJEC.push_back("jet_mass_softdrop");
+	VarsJEC.push_back("jet_mass");
+	VarsJEC.push_back("m_lvj");
+	VarsJEC.push_back("pfMETPhi");
+	VarsJEC.push_back("pfMET");
+	//En (lepton energy scale)
+	std::vector<std::string> VarsEn;
+	VarsEn.push_back("l_pt");
+	
+
+	VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JEC", VarsJEC));
+
+
+	bool isAffected = false;
+	if (std::find(VariablesAffected["JEC"].begin(), VariablesAffected["JEC"].end(), var.VarName) != VariablesAffected["JEC"].end()) isAffected = true;
+
+
+	TH1D *hist_JECUp = new TH1D((var.VarName + "_JECUp").c_str(),(var.VarName + "_JECUp" ).c_str(), Nbins, var.Range.low, var.Range.high);
+	TH1D *hist_JECDown = new TH1D((var.VarName + "_JECDown").c_str(),(var.VarName + "_JECDown" ).c_str(), Nbins, var.Range.low, var.Range.high);
+	hist_JECUp -> Sumw2();
+	hist_JECDown -> Sumw2();
+
+	 for (uint process_i = 0; process_i < samples.size(); process_i++)
+	  {		
+	    //beginning of cycle over files corresponding to each process
+	    for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
+	    {
+	      std::string selection_Up = samples.at(process_i).selection;
+	      std::string selection_Down = samples.at(process_i).selection;
+	      //split the string of selection, this is needed because some of variables start with the same characters, thus we split the string to be sure we get correct variable
+	      std::vector<std::string> splittedSelectionUp;	
+	      boost::split(splittedSelectionUp,selection_Up,boost::is_any_of(" *+=-:/)(|&<>0123456789."));
+	      //erase duplicates from the string
+	      std::sort(splittedSelectionUp.begin(), splittedSelectionUp.end());
+	      splittedSelectionUp.erase(std::unique(splittedSelectionUp.begin(), splittedSelectionUp.end()), splittedSelectionUp.end());
+	      std::cout << selection_Up << std::endl;
+	      std::cout << selection_Down << std::endl;
+	      for (unsigned int iS = 0; iS < splittedSelectionUp.size(); iS ++){
+	      		if (splittedSelectionUp[iS].empty()) continue;
+	      		bool found = false;
+	      		for (unsigned int iVarSyst = 0 ; iVarSyst < VariablesAffected["JEC"].size(); iVarSyst ++){
+	      		 	 found = ( VariablesAffected["JEC"].at(iVarSyst) == splittedSelectionUp[iS] );
+	      			if (found) {
+	      				boost::replace_all(selection_Up,    VariablesAffected["JEC"].at(iVarSyst),  VariablesAffected["JEC"].at(iVarSyst) + "_JECUp");
+	      				boost::replace_all(selection_Down,  VariablesAffected["JEC"].at(iVarSyst),  VariablesAffected["JEC"].at(iVarSyst) + "_JECDown");
+	      				continue;
+	      			}
+	       		}
+	      	}
+	      
+	      		
+	      std::cout << selection_Up << std::endl;
+	      std::cout << selection_Down << std::endl;
+	      TFile file(((samples.at(process_i)).filenames.at(file_i)).c_str(), "READ");
+	      TTree * tree = (TTree*)file.Get("BasicTree");
+	      TH1D *tempUp = new TH1D((((samples.at(process_i)).Processname)+ "_tempUp").c_str(),((samples.at(process_i)).Processname + "_tempUp").c_str(), Nbins,var.Range.low, var.Range.high);
+	      TH1D *tempDown = new TH1D((((samples.at(process_i)).Processname)+ "_tempDown").c_str(),((samples.at(process_i)).Processname + "_tempDown").c_str(), Nbins,var.Range.low, var.Range.high);
+	      tempUp -> Sumw2();
+	      tempDown -> Sumw2();
+	      if (isAffected){
+	      	tree ->Project(((samples.at(process_i)).Processname + "_tempUp").c_str(), ( var.VarName  + "_JECUp").c_str(), selection_Up.c_str() );
+	      	tree ->Project(((samples.at(process_i)).Processname + "_tempDown").c_str(), ( var.VarName  + "_JECDown").c_str(), selection_Down.c_str()	 );
+	  	  }
+	  	  else {
+	  	  	tree ->Project(((samples.at(process_i)).Processname + "_tempUp").c_str(), ( var.VarName ).c_str(),  selection_Up.c_str() );
+	      	tree ->Project(((samples.at(process_i)).Processname + "_tempDown").c_str(), ( var.VarName ).c_str(),  selection_Down.c_str() );
+	  	  }
+	      hist_JECUp -> Add(tempUp);	     
+	      hist_JECDown -> Add(tempDown);	      
+	    }  
+
+	  }
+
+	 for (unsigned int iBin = 1; iBin <= hist_nominal -> GetNbinsX(); iBin ++){
+	 	double errorUp = std::abs((hist_JECUp -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin)));
+	 	double errorDown = std::abs((hist_JECDown -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin)));
+	 	double error = std::max(errorUp, errorDown);
+	 	hist_nominal -> SetBinError(iBin, error);
+	 	std::cout << iBin << " " << error << std::endl;
+
+	 }
+
 }
