@@ -80,7 +80,7 @@ private:
   double genWeight;
   double rho_;
   
-  Particle Wboson_lep, Wboson_had, METCand, Electron, Muon, Lepton;
+  Particle Wboson_lep, METCand, Electron, Muon, Lepton;
   double m_pruned;
 
   //Decay Info (gen level)
@@ -119,7 +119,6 @@ private:
   //Defining Tokens
   edm::EDGetTokenT<std::vector< PileupSummaryInfo > > PUInfoToken_;
   edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
-  edm::EDGetTokenT<edm::View<pat::Jet>> hadronicVToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonicVToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> genParticlesToken_;
   edm::EDGetTokenT<edm::View<pat::Jet>> fatJetsToken_;
@@ -146,7 +145,6 @@ private:
 //
 TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("metSrc"))),
-  hadronicVToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("hadronicVSrc"))),
   leptonicVToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonicVSrc"))),
   genParticlesToken_(mayConsume<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("genSrc"))),
   fatJetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetSrc"))),
@@ -239,36 +237,24 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   }
   //W observables
   outTree_->Branch("W_pt",	      &Wboson_lep.pt,     "W_pt/D"         );
-  outTree_->Branch("pt_W_had",	      &Wboson_had.pt,     "pt_W_had/D"         );
-  
   outTree_->Branch("W_eta",	      &Wboson_lep.eta,    "W_eta/D"        );
-  outTree_->Branch("eta_W_had",	      &Wboson_had.eta,    "eta_W_had/D"        );
-  
   outTree_->Branch("W_phi",	      &Wboson_lep.phi,    "W_phi/D"        );
-  outTree_->Branch("phi_W_had",	      &Wboson_had.phi,    "phi_W_had/D"        );
+
   
   outTree_->Branch("mass_W_lep",      &Wboson_lep.mass,   "mass_W_lep/D"       );
-  outTree_->Branch("mass_W_had",      &Wboson_had.mass,   "mass_W_had/D"       );
-  outTree_->Branch("mass_W_pruned",   &m_pruned,          "mass_W_pruned/D"    );
+
   
   outTree_->Branch("mt_W_lep",	      &Wboson_lep.mt,     "mt_W_lep/D"         );
-  outTree_->Branch("mt_W_had",	      &Wboson_had.mt,  	  "mt_W_had/D"         );
+
   
   outTree_->Branch("charge_W_lep",    &Wboson_lep.charge, "charge_W_lep/D"     );
     
-  outTree_->Branch("N_had_W",	      &N_had_W, 	  "N_had_W/I"          );
   outTree_->Branch("N_lep_W",	      &N_lep_W,		  "N_lep_W/I"          );
   
   outTree_->Branch("WDecayClass",     &WDecayClass,	  "WDecayClass/I"      );
   
   outTree_->Branch("N_had_W_gen",     &N_had_Wgen,	  "N_had_W_gen/I"      );
   outTree_->Branch("N_lep_W_gen",     &N_lep_Wgen, 	  "N_lep_W_gen/I"      );
-  
-  outTree_->Branch("tau1",	      &tau1,		  "tau1/D"             );
-  outTree_->Branch("tau2",	      &tau2,		  "tau2/D"             );
-  outTree_->Branch("tau3",	      &tau3,		  "tau3/D"             );
-  outTree_->Branch("tau21",	      &tau21,		  "tau21/D"            );
-
 
   //MET observables  
   outTree_->Branch("pfMET", 	      &METCand.pt, 	  "pfMET/D"              );
@@ -391,11 +377,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle< double > rhoH;
    iEvent.getByToken(rhoToken_,rhoH);
    rho_ = *rhoH;
-   
-   //Hadronic Ws
-   edm::Handle<edm::View<pat::Jet> > hadronicVs;
-   iEvent.getByToken(hadronicVToken_, hadronicVs);
-   
+      
    //Leptonic Ws
    edm::Handle<edm::View<reco::Candidate> > leptonicVs;
    iEvent.getByToken(leptonicVToken_, leptonicVs);
@@ -488,7 +470,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    else WDecayClass = UnDefined;
 
    N_lep_W = leptonicVs -> size();
-   N_had_W = hadronicVs -> size();   
    
    //loose leptons
    nLooseEle = looseElectrons -> size();
@@ -557,39 +538,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Wboson_lep.charge = -99.;
   }
   
-  //hadronically W 
-  if (hadronicVs -> size() > 0)
-  {
-    const pat::Jet& hadronicV = hadronicVs->at(0);
-      
-    Wboson_had.pt = hadronicV.pt();
-    Wboson_had.eta = hadronicV.eta();
-    Wboson_had.phi = hadronicV.phi();
-    Wboson_had.mass = hadronicV.mass();
-    Wboson_had.mt = hadronicV.mt();
-    m_pruned = hadronicV.userFloat("ak8PFJetsCHSPrunedMass");   
-
-    tau1 = hadronicV.userFloat("NjettinessAK8:tau1");
-    tau2 = hadronicV.userFloat("NjettinessAK8:tau2");
-    tau3 = hadronicV.userFloat("NjettinessAK8:tau3");
-    tau21 = tau2/tau1;
-  }
-   
-   else 
-   {
-     Wboson_had.pt = -99.;
-     Wboson_had.eta = -99.;
-     Wboson_had.phi = -99.;
-     Wboson_had.mass = -99.;
-     Wboson_had.mt = -99.;
-     m_pruned = -99.;   
-
-     tau1 = -99.;
-     tau2 = -99.;
-     tau3 = -99.;
-     tau21 = -99.;     
-   }
-
     //MET quantities   
    if (metHandle->size() > 0)
    {
@@ -679,12 +627,12 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    }
    
-    if (hadronicVs -> size() > 0 && leptonicVs -> size() > 0)
+    if (jets -> size() > 0 && leptonicVs -> size() > 0)
     {
-      deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,Wboson_had.eta,Wboson_had.phi); 
+      deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,(jets -> at(0)).eta(), (jets -> at(0)).phi()); 
       deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
-      deltaPhi_WJetMet = deltaPhi(Wboson_had.phi, METCand.phi);
-      deltaPhi_WJetWlep = deltaPhi(Wboson_had.phi, Wboson_lep.phi);
+      deltaPhi_WJetMet = deltaPhi((jets -> at(0)).phi(), METCand.phi);
+      deltaPhi_WJetWlep = deltaPhi((jets -> at(0)).phi(), Wboson_lep.phi);
     }
     else 
     {
@@ -785,24 +733,24 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //diboson mass
    ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > hadronicVp4, leptonicVp4, lvj_p4;
    //hadronic W
-   hadronicVp4.SetPt(Wboson_had.pt);
-   hadronicVp4.SetEta(Wboson_had.eta);
-   hadronicVp4.SetPhi(Wboson_had.phi);
-   hadronicVp4.SetM(Wboson_had.mass);
+   hadronicVp4.SetPt((jets -> at(0)).pt());
+   hadronicVp4.SetEta((jets -> at(0)).eta());
+   hadronicVp4.SetPhi((jets -> at(0)).phi());
+   hadronicVp4.SetM((jets -> at(0)).mass());
    //leptonic W
    leptonicVp4.SetPt(Wboson_lep.pt);
    leptonicVp4.SetEta(Wboson_lep.eta);
    leptonicVp4.SetPhi(Wboson_lep.phi);
    leptonicVp4.SetM(Wboson_lep.mass);
 
-   //leptonicVp4.SetPtEtaPhiM(Wboson_lep.pt,Wboson_lep.eta,Wboson_lep.phi,Wboson_lep.mass);
+   
    lvj_p4 = hadronicVp4 + leptonicVp4;
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0)   m_lvj = lvj_p4.M();
+   if (leptonicVs -> size() > 0 && jets -> size() > 0)   m_lvj = lvj_p4.M();
    else m_lvj = -99.;
    //systematics
    //METUnclEn
    math::XYZTLorentzVector lvj_p4_Up, lvj_p4_Down;
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0 && isMC)  {
+   if (leptonicVs -> size() > 0 && jets -> size() > 0 && isMC)  {
      lvj_p4_Up = hadronicVp4 + SystMap.at("UnclusteredEnUp");
      lvj_p4_Down = hadronicVp4 + SystMap.at("UnclusteredEnDown");
      m_lvj_UnclEnUp = lvj_p4_Up.M();
@@ -818,7 +766,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     hadronicVp4_Down = hadronicVp4;
     hadronicVp4_Up *= (1+JECunc); 
     hadronicVp4_Down *= (1-JECunc);
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0 && isMC)  {
+   if (leptonicVs -> size() > 0 && jets -> size() > 0 && isMC)  {
      lvj_p4_Up = hadronicVp4_Up + SystMap.at("JetEnUp");
      lvj_p4_Down = hadronicVp4_Down + SystMap.at("JetEnDown");
      m_lvj_JECUp = lvj_p4_Up.M();
@@ -829,7 +777,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      m_lvj_JECDown = -99.;
    }
    //lepton energy scale uncertainty
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0 && isMC)  {
+   if (leptonicVs -> size() > 0 && jets -> size() > 0 && isMC)  {
     lvj_p4_Up = hadronicVp4 + SystMap.at("LeptonEnUp");
     lvj_p4_Down = hadronicVp4 + SystMap.at("LeptonEnDown");
     m_lvj_LeptonEnUp = lvj_p4_Up.M();
@@ -842,7 +790,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
 
    //lepton energy resolution uncertainty
-   if (leptonicVs -> size() > 0 && hadronicVs -> size() > 0 && isMC)  {
+   if (leptonicVs -> size() > 0 && jets -> size() > 0 && isMC)  {
     lvj_p4_Up = hadronicVp4 + SystMap.at("LeptonResUp");
     lvj_p4_Down = hadronicVp4 + SystMap.at("LeptonResDown");
     m_lvj_LeptonResUp = lvj_p4_Up.M();

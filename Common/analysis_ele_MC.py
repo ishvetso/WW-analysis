@@ -89,15 +89,13 @@ process.jetFilter = cms.EDFilter("CandViewCountFilter",
 
 process.jetSequence = cms.Sequence(process.fatJetsSequence +
 				                            process.jetFilter+
-                          				   process.AK4JetsSequence +
-                          				   process.hadronicV)
+                          				   process.AK4JetsSequence)
 
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     PUInfo = cms.InputTag("slimmedAddPileupInfo"),
                                     genInfo = cms.InputTag("generator"),
                                     rho = cms.InputTag("fixedGridRhoFastjetAll"),
-                                    hadronicVSrc = cms.InputTag("hadronicV"),
                                     leptonicVSrc = cms.InputTag("Wtoenu"),
                                     metSrc = cms.InputTag("METele"),
                                     genSrc = cms.InputTag("prunedGenParticles"),

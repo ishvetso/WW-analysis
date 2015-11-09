@@ -92,12 +92,10 @@ process.jetFilter = cms.EDFilter("CandViewCountFilter",
 
 process.jetSequence = cms.Sequence(process.fatJetsSequence +
                                     process.jetFilter+
-                                     process.AK4JetsSequence +
-                                     process.hadronicV)
+                                     process.AK4JetsSequence )
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     rho = cms.InputTag("fixedGridRhoFastjetAll"),
-                                    hadronicVSrc = cms.InputTag("hadronicV"),
                                     leptonicVSrc = cms.InputTag("Wtomunu"),
                                     metSrc = cms.InputTag("METmu"),
                                     genSrc = cms.InputTag("prunedGenParticles"),
@@ -122,7 +120,7 @@ process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.Appl
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/aTGCRun2/samples/data.root')
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/aTGCRun2/samples/data_6Oct.root')
     
 )
 
