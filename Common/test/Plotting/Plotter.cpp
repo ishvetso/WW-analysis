@@ -137,26 +137,46 @@ void Plotter::Plotting(std::string OutPrefix_)
 	  
 
 	    TH1D *data_dif = new TH1D((variables.at(var_i).VarName + "_dif").c_str(),( variables.at(var_i).VarName + "_dif").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-	   // data_dif -> Sumw2();
-	    for (int iBin = 1; iBin <hist_summed -> GetNbinsX(); ++iBin)
+	    data_dif -> Sumw2();
+	    for (int iBin = 1; iBin <= hist_summed -> GetNbinsX(); ++iBin)
 	    {
 			if (hist_summed -> GetBinContent(iBin) == 0.) data_dif -> SetBinContent(iBin,10000000.);
-			else data_dif -> SetBinContent(iBin, ((data -> GetBinContent(iBin)) - (hist_summed -> GetBinContent(iBin)))/(hist_summed -> GetBinContent(iBin)));
+			else {
+				data_dif -> SetBinContent(iBin, ((data -> GetBinContent(iBin)) - (hist_summed -> GetBinContent(iBin)))/(hist_summed -> GetBinContent(iBin)));
+				data_dif -> SetBinError(iBin, (data-> GetBinError(iBin))/(hist_summed -> GetBinContent(iBin)));
+			}
+	    }
+	    
+	    TH1D *data_dif_MCerr = new TH1D((variables.at(var_i).VarName + "_dif_MCerror").c_str(),( variables.at(var_i).VarName + "_dif_MCerror").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+	    data_dif_MCerr -> Sumw2();
+	    data_dif_MCerr -> SetFillColor(kGray);
+
+	    for (int iBin = 1; iBin <= Nbins ; ++iBin)
+	    {
+	    	if (hist_summed -> GetBinContent(iBin) == 0.) {
+	    		data_dif_MCerr -> SetBinContent(iBin, 0.);
+	    		data_dif_MCerr -> SetBinError(iBin, 0.);
+	    	}
+	    	else {
+	    		data_dif_MCerr -> SetBinContent(iBin, 0.);
+	    		data_dif_MCerr -> SetBinError(iBin, (hist_summed -> GetBinError(iBin))/hist_summed -> GetBinContent(iBin) );
+	    	}
 	    }
 
 	    TLine *line = new TLine(variables.at(var_i).Range.low,0.,variables.at(var_i).Range.high,0.);
-	    data_dif -> SetMaximum(2.);
-	    data_dif ->  SetMinimum(-2.);
-	    data_dif -> GetYaxis() -> SetNdivisions(5);
-	    data_dif -> GetYaxis() -> SetLabelSize(0.15);
-	    data_dif -> GetXaxis() -> SetLabelSize(0.2);
-	    data_dif -> GetYaxis()->SetTitle("#frac{Data - MC}{MC}");
-	    data_dif -> GetXaxis()->SetTitle((variables.at(var_i)).Title.c_str());
-	    data_dif -> GetXaxis()->SetTitleSize(0.2);
-	    data_dif -> GetYaxis()->SetTitleOffset(0.3);
-	    data_dif -> GetYaxis()->SetTitleSize(0.2);
+	    data_dif_MCerr -> SetMaximum(2.);
+	    data_dif_MCerr ->  SetMinimum(-2.);
+	    data_dif_MCerr -> GetYaxis() -> SetNdivisions(5);
+	    data_dif_MCerr -> GetYaxis() -> SetLabelSize(0.15);
+	    data_dif_MCerr -> GetXaxis() -> SetLabelSize(0.2);
+	    data_dif_MCerr -> GetYaxis()->SetTitle("#frac{Data - MC}{MC}");
+	    data_dif_MCerr -> GetXaxis()->SetTitle((variables.at(var_i)).Title.c_str());
+	    data_dif_MCerr -> GetXaxis()->SetTitleSize(0.2);
+	    data_dif_MCerr -> GetYaxis()->SetTitleOffset(0.3);
+	    data_dif_MCerr -> GetYaxis()->SetTitleSize(0.2);
 	    data_dif ->SetMarkerStyle(21);
-	    data_dif -> Draw("E1");
+	    data_dif_MCerr -> Draw("E2");
+	    data_dif -> Draw("E1 SAME");
 	    line -> Draw("SAME");
 	   
 	    CMS_lumi( c1, 4, 0 );
