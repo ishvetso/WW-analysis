@@ -93,7 +93,11 @@ private:
 
   double tau1, tau2, tau3, tau21;
   
-  double deltaR_LepWJet, deltaPhi_LepMet, deltaPhi_WJetMet, deltaPhi_WJetWlep;
+  double deltaR_LeptonWJet, deltaPhi_LeptonMet, deltaPhi_WJetMet, deltaPhi_WJetWlep;
+  //systematics from MET
+  double deltaPhi_LeptonMet_UnclEnUp, deltaPhi_LeptonMet_UnclEnDown, deltaPhi_LeptonMet_JECUp,deltaPhi_LeptonMet_JECDown, deltaPhi_LeptonMet_JERUp, deltaPhi_LeptonMet_JERDown, deltaPhi_LeptonMet_LeptonEnUp, deltaPhi_LeptonMet_LeptonEnDown;
+  double deltaPhi_WJetMet_UnclEnUp, deltaPhi_WJetMet_UnclEnDown, deltaPhi_WJetMet_JECUp,deltaPhi_WJetMet_JECDown, deltaPhi_WJetMet_JERUp, deltaPhi_WJetMet_JERDown, deltaPhi_WJetMet_LeptonEnUp, deltaPhi_WJetMet_LeptonEnDown;
+  double deltaPhi_WJetWlep_UnclEnUp, deltaPhi_WJetWlep_UnclEnDown, deltaPhi_WJetWlep_JECUp, deltaPhi_WJetWlep_JECDown, deltaPhi_WJetWlep_LeptonEnUp, deltaPhi_WJetWlep_LeptonEnDown;
   
   //Jets
   int NAK8jet, njets, nbtag;
@@ -330,10 +334,47 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
    
   }
   /// Other observables
-  outTree_->Branch("deltaR_LepWJet",  &deltaR_LepWJet,	  "deltaR_LepWJet/D"   );
-  outTree_->Branch("deltaPhi_LepMet", &deltaPhi_LepMet,	  "deltaPhi_LepMet/D"  );
+  outTree_->Branch("deltaR_LeptonWJet",  &deltaR_LeptonWJet,	  "deltaR_LeptonWJet/D"   );
+  outTree_->Branch("deltaPhi_LeptonMet", &deltaPhi_LeptonMet,	  "deltaPhi_LeptonMet/D"  );
   outTree_->Branch("deltaPhi_WJetMet",&deltaPhi_WJetMet,  "deltaPhi_WJetMet/D" );
   outTree_->Branch("deltaPhi_WJetWlep",&deltaPhi_WJetWlep,  "deltaPhi_WJetWlep/D" );
+  if (isMC){
+    //UnclEn
+    outTree_->Branch("deltaPhi_LeptonMet_UnclEnUp", &deltaPhi_LeptonMet_UnclEnUp,   "deltaPhi_LeptonMet_UnclEnUp/D"  );
+    outTree_->Branch("deltaPhi_LeptonMet_UnclEnDown", &deltaPhi_LeptonMet_UnclEnDown,   "deltaPhi_LeptonMet_UnclEnDown/D"  );
+    //JEC
+    outTree_->Branch("deltaPhi_LeptonMet_JECUp", &deltaPhi_LeptonMet_JECUp,   "deltaPhi_LeptonMet_JECUp/D"  );
+    outTree_->Branch("deltaPhi_LeptonMet_JECDown", &deltaPhi_LeptonMet_JECDown,   "deltaPhi_LeptonMet_JECDown/D"  );
+    //Lepton energy scale
+    outTree_->Branch("deltaPhi_LeptonMet_LeptonEnUp", &deltaPhi_LeptonMet_LeptonEnUp,   "deltaPhi_LeptonMet_LeptonEnUp/D"  );
+    outTree_->Branch("deltaPhi_LeptonMet_LeptonEnDown", &deltaPhi_LeptonMet_LeptonEnDown,   "deltaPhi_LeptonMet_LeptonEnDown/D"  );
+    //JER
+    outTree_->Branch("deltaPhi_LeptonMet_JERUp", &deltaPhi_LeptonMet_JERUp,   "deltaPhi_LeptonMet_JERUp/D"  );
+    outTree_->Branch("deltaPhi_LeptonMet_JERDown", &deltaPhi_LeptonMet_JERDown,   "deltaPhi_LeptonMet_LeptonEnDown/D"  );
+    /////////////////////
+    //UnclEn
+    outTree_->Branch("deltaPhi_WJetMet_UnclEnUp", &deltaPhi_WJetMet_UnclEnUp,   "deltaPhi_WJetMet_UnclEnUp/D"  );
+    outTree_->Branch("deltaPhi_WJetMet_UnclEnDown", &deltaPhi_WJetMet_UnclEnDown,   "deltaPhi_WJetMet_UnclEnDown/D"  );
+    //JEC
+    outTree_->Branch("deltaPhi_WJetMet_JECUp", &deltaPhi_WJetMet_JECUp,   "deltaPhi_WJetMet_JECUp/D"  );
+    outTree_->Branch("deltaPhi_WJetMet_JECDown", &deltaPhi_WJetMet_JECDown,   "deltaPhi_WJetMet_JECDown/D"  );
+    //Lepton energy scale
+    outTree_->Branch("deltaPhi_WJetMet_LeptonEnUp", &deltaPhi_WJetMet_LeptonEnUp,   "deltaPhi_WJetMet_LeptonEnUp/D"  );
+    outTree_->Branch("deltaPhi_WJetMet_LeptonEnDown", &deltaPhi_WJetMet_LeptonEnDown,   "deltaPhi_WJetMet_LeptonEnDown/D"  );
+    //JER
+    outTree_->Branch("deltaPhi_WJetMet_JERUp", &deltaPhi_WJetMet_JERUp,   "deltaPhi_WJetMet_JERUp/D"  );
+    outTree_->Branch("deltaPhi_WJetMet_JERDown", &deltaPhi_WJetMet_JERDown,   "deltaPhi_WJetMet_LeptonEnDown/D"  );
+    /////////////////////
+    //UnclEn
+    outTree_->Branch("deltaPhi_WJetWlep_UnclEnUp", &deltaPhi_WJetWlep_UnclEnUp,   "deltaPhi_WJetWlep_UnclEnUp/D"  );
+    outTree_->Branch("deltaPhi_WJetWlep_UnclEnDown", &deltaPhi_WJetWlep_UnclEnDown,   "deltaPhi_WJetWlep_UnclEnDown/D"  );
+    //JEC
+    outTree_->Branch("deltaPhi_WJetWlep_JECUp", &deltaPhi_WJetWlep_JECUp,   "deltaPhi_WJetWlep_JECUp/D"  );
+    outTree_->Branch("deltaPhi_WJetWlep_JECDown", &deltaPhi_WJetWlep_JECDown,   "deltaPhi_WJetWlep_JECDown/D"  );
+    //Lepton energy scale
+    outTree_->Branch("deltaPhi_WJetWlep_LeptonEnUp", &deltaPhi_WJetWlep_LeptonEnUp,   "deltaPhi_WJetWlep_LeptonEnUp/D"  );
+    outTree_->Branch("deltaPhi_WJetWlep_LeptonEnDown", &deltaPhi_WJetWlep_LeptonEnDown,   "deltaPhi_WJetWlep_LeptonEnDown/D"  );
+  }
   //Jet observables
   outTree_->Branch("NAK8jet",            &NAK8jet,              "NAK8jet/I"   );
   outTree_->Branch("jet_pt",  	      &jet_pt,	  	  "jet_pt/D"   );
@@ -734,17 +775,98 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
     if (jets -> size() > 0 && leptonicVs -> size() > 0)
     {
-      deltaR_LepWJet = deltaR(Lepton.eta,Lepton.phi,(jets -> at(0)).eta(), (jets -> at(0)).phi()); 
-      deltaPhi_LepMet = deltaPhi(Lepton.phi, METCand.phi);
+      deltaR_LeptonWJet = deltaR(Lepton.eta,Lepton.phi,(jets -> at(0)).eta(), (jets -> at(0)).phi()); 
+      deltaPhi_LeptonMet = deltaPhi(Lepton.phi, METCand.phi);
       deltaPhi_WJetMet = deltaPhi((jets -> at(0)).phi(), METCand.phi);
       deltaPhi_WJetWlep = deltaPhi((jets -> at(0)).phi(), Wboson_lep.phi);
+      if (isMC){
+        //Unclustered energy
+        deltaPhi_LeptonMet_UnclEnUp = deltaPhi(Lepton.phi, MET_Phi_UnclEnUp);
+        deltaPhi_LeptonMet_UnclEnDown = deltaPhi(Lepton.phi, MET_Phi_UnclEnDown);
+        //JEC
+        deltaPhi_LeptonMet_JECUp = deltaPhi(Lepton.phi, MET_Phi_JECUp);
+        deltaPhi_LeptonMet_JECDown = deltaPhi(Lepton.phi, MET_Phi_JECDown);
+        //lepton energy scale
+        deltaPhi_LeptonMet_LeptonEnUp = deltaPhi(Lepton.phi, MET_Phi_LeptonEnUp);
+        deltaPhi_LeptonMet_LeptonEnDown = deltaPhi(Lepton.phi, MET_Phi_LeptonEnDown);
+        //JER
+        deltaPhi_LeptonMet_JERUp = deltaPhi(Lepton.phi, MET_Phi_JERUp);
+        deltaPhi_LeptonMet_JERDown = deltaPhi(Lepton.phi, MET_Phi_JERDown);
+
+        //////////////////////
+        //Unclustered energy
+        deltaPhi_WJetMet_UnclEnUp = deltaPhi((jets -> at(0)).phi(), MET_Phi_UnclEnUp);
+        deltaPhi_WJetMet_UnclEnDown = deltaPhi((jets -> at(0)).phi(), MET_Phi_UnclEnDown);
+        //JEC
+        deltaPhi_WJetMet_JECUp = deltaPhi((jets -> at(0)).phi(), MET_Phi_JECUp);
+        deltaPhi_WJetMet_JECDown = deltaPhi((jets -> at(0)).phi(), MET_Phi_JECDown);
+        //lepton energy scale
+        deltaPhi_WJetMet_LeptonEnUp = deltaPhi((jets -> at(0)).phi(), MET_Phi_LeptonEnUp);
+        deltaPhi_WJetMet_LeptonEnDown = deltaPhi((jets -> at(0)).phi(), MET_Phi_LeptonEnDown);
+        //JER
+        deltaPhi_WJetMet_JERUp = deltaPhi((jets -> at(0)).phi(), MET_Phi_JERUp);
+        deltaPhi_WJetMet_JERDown = deltaPhi((jets -> at(0)).phi(), MET_Phi_JERDown);
+
+        //////////////////////
+        //Unclustered energy
+        deltaPhi_WJetWlep_UnclEnUp = deltaPhi((jets -> at(0)).phi(), SystMap.at("UnclusteredEnUp").Phi());
+        deltaPhi_WJetWlep_UnclEnDown = deltaPhi((jets -> at(0)).phi(), SystMap.at("UnclusteredEnDown").Phi());
+        //JEC
+        deltaPhi_WJetWlep_JECUp = deltaPhi((jets -> at(0)).phi(), SystMap.at("JetEnUp").Phi());
+        deltaPhi_WJetWlep_JECDown = deltaPhi((jets -> at(0)).phi(), SystMap.at("JetEnDown").Phi());
+        //lepton energy scale
+        deltaPhi_WJetWlep_LeptonEnUp = deltaPhi((jets -> at(0)).phi(), SystMap.at("LeptonEnUp").Phi());
+        deltaPhi_WJetWlep_LeptonEnDown = deltaPhi((jets -> at(0)).phi(), SystMap.at("LeptonEnDown").Phi());
+
+
+      }
     }
     else 
     {
-      deltaR_LepWJet = -99.; 
-      deltaPhi_LepMet = -99.;
+      deltaR_LeptonWJet = -99.; 
+      deltaPhi_LeptonMet = -99.;
       deltaPhi_WJetMet = -99.;
       deltaPhi_WJetWlep = -99.;
+
+      if (isMC){
+      //Unclustered energy
+        deltaPhi_LeptonMet_UnclEnUp = -99.;
+        deltaPhi_LeptonMet_UnclEnDown = -99.;
+        //JEC
+        deltaPhi_LeptonMet_JECUp = -99.;
+        deltaPhi_LeptonMet_JECDown = -99.;
+        //lepton energy scale
+        deltaPhi_LeptonMet_LeptonEnUp = -99.;
+        deltaPhi_LeptonMet_LeptonEnDown = -99.;
+        //JER
+        deltaPhi_LeptonMet_JERUp = -99.;
+        deltaPhi_LeptonMet_JERDown = -99.;
+        /////////////
+         //Unclustered energy
+        deltaPhi_WJetMet_UnclEnUp = -99.;
+        deltaPhi_WJetMet_UnclEnDown = -99.;
+        //JEC
+        deltaPhi_WJetMet_JECUp = -99.;
+        deltaPhi_WJetMet_JECDown = -99.;
+        //lepton energy scale
+        deltaPhi_WJetMet_LeptonEnUp = -99.;
+        deltaPhi_WJetMet_LeptonEnDown = -99.;
+        //JER
+        deltaPhi_WJetMet_JERUp = -99.;
+        deltaPhi_WJetMet_JERDown = -99.;
+
+         //////////////////////
+        //Unclustered energy
+        deltaPhi_WJetWlep_UnclEnUp = -99.;
+        deltaPhi_WJetWlep_UnclEnDown = -99.;
+        //JEC
+        deltaPhi_WJetWlep_JECUp = -99.;
+        deltaPhi_WJetWlep_JECDown = -99.;
+        //lepton energy scale
+        deltaPhi_WJetWlep_LeptonEnUp = -99.;
+        deltaPhi_WJetWlep_LeptonEnDown = -99.;
+      }
+
     }
    
   
@@ -908,7 +1030,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
 
  // uncomment the line used in the synchronization exercise!
- if (deltaR_LepWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
+ if (deltaR_LeptonWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
    //outTree_->Fill();
 
 
