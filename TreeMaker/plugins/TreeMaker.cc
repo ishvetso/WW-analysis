@@ -230,21 +230,59 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("l_phi",	      &Lepton.phi,     "l_phi/D"        	);
   //lepton uncertainties
   if (isMC) {
-    outTree_->Branch("l_pt_EnUp",       &Lepton.pt_EnUp,     "l_pt_EnUp/D"          );
-    outTree_->Branch("l_pt_EnDown",     &Lepton.pt_EnDown,   "l_pt_EnDown/D"          );
-    outTree_->Branch("l_pt_ResUp",      &Lepton.pt_ResUp,    "l_pt_ResUp/D"          );
-    outTree_->Branch("l_pt_ResDown",    &Lepton.pt_ResDown,  "l_pt_ResDown/D"          );
+    outTree_->Branch("l_pt_LeptonEnUp",       &Lepton.pt_LeptonEnUp,     "l_pt_LeptonEnUp/D"          );
+    outTree_->Branch("l_pt_LeptonEnDown",     &Lepton.pt_LeptonEnDown,   "l_pt_LeptonEnDown/D"          );
+    outTree_->Branch("l_pt_LeptonResUp",      &Lepton.pt_LeptonResUp,    "l_pt_LeptonResUp/D"          );
+    outTree_->Branch("l_pt_LeptonResDown",    &Lepton.pt_LeptonResDown,  "l_pt_LeptonResDown/D"          );
   }
   //W leptonic observables
   outTree_->Branch("W_pt",	      &Wboson_lep.pt,     "W_pt/D"         );
   outTree_->Branch("W_eta",	      &Wboson_lep.eta,    "W_eta/D"        );
   outTree_->Branch("W_phi",	      &Wboson_lep.phi,    "W_phi/D"        );
+  outTree_->Branch("W_mass",      &Wboson_lep.mass,   "W_mass/D"       );
+  outTree_->Branch("W_mt",	      &Wboson_lep.mt,     "W_mt/D"         );
 
-  
-  outTree_->Branch("mass_W_lep",      &Wboson_lep.mass,   "mass_W_lep/D"       );
+  if (isMC){
+    //pt
+    outTree_->Branch("W_pt_LeptonEnUp",        &Wboson_lep.pt_LeptonEnUp,     "W_pt_LeptonEnUp/D"         );
+    outTree_->Branch("W_pt_LeptonEnDown",      &Wboson_lep.pt_LeptonEnDown,   "W_pt_LeptonEnDown/D"       );
+    
+    outTree_->Branch("W_pt_LeptonResUp",        &Wboson_lep.pt_LeptonResUp,     "W_pt_LeptonResUp/D"         );
+    outTree_->Branch("W_pt_LeptonResDown",      &Wboson_lep.pt_LeptonResDown,   "W_pt_LeptonResDown/D"       );
 
-  
-  outTree_->Branch("mt_W_lep",	      &Wboson_lep.mt,     "mt_W_lep/D"         );
+    outTree_->Branch("W_pt_JECUp",        &Wboson_lep.pt_JECUp,     "W_pt_JECUp/D"         );
+    outTree_->Branch("W_pt_JECDown",      &Wboson_lep.pt_JECDown,   "W_pt_JECDown/D"       );
+
+    outTree_->Branch("W_pt_UnclEnUp",        &Wboson_lep.pt_UnclEnUp,     "W_pt_UnclEnUp/D"         );
+    outTree_->Branch("W_pt_UnclEnDown",      &Wboson_lep.pt_UnclEnDown,   "W_pt_UnclEnDown/D"       );
+
+    //mass 
+    outTree_->Branch("W_mass_LeptonEnUp",        &Wboson_lep.mass_LeptonEnUp,     "W_mass_LeptonEnUp/D"         );
+    outTree_->Branch("W_mass_LeptonEnDown",      &Wboson_lep.mass_LeptonEnDown,   "W_mass_LeptonEnDown/D"       );
+    
+    outTree_->Branch("W_mass_LeptonResUp",        &Wboson_lep.mass_LeptonResUp,     "W_mass_LeptonResUp/D"         );
+    outTree_->Branch("W_mass_LeptonResDown",      &Wboson_lep.mass_LeptonResDown,   "W_mass_LeptonResDown/D"       );
+
+    outTree_->Branch("W_mass_JECUp",        &Wboson_lep.mass_JECUp,     "W_mass_JECUp/D"         );
+    outTree_->Branch("W_mass_JECDown",      &Wboson_lep.mass_JECDown,   "W_mass_JECDown/D"       );
+
+    outTree_->Branch("W_mass_UnclEnUp",        &Wboson_lep.mass_UnclEnUp,     "W_mass_UnclEnUp/D"         );
+    outTree_->Branch("W_mass_UnclEnDown",      &Wboson_lep.mass_UnclEnDown,   "W_mass_UnclEnDown/D"       );
+
+    //mt 
+    outTree_->Branch("W_mt_LeptonEnUp",        &Wboson_lep.mt_LeptonEnUp,     "W_mt_LeptonEnUp/D"         );
+    outTree_->Branch("W_mt_LeptonEnDown",      &Wboson_lep.mt_LeptonEnDown,   "W_mt_LeptonEnDown/D"       );
+    
+    outTree_->Branch("W_mt_LeptonResUp",        &Wboson_lep.mt_LeptonResUp,     "W_mt_LeptonResUp/D"         );
+    outTree_->Branch("W_mt_LeptonResDown",      &Wboson_lep.mt_LeptonResDown,   "W_mt_LeptonResDown/D"       );
+
+    outTree_->Branch("W_mt_JECUp",        &Wboson_lep.mt_JECUp,     "W_mt_JECUp/D"         );
+    outTree_->Branch("W_mt_JECDown",      &Wboson_lep.mt_JECDown,   "W_mt_JECDown/D"       );
+
+    outTree_->Branch("W_mt_UnclEnUp",        &Wboson_lep.mt_UnclEnUp,     "W_mt_UnclEnUp/D"         );
+    outTree_->Branch("W_mt_UnclEnDown",      &Wboson_lep.mt_UnclEnDown,   "W_mt_UnclEnDown/D"       );
+    
+  } 
 
   
   outTree_->Branch("charge_W_lep",    &Wboson_lep.charge, "charge_W_lep/D"     );
@@ -259,8 +297,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   //MET observables  
   outTree_->Branch("pfMET", 	      &METCand.pt, 	  "pfMET/D"              );
   outTree_->Branch("pfMETPhi",	      &METCand.phi, 	  "pfMETPhi/D"          );
-  outTree_->Branch("pfMETMass",	      &METCand.mass, 	  "pfMETMass/D"         );
-  outTree_->Branch("pfMETMt",	      &METCand.mt, 	  "pfMETMt/D"           );
+  
 
   if (isMC) {
     //MET uncertainties
@@ -492,10 +529,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       exit(0);
     }
      if (isMC){
-       Lepton.pt_EnUp = LeptonSystMap.at("LeptonEnUp").Pt();
-       Lepton.pt_EnDown = LeptonSystMap.at("LeptonEnDown").Pt();
-       Lepton.pt_ResUp = LeptonSystMap.at("LeptonResUp").Pt();
-       Lepton.pt_ResDown = LeptonSystMap.at("LeptonResDown").Pt();
+       Lepton.pt_LeptonEnUp = LeptonSystMap.at("LeptonEnUp").Pt();
+       Lepton.pt_LeptonEnDown = LeptonSystMap.at("LeptonEnDown").Pt();
+       Lepton.pt_LeptonResUp = LeptonSystMap.at("LeptonResUp").Pt();
+       Lepton.pt_LeptonResDown = LeptonSystMap.at("LeptonResDown").Pt();
     }
    }
 
@@ -505,10 +542,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Lepton.pt = -99.;
      Lepton.eta = -99.;
      Lepton.phi = -99.;
-     Lepton.pt_EnUp = -99.;
-     Lepton.pt_EnDown = -99.;
-     Lepton.pt_ResUp = -99.;
-     Lepton.pt_ResDown = -99.;
+     Lepton.pt_LeptonEnUp = -99.;
+     Lepton.pt_LeptonEnDown = -99.;
+     Lepton.pt_LeptonResUp = -99.;
+     Lepton.pt_LeptonResDown = -99.;
    }
 
    //leptonically decaying W
@@ -521,6 +558,40 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Wboson_lep.mass = leptonicV.mass();
       Wboson_lep.mt = leptonicV.mt();
       Wboson_lep.charge = leptonicV.charge();
+      if (isMC){
+        //pt
+        Wboson_lep.pt_LeptonEnUp = SystMap.at("LeptonEnUp").Pt();
+        Wboson_lep.pt_LeptonEnDown = SystMap.at("LeptonEnDown").Pt();
+        Wboson_lep.pt_LeptonResUp = SystMap.at("LeptonResUp").Pt();
+        Wboson_lep.pt_LeptonResDown = SystMap.at("LeptonResDown").Pt();
+        Wboson_lep.pt_JECUp = SystMap.at("JetEnUp").Pt();
+        Wboson_lep.pt_JECDown = SystMap.at("JetEnDown").Pt();
+        Wboson_lep.pt_UnclEnUp = SystMap.at("UnclusteredEnUp").Pt();
+        Wboson_lep.pt_UnclEnDown = SystMap.at("UnclusteredEnDown").Pt();
+
+        //mass
+        //mt
+        Wboson_lep.mass_LeptonEnUp = SystMap.at("LeptonEnUp").M();
+        Wboson_lep.mass_LeptonEnDown = SystMap.at("LeptonEnDown").M();
+        Wboson_lep.mass_LeptonResUp = SystMap.at("LeptonResUp").M();
+        Wboson_lep.mass_LeptonResDown = SystMap.at("LeptonResDown").M();
+        Wboson_lep.mass_JECUp = SystMap.at("JetEnUp").M();
+        Wboson_lep.mass_JECDown = SystMap.at("JetEnDown").M();
+        Wboson_lep.mass_UnclEnUp = SystMap.at("UnclusteredEnUp").M();
+        Wboson_lep.mass_UnclEnDown = SystMap.at("UnclusteredEnDown").M();
+
+
+        //mt
+        Wboson_lep.mt_LeptonEnUp = SystMap.at("LeptonEnUp").Mt();
+        Wboson_lep.mt_LeptonEnDown = SystMap.at("LeptonEnDown").Mt();
+        Wboson_lep.mt_LeptonResUp = SystMap.at("LeptonResUp").Mt();
+        Wboson_lep.mt_LeptonResDown = SystMap.at("LeptonResDown").Mt();
+        Wboson_lep.mt_JECUp = SystMap.at("JetEnUp").Mt();
+        Wboson_lep.mt_JECDown = SystMap.at("JetEnDown").Mt();
+        Wboson_lep.mt_UnclEnUp = SystMap.at("UnclusteredEnUp").Mt();
+        Wboson_lep.mt_UnclEnDown = SystMap.at("UnclusteredEnDown").Mt();
+
+      }
   }
   
   else 
@@ -531,6 +602,40 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Wboson_lep.mass = -99.;
       Wboson_lep.mt = -99.;
       Wboson_lep.charge = -99.;
+      if (isMC){
+        //pt
+        Wboson_lep.pt_LeptonEnUp = -99.;
+        Wboson_lep.pt_LeptonEnDown = -99.;
+        Wboson_lep.pt_LeptonResUp = -99.;
+        Wboson_lep.pt_LeptonResDown = -99.;
+        Wboson_lep.pt_JECUp = -99.;
+        Wboson_lep.pt_JECDown = -99.;
+        Wboson_lep.pt_UnclEnUp = -99.;
+        Wboson_lep.pt_UnclEnDown = -99.;
+
+        //mass
+        Wboson_lep.mass_LeptonEnUp = -99.;
+        Wboson_lep.mass_LeptonEnDown = -99.;
+        Wboson_lep.mass_LeptonResUp = -99.;
+        Wboson_lep.mass_LeptonResDown = -99.;
+        Wboson_lep.mass_JECUp = -99.;
+        Wboson_lep.mass_JECDown = -99.;
+        Wboson_lep.mass_UnclEnUp = -99.;
+        Wboson_lep.mass_UnclEnDown = -99.;
+
+        //mt 
+
+        Wboson_lep.mt_LeptonEnUp = -99.;
+        Wboson_lep.mt_LeptonEnDown = -99.;
+        Wboson_lep.mt_LeptonResUp = -99.;
+        Wboson_lep.mt_LeptonResDown = -99.;
+        Wboson_lep.mt_JECUp = -99.;
+        Wboson_lep.mt_JECDown = -99.;
+        Wboson_lep.mt_UnclEnUp = -99.;
+        Wboson_lep.mt_UnclEnDown = -99.;
+
+
+      }
   }
   
     //MET quantities   
@@ -540,8 +645,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       
       METCand.pt = metCand.pt();
       METCand.phi = metCand.phi();
-      METCand.mass = metCand.mass();
-      METCand.mt = metCand.mt();
       //MET uncertainties
       //METUncl
       if (isMC){
@@ -598,8 +701,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    {
       METCand.pt = -99.;
       METCand.phi = -99.;
-      METCand.mass = -99.;
-      METCand.mt = -99.;
 
       //MET uncertainties
        //METUncl
