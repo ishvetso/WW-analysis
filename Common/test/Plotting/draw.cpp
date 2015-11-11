@@ -71,12 +71,12 @@ void draw()
 	
 
 
-	var.VarName = "mass_W_lep";
+	var.VarName = "W_mass";
 	var.Title = "m_{W lep}";
 	var.SetRange(30., 1500.);
 	variables.push_back(var);
 
-	var.VarName = "mt_W_lep";
+	var.VarName = "W_mt";
 	var.Title = "m_{T, W lep}";
 	var.SetRange(200., 1100.);
 	variables.push_back(var);
@@ -139,11 +139,6 @@ void draw()
 	var.SetRange(0., 6.);
 	variables.push_back(var);
 
-	var.VarName = "N_had_W";
-	var.Title = "N_{had W}";
-	var.SetRange(-1., 6.);
-	variables.push_back(var);
-
 	var.VarName = "N_lep_W";
 	var.Title = "N_{lep W}";
 	var.SetRange(-1., 6.);
@@ -154,12 +149,12 @@ void draw()
 	var.SetRange(-2., 2.);
 	variables.push_back(var);
 
-	var.VarName = "deltaR_LepWJet";
+	var.VarName = "deltaR_LeptonWJet";
 	var.Title = "#DeltaR(Lep, WJet)";
 	var.SetRange(0., 10.);
 	variables.push_back(var);
 
-	var.VarName = "deltaPhi_LepMet";
+	var.VarName = "deltaPhi_LeptonMet";
 	var.Title = "#Delta#phi(Lep, MET)";
 	var.SetRange(-3.2, 3.2);
 	variables.push_back(var);
@@ -180,14 +175,14 @@ void draw()
 	p.SetVar(variables);
 	p.SetNbins(30);
 
-	string defaulCuts = "(jet_pt > 200.)";
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.5 && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && jet_mass_pruned < 130. && jet_mass_pruned > 40.)";
 	string addOnCutWjets = defaulCuts +  " * (jet_mass_pruned < 65. || jet_mass_pruned > 95.)";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag >= 1)";
 	
 	
 	string MCSelection = "weight*PUweight*" + addOnCutWjets;
 	string DataSelection = addOnCutWjets;
-	std::string channel = "mu";
+	std::string channel = "ele";
 		
 	/*
 	 * Colors
@@ -198,7 +193,7 @@ void draw()
 	
 	Sample s, dataSample;
 	
-	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_5November2015/";
+	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_10November2015/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
  	s.SetFileNames( prefix + "WW_"+ channel + ".root");
@@ -232,14 +227,14 @@ void draw()
 	s.ReSet();
 
 	dataSample.SetParameters("data", DataSelection, kBlack);
- 	dataSample.SetFileNames(prefix + "data_05Oct_L2L3_" + channel + ".root");
- 	dataSample.SetFileNames(prefix + "data_Prompt_L2L3_" + channel + ".root");
+ 	dataSample.SetFileNames(prefix + "data_05Oct_" + channel + ".root");
+ 	dataSample.SetFileNames(prefix + "data_Prompt_" + channel + ".root");
 	
 	
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
 	p.withData = true;
- 	p.Plotting("plots_25ns_5November2015_PU_reweighting_L2L3_corrected_mu/");
+ 	p.Plotting("plots_25ns_10November2015_PU_reweighting_L2L3_corrected_ele/");
 	
 	
 }
