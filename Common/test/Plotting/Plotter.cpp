@@ -283,16 +283,18 @@ void Plotter::Systematics(Var var, TH1D * hist_nominal)
 		 	double errorDownQuadratic = pow(std::abs((hist_SystDown -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
 		 	double errorQuadratic = std::max(errorUpQuadratic, errorDownQuadratic);
 		 	totalErrorQuadraticErrors.at(iBin-1) += errorQuadratic;
-		 	//hist_nominal -> SetBinError(iBin, error);
-		 	//	std::cout << iBin << " " << error << std::endl;
-
+		 
 		 }
-  }	 
+
+	delete hist_SystDown;
+	delete hist_SystUp;	 
+
+  	}//end of loop over systematics	 
   	int iBin = 1; 
-   std::cout << "##################" << std::endl;
+    
+    //now set the uncertainty  	
   	for (double & error : totalErrorQuadraticErrors) {
   		error = std::sqrt(error);
-  		std::cout << iBin << " " << error << std::endl;
   		hist_nominal -> SetBinError(iBin, error);
   		iBin++;
   	}
