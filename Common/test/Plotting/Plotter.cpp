@@ -1,7 +1,8 @@
 #include "Plotter.hpp"
 
-Plotter::Plotter()
+Plotter::Plotter(CHANNEL channel_)
 {
+	channel = channel_;
 }
 
 
@@ -70,11 +71,12 @@ void Plotter::Plotting(std::string OutPrefix_)
 	      hist -> Add(temp);	      
 	    }
 	    //end of cycle over files corresponding to each process
-	    hist -> SetFillStyle(2001);
+	    //hist -> SetFillStyle(2001);
 	    hist -> SetFillColor(samples.at(process_i).color);
 	    hist -> SetLineColor(samples.at(process_i).color);
 	   	hist -> GetYaxis() -> SetRangeUser(0.1, (hist -> GetMaximum())*1.5);
-	   	hist->GetXaxis() -> SetLabelSize(0.);
+	   	hist -> SetLineColor(kBlack);
+	   	hist -> SetLineWidth(1.);
 	    hs -> Add(hist, "bar");
 	    hist_summed -> Add(hist);
 	    
@@ -103,12 +105,14 @@ void Plotter::Plotting(std::string OutPrefix_)
 		leg->AddEntry(data, "Data","pad1");
 	      
 		data->SetFillColor(78);
-		data->SetFillStyle(3004);
+		//data->SetFillStyle(3004);
 		data -> GetYaxis() -> SetRangeUser(0.1, (data -> GetMaximum())*7.);
 		//ata->GetXaxis()->SetTitle((variables.at(var_i)).VarName.c_str());
 		data->GetYaxis()->SetTitle("Number of events");
 		data->SetMarkerColor(DataSample.color);
 		data->SetMarkerStyle(21);
+		data->GetXaxis() -> SetLabelSize(0.);
+	   	data->GetXaxis() -> SetLabelOffset(100000.);
 
 	  	
 	  	pad1 -> SetLogy();
@@ -118,7 +122,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 		if(withData)
 		{	
 			data -> Draw("E1");
-	    	hs->Draw("hist SAME");
+	    	hs->Draw("hist SAME s(0,0)");
 	    	hist_summed -> SetFillColor(kBlack);
   			hist_summed -> SetFillStyle(3018);
 	    	hist_summed -> Draw("E2 SAME");
@@ -127,11 +131,21 @@ void Plotter::Plotting(std::string OutPrefix_)
 		} 
 		else hs->Draw("hist");
 	    c1 -> cd();
+
+
+	    TPaveText *pt = new TPaveText(0.15,0.83,0.35,0.93, "blNDC");
+	    pt -> SetFillStyle(0);
+	    pt -> SetBorderSize(0);
+	    if (channel == ELECTRON) pt -> AddText("Electron channel");
+	    else if (channel == MUON) pt -> AddText("Muon channel");
+	    else std::cerr << "no channel set..." << std::endl;
+ 	    pt -> Draw("SAME");
+
 	    leg->Draw("SAME");
         
         pad1 -> SetTopMargin(0.07);
-        pad1 -> SetBottomMargin(0.);
-        pad2 -> SetTopMargin(0.0);
+        pad1 -> SetBottomMargin(0.03);
+        pad2 -> SetTopMargin(0.05);
         pad2 -> SetBottomMargin(0.32);
 	    pad2 -> cd();
 	  
@@ -178,6 +192,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	    data_dif_MCerr -> Draw("E2");
 	    data_dif -> Draw("E1 SAME");
 	    line -> Draw("SAME");
+
 	   
 	    CMS_lumi( c1, 4, 0 );
 	    c1 -> SaveAs((OutPrefix_ + variables.at(var_i).VarName + ".png").c_str());
@@ -192,33 +207,70 @@ void Plotter::Systematics(Var var, TH1D * hist_nominal)
 {
 	std::vector<std::string> ListOfSystematics;
 	ListOfSystematics.push_back("JEC");
-	//ListOfSystematics.push_back("En");
+	ListOfSystematics.push_back("LeptonEn");
+	ListOfSystematics.push_back("LeptonRes");
+	ListOfSystematics.push_back("UnclEn");
 	std::map <std::string, std::vector<std::string>> VariablesAffected;
 	std::vector<double> totalErrorQuadraticErrors(Nbins, 0.);
-	//totalErrorQuadraticErrors.resize(Nbins);
-	//std::fill_n (totalErrorQuadraticErrors.begin(), totalErrorQuadraticErrors.end(), 0.);
-
+	
 	//JEC
 	std::vector<std::string> VarsJEC;
+	VarsJEC.push_back("W_pt");
+	VarsJEC.push_back("W_mass");
+	VarsJEC.push_back("W_mt");
+	VarsJEC.push_back("pfMETPhi");
+	VarsJEC.push_back("pfMET");
 	VarsJEC.push_back("jet_pt");
 	VarsJEC.push_back("jet_mass_pruned");
 	VarsJEC.push_back("jet_mass_softdrop");
 	VarsJEC.push_back("jet_mass");
 	VarsJEC.push_back("m_lvj");
-	VarsJEC.push_back("pfMETPhi");
-	VarsJEC.push_back("pfMET");
+	VarsJEC.push_back("deltaPhi_LeptonMet");
+	VarsJEC.push_back("deltaPhi_WJetMet");
+	VarsJEC.push_back("deltaPhi_WJetWlep");
 	//En (lepton energy scale)
-	std::vector<std::string> VarsEn;
-	VarsEn.push_back("l_pt");
-	
+	std::vector<std::string> VarsLeptonEn;
+	VarsLeptonEn.push_back("l_pt");
+	VarsLeptonEn.push_back("W_pt");
+	VarsLeptonEn.push_back("W_mass");
+	VarsLeptonEn.push_back("W_mt");
+	VarsLeptonEn.push_back("pfMET");
+	VarsLeptonEn.push_back("pfMETPhi");
+	VarsLeptonEn.push_back("deltaPhi_LeptonMet");
+	VarsLeptonEn.push_back("deltaPhi_WJetMet");
+	VarsLeptonEn.push_back("deltaPhi_WJetWlep");
+	VarsLeptonEn.push_back("m_lvj");
+	//lepton resolution
+	std::vector<std::string> VarsLeptonRes;
+	VarsLeptonRes.push_back("l_pt");
+	VarsLeptonRes.push_back("W_pt");
+	VarsLeptonRes.push_back("W_mass");
+	VarsLeptonRes.push_back("W_mt");
+	VarsLeptonRes.push_back("m_lvj");
+
+	//MET
+	std::vector<std::string> VarsUnclEn;
+	VarsUnclEn.push_back("W_pt");
+	VarsUnclEn.push_back("W_mass");
+	VarsUnclEn.push_back("W_mt");
+	VarsUnclEn.push_back("pfMET");
+	VarsUnclEn.push_back("pfMETPhi");
+	VarsUnclEn.push_back("deltaPhi_LeptonMet");
+	VarsUnclEn.push_back("deltaPhi_WJetMet");
+	VarsUnclEn.push_back("deltaPhi_WJetWlep");
+	VarsUnclEn.push_back("m_lvj");
 
 	VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JEC", VarsJEC));
+	VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("LeptonEn", VarsLeptonEn));
+	VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("LeptonRes", VarsLeptonRes));
+	VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("UnclEn", VarsUnclEn));
 
 
 	for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++)
     {
 
 		bool isAffected = false;
+		//std::cout << "iSyst "  << iSyst << std::endl;
 		if (std::find(VariablesAffected[ListOfSystematics.at(iSyst)].begin(), VariablesAffected[ListOfSystematics.at(iSyst)].end(), var.VarName) != VariablesAffected[ListOfSystematics.at(iSyst)].end()) isAffected = true;
 
 
@@ -240,12 +292,12 @@ void Plotter::Systematics(Var var, TH1D * hist_nominal)
 		      //erase duplicates from the string
 		      std::sort(splittedSelectionUp.begin(), splittedSelectionUp.end());
 		      splittedSelectionUp.erase(std::unique(splittedSelectionUp.begin(), splittedSelectionUp.end()), splittedSelectionUp.end());
-		      std::cout << selection_Up << std::endl;
-		      std::cout << selection_Down << std::endl;
+		      //std::cout << selection_Up << std::endl;
+		      //std::cout << selection_Down << std::endl;
 		      for (unsigned int iS = 0; iS < splittedSelectionUp.size(); iS ++){
 		      		if (splittedSelectionUp[iS].empty()) continue;
 		      		bool found = false;
-		      		for (unsigned int iVarSyst = 0 ; iVarSyst < VariablesAffected["JEC"].size(); iVarSyst ++){
+		      		for (unsigned int iVarSyst = 0 ; iVarSyst < VariablesAffected[ListOfSystematics.at(iSyst)].size(); iVarSyst ++){
 		      		 	 found = ( VariablesAffected[ListOfSystematics.at(iSyst)].at(iVarSyst) == splittedSelectionUp[iS] );
 		      			if (found) {
 		      				boost::replace_all(selection_Up,    VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_" + ListOfSystematics.at(iSyst) + "Up");
@@ -256,8 +308,8 @@ void Plotter::Systematics(Var var, TH1D * hist_nominal)
 		      	}
 		      
 		      		
-		      std::cout << selection_Up << std::endl;
-		      std::cout << selection_Down << std::endl;
+		      //std::cout << selection_Up << std::endl;
+		      //std::cout << selection_Down << std::endl;
 		      TFile file(((samples.at(process_i)).filenames.at(file_i)).c_str(), "READ");
 		      TTree * tree = (TTree*)file.Get("BasicTree");
 		      TH1D *tempUp = new TH1D((((samples.at(process_i)).Processname)+ "_tempUp").c_str(),((samples.at(process_i)).Processname + "_tempUp").c_str(), Nbins,var.Range.low, var.Range.high);

@@ -170,19 +170,27 @@ void draw()
 	variables.push_back(var);
 
 
-	Plotter p;
+	Plotter p(MUON);
 	vector <Sample> samples;
 	p.SetVar(variables);
 	p.SetNbins(30);
 
-	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.5 && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && jet_mass_pruned < 130. && jet_mass_pruned > 40.)";
+	std::string channel = "mu";
+
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.5 && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && jet_mass_pruned < 130. && jet_mass_pruned > 40. ";
+	if (channel == "ele") defaulCuts += " && l_pt > 140. && pfMET > 80. )"; 
+	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
+	else {
+		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
+		exit(0);
+	}
 	string addOnCutWjets = defaulCuts +  " * (jet_mass_pruned < 65. || jet_mass_pruned > 95.)";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag >= 1)";
 	
 	
-	string MCSelection = "weight*PUweight*" + addOnCutWjets;
+	string MCSelection = "weight*PUweight* ( " + addOnCutWjets + " )";
 	string DataSelection = addOnCutWjets;
-	std::string channel = "ele";
+	
 		
 	/*
 	 * Colors
@@ -234,7 +242,7 @@ void draw()
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
 	p.withData = true;
- 	p.Plotting("plots_25ns_10November2015_PU_reweighting_L2L3_corrected_ele/");
+ 	p.Plotting("plots_25ns_mu_12November2015_for_talk/");
 	
 	
 }

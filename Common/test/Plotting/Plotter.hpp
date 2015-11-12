@@ -10,6 +10,7 @@
 #include <TPad.h>
 #include <TStyle.h>
 #include <TCanvas.h>
+#include <TPaveText.h>
 #include <TLegend.h>
 #include <iostream>
 #include <iomanip>
@@ -31,15 +32,20 @@
 
 typedef unsigned int uint;
 
+enum CHANNEL {
+	ELECTRON,	MUON
+};
+
 class Plotter
 {
     int Nbins;
 	vector <Sample> samples;
+	CHANNEL channel;
 	
 	vector <Var> variables;
 
 	public:
-	Plotter();
+	Plotter(CHANNEL channel_);
 	Sample DataSample;
 	bool withData = true;
 	void SetNbins(int Nbins_);
