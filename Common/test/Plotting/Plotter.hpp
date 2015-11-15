@@ -3,6 +3,7 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#include <TChain.h>
 #include <TTreeFormula.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -21,6 +22,7 @@
 #include <stdlib.h>  
 #include <Sample.hpp>
 #include <var.hpp>
+#include <TASImage.h>
 #include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/tdrstyle.C>
 #include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/CMS_lumi.cpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -53,7 +55,9 @@ class Plotter
 	void SetSamples(vector <Sample> samples_);	
 	void SetDataSample(Sample sample_);
 	void Plotting(std::string OutPrefix_);
+	void PlottingVar(std::string OutPrefix_, Var var);
 	void Systematics(Var var, TH1D * hist_nominal);
+	
 
 };
 
