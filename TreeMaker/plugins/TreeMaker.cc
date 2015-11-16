@@ -1030,8 +1030,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
 
  // uncomment the line used in the synchronization exercise!
- if (deltaR_LeptonWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
-   //outTree_->Fill();
+ //if (deltaR_LeptonWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
+  outTree_->Fill();
 
 
 
