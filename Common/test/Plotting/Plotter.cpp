@@ -1,5 +1,11 @@
 #include "Plotter.hpp"
 
+Plotter::Plotter()
+{
+//do nothing
+}
+
+
 Plotter::Plotter(CHANNEL channel_)
 {
 	channel = channel_;
@@ -44,7 +50,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	  TPad *pad2 = new TPad("pad2","This is pad2",0.0,0.02,0.8,0.25);
 
 	  c1 -> cd();
-	  TLegend *leg = new TLegend(0.8,0.7,0.98,0.93);
+	  TLegend *leg = new TLegend(0.8,0.5,0.98,0.93);
 	  leg ->  SetFillColor(kWhite);
 
 	  
@@ -108,7 +114,6 @@ void Plotter::Plotting(std::string OutPrefix_)
 	    
 	    
 	    leg->AddEntry(hist, (samples.at(process_i).Processname).c_str(),"f");
-	   
 
 	  }
 	  //end of cycle over processes
@@ -203,6 +208,13 @@ void Plotter::Plotting(std::string OutPrefix_)
     CMS_lumi( c1, 4, 0 );
     c1 -> SaveAs((OutPrefix_ + variables.at(var_i).VarName + ".png").c_str());
     c1 -> Clear();
+
+    delete data;
+    delete data_dif_MCerr;
+    delete data_dif;
+    delete hist_summed;
+    delete hs;
+
 	}
 	//end of cycle over variables
 	
@@ -210,7 +222,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 
 
 
-void Plotter::Systematics(Var var, TH1D * hist_nominal)
+void Plotter::Systematics(Var var, TH1D *& hist_nominal)
 {
 	std::vector<std::string> ListOfSystematics;
 	ListOfSystematics.push_back("JEC");
@@ -219,6 +231,11 @@ void Plotter::Systematics(Var var, TH1D * hist_nominal)
 	ListOfSystematics.push_back("UnclEn");
 	std::map <std::string, std::vector<std::string>> VariablesAffected;
 	std::vector<double> totalErrorQuadraticErrors(Nbins, 0.);
+	
+	//add statistical uncertainty from MC first
+	for (unsigned int iBin = 0; iBin < Nbins; iBin++){
+		totalErrorQuadraticErrors[iBin] = std::pow(hist_nominal -> GetBinError(iBin), 2);
+	}
 	
 	//JEC
 	std::vector<std::string> VarsJEC;

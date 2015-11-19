@@ -47,6 +47,7 @@ class Plotter
 	vector <Var> variables;
 
 	public:
+	Plotter();	
 	Plotter(CHANNEL channel_);
 	Sample DataSample;
 	bool withData = true;
@@ -56,7 +57,7 @@ class Plotter
 	void SetDataSample(Sample sample_);
 	void Plotting(std::string OutPrefix_);
 	void PlottingVar(std::string OutPrefix_, Var var);
-	void Systematics(Var var, TH1D * hist_nominal);
+	void Systematics(Var var, TH1D *& hist_nominal);
 	
 
 };

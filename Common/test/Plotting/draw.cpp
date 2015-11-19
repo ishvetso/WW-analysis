@@ -25,7 +25,7 @@ void draw()
 	
 	var.VarName = "l_pt";
 	var.Title = "p_{T, lepton}";
-	var.SetRange(60., 800.);
+	var.SetRange(50., 800.);
 	variables.push_back(var);
 
 	var.VarName = "l_eta";
@@ -73,7 +73,7 @@ void draw()
 
 	var.VarName = "W_mass";
 	var.Title = "m_{W lep}";
-	var.SetRange(30., 1500.);
+	var.SetRange(30., 800.);
 	variables.push_back(var);
 
 	var.VarName = "W_mt";
@@ -95,12 +95,12 @@ void draw()
 
 	var.VarName = "jet_mass_pruned";
 	var.Title = "m_{jet pruned}";
-	var.SetRange(0., 400.);
+	var.SetRange(0., 150.);
 	variables.push_back(var);
 
 	var.VarName = "jet_mass_softdrop";
 	var.Title = "m_{jet softdrop}";
-	var.SetRange(0., 400.);
+	var.SetRange(0., 250.);
 	variables.push_back(var);
 
 	var.VarName = "jet_tau2tau1";
@@ -151,7 +151,7 @@ void draw()
 
 	var.VarName = "deltaR_LeptonWJet";
 	var.Title = "#DeltaR(Lep, WJet)";
-	var.SetRange(0., 10.);
+	var.SetRange(0., 7.);
 	variables.push_back(var);
 
 	var.VarName = "deltaPhi_LeptonMet";
@@ -170,26 +170,32 @@ void draw()
 	variables.push_back(var);
 
 
-	Plotter p(MUON);
+
+
+	Plotter p;
+
+	std::string channel = "mu";
+	if (channel == "mu")p = Plotter(MUON);
+	else if (channel == "ele" )  p = Plotter(ELECTRON);
+	else exit(0);
 	vector <Sample> samples;
 	p.SetVar(variables);
 	p.SetNbins(30);
 
-	std::string channel = "mu";
-
-	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.5 && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && jet_mass_pruned < 130. && jet_mass_pruned > 40. ";
+	
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.5  && jet_mass_pruned < 130. && jet_mass_pruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2.";
 	if (channel == "ele") defaulCuts += " && l_pt > 140. && pfMET > 80. )"; 
 	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
 		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
 		exit(0);
 	}
-	string addOnCutWjets = defaulCuts +  " * (jet_mass_pruned < 65. || jet_mass_pruned > 95.)";
-	string addOnCutTtbar = defaulCuts +  " * (nbtag >= 1)";
+	string addOnCutWjets = defaulCuts +  " * ( (jet_mass_pruned < 65. || jet_mass_pruned > 95. ) && nbtag == 0) ";
+	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
 	
 	
-	string MCSelection = "weight*PUweight* ( " + addOnCutWjets + " )";
-	string DataSelection = addOnCutWjets;
+	string MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutTtbar + " )";
+	string DataSelection = addOnCutTtbar;
 	
 		
 	/*
@@ -201,7 +207,7 @@ void draw()
 	
 	Sample s, dataSample;
 	
-	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_10November2015/";
+	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_16November2015/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
  	s.SetFileNames( prefix + "WW_"+ channel + ".root");
@@ -242,7 +248,6 @@ void draw()
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
 	p.withData = true;
- 	p.Plotting("plots_25ns_mu_12November2015_for_talk/");
-	
-	
+ 	p.Plotting(("plots_25ns_" + channel + "_19November2015_for_talk_ttbar_control_region/").c_str());
+
 }
