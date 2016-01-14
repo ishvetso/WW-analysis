@@ -1,8 +1,10 @@
 // system include files
 #include <iostream>
 #include <memory>
+#include <map>
 #include <vector>
 #include <algorithm> 
+#include "boost/algorithm/string.hpp"
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -37,6 +39,7 @@
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -119,6 +122,10 @@ private:
   double m_lvj;
   //m_lvj systematics
   double m_lvj_UnclEnUp, m_lvj_UnclEnDown, m_lvj_JECUp, m_lvj_JECDown, m_lvj_LeptonEnUp, m_lvj_LeptonEnDown, m_lvj_LeptonResUp, m_lvj_LeptonResDown;
+
+  double refXsec;
+  //aTGC weights
+  std::map<std::string,double> aTGCWeights;
   
   //Defining Tokens
   edm::EDGetTokenT<std::vector< PileupSummaryInfo > > PUInfoToken_;
@@ -137,6 +144,8 @@ private:
   std::string channel;
   edm::LumiReWeighting  LumiWeights_;
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
+  edm::EDGetTokenT<LHEEventProduct> LHEEventProductToken;
+  bool isSignal;
  
   //for JEC
   boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
@@ -161,6 +170,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   isMC(iConfig.getParameter<bool>("isMC")),
   rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
   channel(iConfig.getParameter<std::string>("channel")),
+  isSignal(iConfig.getParameter<bool>("isSignal")),
   SystematicsHelper_(SystematicsHelper())
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
@@ -200,6 +210,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      LumiWeights_ = edm::LumiReWeighting(MC_dist(), data_dist());
 
     genInfoToken = mayConsume<GenEventInfoProduct> (iConfig.getParameter<edm::InputTag>( "genInfo" ) );
+    LHEEventProductToken = mayConsume<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrc" ) );
    }
 
  
@@ -419,6 +430,10 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     outTree_->Branch("m_lvj_LeptonResDown",       &m_lvj_LeptonResDown,         "m_lvj_LeptonResDown/D"   );      
   }
 
+ if (isSignal) {
+  outTree_ -> Branch("aTGCWeights", &aTGCWeights);
+  outTree_ -> Branch("refXsec", &refXsec, "refXsec/D");
+  }
 
 
 }
@@ -498,6 +513,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    edm::Handle<std::vector< PileupSummaryInfo > >  PUInfo;
    edm::Handle <GenEventInfoProduct> genInfo; 
+   edm::Handle<LHEEventProduct> evtProduct;
   if (isMC) {
     iEvent.getByToken(PUInfoToken_, PUInfo);
     std::vector<PileupSummaryInfo>::const_iterator PVI;
@@ -514,6 +530,19 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    iEvent.getByToken( genInfoToken , genInfo);
    genWeight = (genInfo -> weight());
+
+   iEvent.getByToken(LHEEventProductToken, evtProduct);
+   aTGCWeights.clear();
+   if (isSignal){
+    refXsec = evtProduct -> originalXWGTUP();
+    if( evtProduct->weights().size() ) {
+      for ( size_t iwgt = 0; iwgt < evtProduct->weights().size(); ++iwgt ) {
+        const LHEEventProduct::WGT& wgt = evtProduct->weights().at(iwgt);
+        if( boost::algorithm::contains(wgt.id, "mg_reweight") ) aTGCWeights.insert(std::pair<std::string, double>(wgt.id, wgt.wgt));
+      }
+    }
+   }
+
   }
   /*edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
   iSetup.get<JetCorrectionsRecord>().get("AK8PFchs",JetCorParCollAK8);
