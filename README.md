@@ -2,7 +2,7 @@ Instructions to setup the aTGC analysis code
 ========
 
 ```
-This is the branch for 74X samples, October 2015
+This is the branch for 74X samples, December 2015
 cmsrel CMSSW_7_4_14
 cd CMSSW_7_4_14/src
 cmsenv
