@@ -126,6 +126,7 @@ private:
   double refXsec;
   //aTGC weights
   std::map<std::string,double> aTGCWeights;
+  std::map<std::string,double> *aTGCWeightsPointer = &aTGCWeights;
   
   //Defining Tokens
   edm::EDGetTokenT<std::vector< PileupSummaryInfo > > PUInfoToken_;
@@ -431,7 +432,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   }
 
  if (isSignal) {
-  outTree_ -> Branch("aTGCWeights", &aTGCWeights);
+  outTree_ -> Branch("aTGCWeights", "std::map<std::string,double>", &aTGCWeightsPointer);
   outTree_ -> Branch("refXsec", &refXsec, "refXsec/D");
   }
 
@@ -532,7 +533,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    genWeight = (genInfo -> weight());
 
    iEvent.getByToken(LHEEventProductToken, evtProduct);
-   aTGCWeights.clear();
+   aTGCWeightsPointer -> clear();
    if (isSignal){
     refXsec = evtProduct -> originalXWGTUP();
     if( evtProduct->weights().size() ) {

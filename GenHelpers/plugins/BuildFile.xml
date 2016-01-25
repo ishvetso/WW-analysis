@@ -9,7 +9,7 @@
 <use name="DataFormats/Math"/>
 <use name="CondFormats/JetMETObjects"/>
 <use name="JetMETCorrections/Objects"/>
-<use name="SimDataFormats"/>
+<use name="SimDataFormats/GeneratorProducts"/>
 <use name="PhysicsTools/Utilities"/>
 <use name="root"/>
 <flags EDM_PLUGIN="1"/>

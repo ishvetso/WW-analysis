@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process( "makeWWmass" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10000)
+    input = cms.untracked.int32(-1)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -21,7 +21,7 @@ process.analysis = cms.Path( process.makeWWmass)
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/aTGCRun2/samples/WW.root'),
+    fileNames = cms.untracked.vstring('/store/mc/RunIISpring15MiniAODv2/WWToLNuQQ_aTGC_13TeV-madgraph-pythia8/MINIAODSIM/Asympt25ns_74X_mcRun2_asymptotic_v2-v1/20000/0E23000B-20B2-E511-84BC-78E7D1216D38.root'),
 )
 
 

@@ -16,7 +16,6 @@ process.load("aTGCsAnalysis.Common.MET_cff")
 process.load("aTGCsAnalysis.Common.goodJets_cff")
 process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
-process.load("aTGCsAnalysis.Common.hadronicW_cff")
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.Geometry_cff")

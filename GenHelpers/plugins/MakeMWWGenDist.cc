@@ -66,6 +66,7 @@ class MakeMWWGenDist : public edm::EDAnalyzer {
       int NWplus, NWminus;
       bool isSignal;
       std::map<std::string,double> aTGCWeights;
+      std::map<std::string,double> *aTGCWeightsPointer = &aTGCWeights;
       //Decay Info (gen level)
      
 
@@ -102,7 +103,7 @@ isSignal(iConfig.getParameter<bool>("isSignal"))
   outTree->Branch("NWminus",       &NWminus,        "NWminus/I"           );
   if(isSignal){
     outTree->Branch("refXsec",       &refXsec,        "refXsec/D"           );
-    outTree -> Branch("aTGCWeights", &aTGCWeights);
+    outTree -> Branch("aTGCWeights", "std::map<std::string,double>", &aTGCWeightsPointer);
     LHEEventProductToken = mayConsume<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSource" ) );
 
   }
@@ -157,11 +158,15 @@ MakeMWWGenDist::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   genWeight = (genInfo -> weight());
   m_WW = (p4WPlus + p4WMinus).mass();
 
+  aTGCWeightsPointer -> clear();
+  //aTGCWeightsPointer -> resize(8);
+
   if(isSignal){
    if( evtProduct->weights().size() ) {
       for ( size_t iwgt = 0; iwgt < evtProduct->weights().size(); ++iwgt ) {
         const LHEEventProduct::WGT& wgt = evtProduct->weights().at(iwgt);
-        if( boost::algorithm::contains(wgt.id, "mg_reweight") ) aTGCWeights.insert(std::pair<std::string, double>(wgt.id, wgt.wgt));
+        if( boost::algorithm::contains(wgt.id, "mg_reweight") ) aTGCWeights.insert(std::pair<std::string, double>(wgt.id, wgt.wgt));       
+        
       }
     }
   
