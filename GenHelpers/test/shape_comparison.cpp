@@ -19,53 +19,61 @@
 void shape_comparison(){
 
   gStyle->SetCanvasColor(kWhite);
-//gStyle->SetTitleFillColor(kWhite);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
-//gPad->SetGrid();
 	
-  TFile file_signal("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/GenHelpers/test/M_WW_gen.root");
-  TFile file_SM("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_WW_gen_SM/results/M_WW_gen-SM.root");
-
-  TTree * tree_signal = (TTree * )file_signal.Get("makeWWmass/Tree");
-  TTree * tree_SM = (TTree * )file_SM.Get("makeWWmass/Tree");
+  TFile file_signal("/afs/cern.ch/work/i/ishvetso/public/samples_74X_15January2016/WW-aTGC-mu.root");
+  TTree * tree_signal = (TTree * )file_signal.Get("treeDumper/BasicTree");
 
   double M_WW;
   std::map<std::string, double> *aTGCWeights = 0;
 
-  tree_SM -> SetBranchAddress("m_WW", &M_WW);
-
-  tree_signal -> SetBranchAddress("m_WW", &M_WW);
+  tree_signal -> SetBranchAddress("m_lvj", &M_WW);
   tree_signal -> SetBranchAddress("aTGCWeights", &aTGCWeights);
+
+  std::vector <std::string> titles;
+  titles.push_back("CWWWL2 = 12., CWL2 = 0., CBL2 = 0.");
+  titles.push_back("CWWWL2 = -12., CWL2 = 0., CBL2 = 0.");
+  titles.push_back("CWWWL2 = 0., CWL2 = 20., CBL2 = 0.");
+  titles.push_back("CWWWL2 = 0., CWL2 = -20., CBL2 = 0.");
+  titles.push_back("CWWWL2 = 0., CWL2 = 0., CBL2 = 60.");
+  titles.push_back("CWWWL2 = 0., CWL2 = 0., CBL2 = -60.");
+  titles.push_back("CWWWL2 = -12., CWL2 =-20., CBL2 = -60.");
+  titles.push_back("CWWWL2 = 0., CWL2 = 0., CBL2 = 0.");
+
+  std::vector<Color_t> colors;
+  colors.push_back(kRed);
+  colors.push_back(kGreen);
+  colors.push_back(kMagenta);
+  colors.push_back(kCyan);
+  colors.push_back(kOrange);
+  colors.push_back(kBlue);
+  colors.push_back(kViolet);
+  colors.push_back(kBlack);
+
+  std::string Title = "RECO level";
   
 
-  TH1F *hist_SM = new TH1F("SM", "SM", 30, 400., 5000.);
-  std::vector <TH1F *> hists_signal; 
+ std::vector <TH1F *> hists_signal; 
   for (unsigned int iHist = 0; iHist < 8; iHist ++) {
     TH1F *hist = new TH1F(("signal" + to_string(iHist + 1)).c_str(), ("signal" + to_string(iHist + 1)).c_str(), 30, 400., 10000.);
-    hist -> SetLineColor(kBlue+iHist*2);
+    hist -> Sumw2();
+    hist -> SetLineColor(colors[iHist]);
+    hist -> SetLineWidth(2.);
+    hist -> GetXaxis() -> SetTitle("M_{WW}");
+    hist -> GetYaxis() -> SetTitle("Nevents");
     hists_signal.push_back(hist);
   }
-  
 
-
-
-  /*for (unsigned int iEntry = 0; iEntry < tree_SM -> GetEntries(); iEntry ++){
-  	tree_SM -> GetEntry(iEntry);
-  	hist_SM -> Fill(M_WW, weight_SM);
-
-  }*/
 
   std::map<std::string, double>::iterator it;
+  double lumi = 2093.917403402;
   for (unsigned int iEntry = 0; iEntry < tree_signal -> GetEntries(); iEntry ++){
   	tree_signal -> GetEntry(iEntry);
     int iWeight = 0;
   	 for (it = aTGCWeights -> begin(); it != aTGCWeights -> end(); it++){
-      //std::cout << iWeight << "  " << it -> second << std::endl;
-      hists_signal.at(iWeight) -> Fill(M_WW, it -> second);
-      std::cout << it -> first << "  " << it -> second << std::endl;
-      iWeight++;
-
+        hists_signal.at(iWeight) -> Fill(M_WW, (it -> second)*lumi/20.);
+        iWeight++;
      }
      aTGCWeights -> clear();
 
@@ -75,19 +83,19 @@ void shape_comparison(){
   TCanvas *c1= new TCanvas("c1","canvas",1200,800);
   c1-> cd();
   c1 -> SetLogy();
-  TLegend *leg = new TLegend(0.2,0.3,0.5,0.7);
-  leg -> SetFillColor(kWhite);  
+  TLegend *leg = new TLegend(0.6,0.6,0.9,0.9);
+  leg -> SetFillColor(kWhite); 
+  leg -> SetHeader(Title.c_str()); 
 
+  int iTitle =0;
   for (auto iHist: hists_signal){
-    iHist -> DrawNormalized("HISTSAME");
+    iHist -> Draw("HISTSAMEE1");
+    leg->AddEntry(iHist, titles[iTitle].c_str(),"l");
+    iTitle ++;
   }
 
-  /*hist_SM -> SetLineColor(kBlue);
-  hist_signal -> SetLineColor(kRed);
-  hist_SM -> Draw();
-  hist_signal -> Draw("SAME");*/
-
+  leg -> Draw("SAME");
   CMS_lumi( c1, 4, 0 );
-  c1 -> SaveAs( "SMvsSignal.png");
+  c1 -> SaveAs( (Title +".png").c_str());
 
 }
