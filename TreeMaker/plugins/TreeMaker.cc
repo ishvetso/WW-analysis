@@ -125,8 +125,8 @@ private:
 
   double refXsec;
   //aTGC weights
-  std::map<std::string,double> aTGCWeights;
-  std::map<std::string,double> *aTGCWeightsPointer = &aTGCWeights;
+  std::vector<double> aTGCWeights;
+  
   
   //Defining Tokens
   edm::EDGetTokenT<std::vector< PileupSummaryInfo > > PUInfoToken_;
@@ -432,7 +432,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   }
 
  if (isSignal) {
-  outTree_ -> Branch("aTGCWeights", "std::map<std::string,double>", &aTGCWeightsPointer);
+  outTree_ -> Branch("aTGCWeights",  &aTGCWeights);
   outTree_ -> Branch("refXsec", &refXsec, "refXsec/D");
   }
 
@@ -533,13 +533,20 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    genWeight = (genInfo -> weight());
 
    iEvent.getByToken(LHEEventProductToken, evtProduct);
-   aTGCWeightsPointer -> clear();
+   aTGCWeights.clear();
+   
    if (isSignal){
     refXsec = evtProduct -> originalXWGTUP();
+    aTGCWeights.resize(evtProduct->weights().size());
+    int weightNumber = 1;
     if( evtProduct->weights().size() ) {
-      for ( size_t iwgt = 0; iwgt < evtProduct->weights().size(); ++iwgt ) {
+      for ( unsigned int iwgt = 0; iwgt < evtProduct->weights().size(); ++iwgt ) {
         const LHEEventProduct::WGT& wgt = evtProduct->weights().at(iwgt);
-        if( boost::algorithm::contains(wgt.id, "mg_reweight") ) aTGCWeights.insert(std::pair<std::string, double>(wgt.id, wgt.wgt));
+        if( boost::algorithm::contains(wgt.id, "mg_reweight_" + std::to_string(weightNumber))){
+         aTGCWeights[iwgt] = wgt.wgt;
+         std::cout << wgt.id << " " << wgt.wgt << aTGCWeights[iwgt] << std::endl;
+         weightNumber ++;
+       }
       }
     }
    }
