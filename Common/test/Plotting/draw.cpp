@@ -195,6 +195,7 @@ void draw()
 	
 	
 	string MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutTtbar + " )";
+	string SignalSelection = "PUweight*(genWeight/abs(genWeight))*(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutTtbar + " )";
 	string DataSelection = addOnCutTtbar;
 	
 		
@@ -205,9 +206,9 @@ void draw()
 	 * kAzure =860, kViolet =880, kPink=900
 	 */
 	
-	Sample s, dataSample;
+	Sample s, dataSample, signalSample;
 	
-	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_16November2015/";
+	string prefix = "/afs/cern.ch/work/i/ishvetso/public/samples_74X_15January2016/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
  	s.SetFileNames( prefix + "WW_"+ channel + ".root");
@@ -243,11 +244,15 @@ void draw()
 	dataSample.SetParameters("data", DataSelection, kBlack);
  	dataSample.SetFileNames(prefix + "data_05Oct_" + channel + ".root");
  	dataSample.SetFileNames(prefix + "data_Prompt_" + channel + ".root");
+
+ 	signalSample.SetParameters("CWWWL2 = 12., CWL2 = 0., CBL2 = 0.", SignalSelection, kRed);
+ 	signalSample.SetFileNames("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_aTGC_mu_5February2016/results/WW-aTGC-mu.root");
 	
 	
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
+	p.SignalSample = signalSample;
 	p.withData = true;
- 	p.Plotting(("plots_25ns_" + channel + "_19November2015_for_talk_ttbar_control_region/").c_str());
+ 	p.Plotting(("plots_25ns_" + channel + "_9February2016_ttbar_control_region/").c_str());
 
 }

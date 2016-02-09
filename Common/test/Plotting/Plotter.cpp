@@ -76,6 +76,22 @@ void Plotter::Plotting(std::string OutPrefix_)
 	 data->GetXaxis() -> SetLabelSize(0.);
 	 data->GetXaxis() -> SetLabelOffset(100000.);
 
+	 TH1D *signalHist = new TH1D(("signal_" + variables.at(var_i).VarName ).c_str(),("signal_" + variables.at(var_i).VarName ).c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+	 signalHist -> Sumw2();
+
+     for (uint file_i = 0; file_i < SignalSample.filenames.size(); ++file_i)
+  	{
+	    TFile file((SignalSample.filenames.at(file_i)).c_str(), "READ");
+	    TTree * tree = (TTree*)file.Get("treeDumper/BasicTree");
+	    TH1D *temp = new TH1D("signal_temp","signal_temp", Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+	    tree ->Project("signal_temp",(variables.at(var_i).VarName).c_str(), (SignalSample.selection).c_str());
+	    signalHist -> Add(temp);
+  	}
+
+  	signalHist -> SetLineColor(SignalSample.color);
+  	signalHist -> SetLineWidth(2.);
+
+
 
 
 	  
@@ -118,6 +134,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	  }
 	  //end of cycle over processes
 	  Systematics(variables.at(var_i), hist_summed);
+	  //leg -> AddEntry(signalHist, SignalSample.Processname.c_str()); do we actually need this title on legend??
 	  
 	 
 	  	  	
@@ -133,10 +150,14 @@ void Plotter::Plotting(std::string OutPrefix_)
     	hist_summed -> SetFillColor(kBlack);
 		hist_summed -> SetFillStyle(3018);
     	hist_summed -> Draw("E2 SAME");
+    	signalHist -> Draw("hist SAME");
     	data -> Draw("E1 SAME");
     	data -> GetXaxis() -> Draw("SAME");
 	  } 
-	  else hs->Draw("hist");
+	  else { 
+	  	hs->Draw("hist");
+	  	signalHist -> Draw("HISTSAME");
+	  }
 	    
 	 c1 -> cd();
 
@@ -214,6 +235,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     delete data_dif;
     delete hist_summed;
     delete hs;
+    delete signalHist;
 
 	}
 	//end of cycle over variables

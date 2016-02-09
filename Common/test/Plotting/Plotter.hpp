@@ -50,6 +50,7 @@ class Plotter
 	Plotter();	
 	Plotter(CHANNEL channel_);
 	Sample DataSample;
+	Sample SignalSample;
 	bool withData = true;
 	void SetNbins(int Nbins_);
 	void SetVar(vector <Var> variables_);
