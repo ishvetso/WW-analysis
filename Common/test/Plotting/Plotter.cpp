@@ -134,7 +134,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	  }
 	  //end of cycle over processes
 	  Systematics(variables.at(var_i), hist_summed);
-	  //leg -> AddEntry(signalHist, SignalSample.Processname.c_str()); do we actually need this title on legend??
+	  leg -> AddEntry(signalHist, SignalSample.Processname.c_str()); 
 	  
 	 
 	  	  	

@@ -18,7 +18,7 @@ void draw()
 	vector <Var> variables;
 	Var var;
 
-	var.VarName = "nPV";
+	/*var.VarName = "nPV";
 	var.Title = "n_{PV}";
 	var.SetRange(0., 30.);
 	variables.push_back(var);
@@ -89,16 +89,16 @@ void draw()
 	var.VarName = "pfMETPhi";
 	var.Title = "#phi(MET)";
 	var.SetRange(-3.2, 3.2);
-	variables.push_back(var);
+	variables.push_back(var);*/
 
 
 
 	var.VarName = "jet_mass_pruned";
 	var.Title = "m_{jet pruned}";
-	var.SetRange(0., 150.);
+	var.SetRange(40., 130.);
 	variables.push_back(var);
 
-	var.VarName = "jet_mass_softdrop";
+	/*var.VarName = "jet_mass_softdrop";
 	var.Title = "m_{jet softdrop}";
 	var.SetRange(0., 250.);
 	variables.push_back(var);
@@ -167,7 +167,7 @@ void draw()
 	var.VarName = "deltaPhi_WJetWlep";
 	var.Title = "#Delta#phi(WJet, WLep)";
 	var.SetRange(-3.2, 3.2);
-	variables.push_back(var);
+	variables.push_back(var);*/
 
 
 
@@ -190,13 +190,13 @@ void draw()
 		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
 		exit(0);
 	}
-	string addOnCutWjets = defaulCuts +  " * ( (jet_mass_pruned < 65. || jet_mass_pruned > 95. ) && nbtag == 0) ";
+	string addOnCutWjets = defaulCuts +  " * ( (jet_mass_pruned < 65. || jet_mass_pruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
 	
 	
-	string MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutTtbar + " )";
-	string SignalSelection = "PUweight*(genWeight/abs(genWeight))*(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutTtbar + " )";
-	string DataSelection = addOnCutTtbar;
+	string MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutWjets + " )";
+	string SignalSelection = "PUweight*(genWeight/abs(genWeight))*(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutWjets + " )";
+	string DataSelection = addOnCutWjets;
 	
 		
 	/*
@@ -245,7 +245,7 @@ void draw()
  	dataSample.SetFileNames(prefix + "data_05Oct_" + channel + ".root");
  	dataSample.SetFileNames(prefix + "data_Prompt_" + channel + ".root");
 
- 	signalSample.SetParameters("CWWWL2 = 12., CWL2 = 0., CBL2 = 0.", SignalSelection, kRed);
+ 	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = 12 TeV^{-2}}", SignalSelection, kRed);
  	signalSample.SetFileNames("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_aTGC_mu_5February2016/results/WW-aTGC-mu.root");
 	
 	
