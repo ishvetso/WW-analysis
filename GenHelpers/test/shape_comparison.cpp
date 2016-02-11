@@ -16,20 +16,20 @@
 #include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/tdrstyle.C>
 #include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/CMS_lumi.cpp>
 
-void shape_comparison(){
+void aTGC_var( std::string var, std::string filename, std::string Title="RECO level", std::string xaxislabel=""){
 
   gStyle->SetCanvasColor(kWhite);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
 	
-  TFile file_signal("/afs/cern.ch/work/i/ishvetso/public/samples_74X_15January2016/WW-aTGC-mu.root");
+  TFile file_signal(filename.c_str());
   TTree * tree_signal = (TTree * )file_signal.Get("treeDumper/BasicTree");
 
   double M_WW;
-  std::map<std::string, double> *aTGCWeights = 0;
+  double pt;
+  std::vector<double> *aTGCWeights = 0;
 
-  tree_signal -> SetBranchAddress("m_lvj", &M_WW);
-  tree_signal -> SetBranchAddress("aTGCWeights", &aTGCWeights);
+  tree_signal -> SetBranchAddress(var.c_str(), &M_WW);
 
   std::vector <std::string> titles;
   titles.push_back("CWWWL2 = 12., CWL2 = 0., CBL2 = 0.");
@@ -51,33 +51,19 @@ void shape_comparison(){
   colors.push_back(kViolet);
   colors.push_back(kBlack);
 
-  std::string Title = "RECO level";
-  
-
  std::vector <TH1F *> hists_signal; 
   for (unsigned int iHist = 0; iHist < 8; iHist ++) {
     TH1F *hist = new TH1F(("signal" + to_string(iHist + 1)).c_str(), ("signal" + to_string(iHist + 1)).c_str(), 30, 400., 10000.);
     hist -> Sumw2();
     hist -> SetLineColor(colors[iHist]);
     hist -> SetLineWidth(2.);
-    hist -> GetXaxis() -> SetTitle("M_{WW}");
+    hist -> GetXaxis() -> SetLabelSize(0.03);
+    hist -> GetXaxis() -> SetTitle(xaxislabel.c_str());
     hist -> GetYaxis() -> SetTitle("Nevents");
     hists_signal.push_back(hist);
+    tree_signal -> Project(("signal" + to_string(iHist + 1)).c_str(),var.c_str(), ("aTGCWeights[" + to_string(iHist) + "]*2093.917403402/20.").c_str());
   }
 
-
-  std::map<std::string, double>::iterator it;
-  double lumi = 2093.917403402;
-  for (unsigned int iEntry = 0; iEntry < tree_signal -> GetEntries(); iEntry ++){
-  	tree_signal -> GetEntry(iEntry);
-    int iWeight = 0;
-  	 for (it = aTGCWeights -> begin(); it != aTGCWeights -> end(); it++){
-        hists_signal.at(iWeight) -> Fill(M_WW, (it -> second)*lumi/20.);
-        iWeight++;
-     }
-     aTGCWeights -> clear();
-
-  }
 
   setTDRStyle();
   TCanvas *c1= new TCanvas("c1","canvas",1200,800);
@@ -96,6 +82,17 @@ void shape_comparison(){
 
   leg -> Draw("SAME");
   CMS_lumi( c1, 4, 0 );
-  c1 -> SaveAs( (Title +".png").c_str());
+  c1 -> SaveAs( (var + "_" + Title +".png").c_str());
+
+  delete c1;
+}
+
+
+void shape_comparison(){
+  aTGC_var("m_lvj", "/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_aTGC_mu_5February2016/results/WW-aTGC-mu.root", "RECO", "m_{WW}");
+  aTGC_var("jet_pt", "/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_aTGC_mu_5February2016/results/WW-aTGC-mu.root", "RECO", "jet p_{T}");
+
+  aTGC_var("m_WW", "/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/GenHelpers/test/crab_projects/crab_WW_gen_signal_update/results/M_WW_gen.root", "GEN", "m_{WW}");
+  aTGC_var("pt_Wplus", "/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/GenHelpers/test/crab_projects/crab_WW_gen_signal_update/results/M_WW_gen.root", "GEN", "p_{T,W}");
 
 }
