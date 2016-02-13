@@ -13,12 +13,29 @@
 #include <map>
 #include "Plotter.cpp"
 
-void draw()
+void draw(std::string channel, std::string region)
 {
+	if (channel != "mu" && channel != "ele") {
+		std::cerr << "Channel is not mu or ele. Stopped." << std::endl;
+		exit(0);
+	}
+	if (region != "ttbar" && region != "WJets") {
+		std::cerr << "Control region should be ttbar or WJets.Stopped." << std::endl;
+		exit(0);
+	}
 	vector <Var> variables;
 	Var var;
+	var.VarName = "jet_mass_pruned";
+	var.Title = "m_{jet pruned}";
+	var.SetRange(40., 130.);
+	variables.push_back(var);
 
-	/*var.VarName = "nPV";
+	var.VarName = "m_lvj";
+	var.Title = "m_{WV}";
+	var.SetRange(400., 2500.);
+	variables.push_back(var);
+
+	var.VarName = "nPV";
 	var.Title = "n_{PV}";
 	var.SetRange(0., 30.);
 	variables.push_back(var);
@@ -89,16 +106,9 @@ void draw()
 	var.VarName = "pfMETPhi";
 	var.Title = "#phi(MET)";
 	var.SetRange(-3.2, 3.2);
-	variables.push_back(var);*/
-
-
-
-	var.VarName = "jet_mass_pruned";
-	var.Title = "m_{jet pruned}";
-	var.SetRange(40., 130.);
 	variables.push_back(var);
 
-	/*var.VarName = "jet_mass_softdrop";
+	var.VarName = "jet_mass_softdrop";
 	var.Title = "m_{jet softdrop}";
 	var.SetRange(0., 250.);
 	variables.push_back(var);
@@ -106,11 +116,6 @@ void draw()
 	var.VarName = "jet_tau2tau1";
 	var.Title = "#tau_{21}";
 	var.SetRange(0., 1.1);
-	variables.push_back(var);
-
-	var.VarName = "m_lvj";
-	var.Title = "m_{WV}";
-	var.SetRange(400., 2500.);
 	variables.push_back(var);
 
 	var.VarName = "njets";
@@ -167,14 +172,13 @@ void draw()
 	var.VarName = "deltaPhi_WJetWlep";
 	var.Title = "#Delta#phi(WJet, WLep)";
 	var.SetRange(-3.2, 3.2);
-	variables.push_back(var);*/
+	variables.push_back(var);
 
 
 
 
 	Plotter p;
 
-	std::string channel = "mu";
 	if (channel == "mu")p = Plotter(MUON);
 	else if (channel == "ele" )  p = Plotter(ELECTRON);
 	else exit(0);
@@ -192,12 +196,21 @@ void draw()
 	}
 	string addOnCutWjets = defaulCuts +  " * ( (jet_mass_pruned < 65. || jet_mass_pruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
-	
-	
-	string MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutWjets + " )";
-	string SignalSelection = "PUweight*(genWeight/abs(genWeight))*(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutWjets + " )";
-	string DataSelection = addOnCutWjets;
-	
+
+	std::string MCSelection,SignalSelection,DataSelection;
+
+	if (region == "WJets"){
+		MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutWjets + " )";
+		SignalSelection = "PUweight*(genWeight/abs(genWeight))*(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutWjets + " )";
+		DataSelection = addOnCutWjets;
+	}
+	else if(region == "ttbar"){
+		MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutTtbar + " )";
+		SignalSelection = "PUweight*(genWeight/abs(genWeight))*(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutTtbar + " )";
+		DataSelection = addOnCutTtbar;
+	}
+	else std::cout << "This should not happen ..." << std::endl;
+
 		
 	/*
 	 * Colors
@@ -246,13 +259,29 @@ void draw()
  	dataSample.SetFileNames(prefix + "data_Prompt_" + channel + ".root");
 
  	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = 12 TeV^{-2}}", SignalSelection, kRed);
- 	signalSample.SetFileNames("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_aTGC_mu_5February2016/results/WW-aTGC-mu.root");
+ 	signalSample.SetFileNames("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_aTGC_" + channel +"_5February2016/results/WW-aTGC-" + channel + ".root");
 	
 	
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
 	p.SignalSample = signalSample;
 	p.withData = true;
- 	p.Plotting(("plots_25ns_" + channel + "_9February2016_ttbar_control_region/").c_str());
+ 	p.Plotting(("plots_25ns_" + channel + "_9February2016_WJets_control_region/").c_str());
 
 }
+
+/*
+* to compile:
+* g++ -o draw  draw.cpp --std=c++11 `root-config --cflags --libs` -O2 -I./ -lASImage
+* and then you run like this:
+* ./draw ele ttbar
+* enjoy it!
+*/
+
+int main(int argc, char* argv[]){
+
+	if (argc != 3) std::cerr << "You should use only 2 arguments ..." << std::endl; 
+ 	draw(string(argv[1]), string(argv[2]));
+}
+
+
