@@ -142,11 +142,11 @@ private:
   edm::EDGetTokenT<edm::View<pat::Muon>> muonsToken_;
   bool isMC;
   edm::EDGetTokenT<double> rhoToken_;
+  bool isSignal;
   std::string channel;
+  edm::EDGetTokenT<LHEEventProduct> LHEEventProductToken;
   edm::LumiReWeighting  LumiWeights_;
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
-  edm::EDGetTokenT<LHEEventProduct> LHEEventProductToken;
-  bool isSignal;
  
   //for JEC
   boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
@@ -170,8 +170,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   muonsToken_(mayConsume<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("leptonSrc"))),
   isMC(iConfig.getParameter<bool>("isMC")),
   rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
-  channel(iConfig.getParameter<std::string>("channel")),
   isSignal(iConfig.getParameter<bool>("isSignal")),
+  channel(iConfig.getParameter<std::string>("channel")),
   SystematicsHelper_(SystematicsHelper())
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
@@ -202,6 +202,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   // Make the FactorizedJetCorrector
   jecAK8_ = boost::shared_ptr<FactorizedJetCorrector> ( new FactorizedJetCorrector(vPar) );
 
+  if (isSignal) LHEEventProductToken = consumes<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrc" ) );
 
   //loading PU and generator information for MC
    if (isMC) {
@@ -211,7 +212,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      LumiWeights_ = edm::LumiReWeighting(MC_dist(), data_dist());
 
     genInfoToken = mayConsume<GenEventInfoProduct> (iConfig.getParameter<edm::InputTag>( "genInfo" ) );
-    if (isSignal) LHEEventProductToken = mayConsume<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrc" ) );
+    
    }
 
  
@@ -532,10 +533,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByToken( genInfoToken , genInfo);
    genWeight = (genInfo -> weight());
 
-   iEvent.getByToken(LHEEventProductToken, evtProduct);
-   aTGCWeights.clear();
-   
-   if (isSignal){
+   if(isSignal){
+    iEvent.getByToken(LHEEventProductToken, evtProduct);
+    aTGCWeights.clear();
     refXsec = evtProduct -> originalXWGTUP();
     aTGCWeights.resize(evtProduct->weights().size());
     int weightNumber = 1;
