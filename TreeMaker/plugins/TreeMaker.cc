@@ -544,7 +544,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         const LHEEventProduct::WGT& wgt = evtProduct->weights().at(iwgt);
         if( boost::algorithm::contains(wgt.id, "mg_reweight_" + std::to_string(weightNumber))){
          aTGCWeights[iwgt] = wgt.wgt;
-         std::cout << wgt.id << " " << wgt.wgt << aTGCWeights[iwgt] << std::endl;
          weightNumber ++;
        }
       }
