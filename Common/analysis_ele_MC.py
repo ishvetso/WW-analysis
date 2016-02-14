@@ -14,11 +14,10 @@ process.load("aTGCsAnalysis.Common.MET_cff")
 process.load("aTGCsAnalysis.Common.goodJets_cff")
 process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
-process.load("aTGCsAnalysis.Common.hadronicW_cff")
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
-process.load("Configuration.StandardSequences.Geometry_cff")
-process.GlobalTag.globaltag = '74X_mcRun2_asymptotic_v2'
+process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
+process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_v12'
 
 ##___________________________HCAL_Noise_Filter________________________________||
 process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
@@ -106,6 +105,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightElectrons"),
                                     isMC = cms.bool(True),
+				    isSignal = cms.bool(False),
                                     channel = cms.string("el")
                                     )
 
@@ -122,7 +122,7 @@ process.analysis = cms.Path( process.HBHENoiseFilterResultProducer + process.App
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/i/ishvetso/aTGCRun2/samples/WW.root'),
+    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/WWToLNuQQ_13TeV-powheg/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/00000/08ACEF6B-86B9-E511-BDA7-001D0970C217.root'),
     #eventsToProcess = cms.untracked.VEventRange('1:75:72317')
     
 )
