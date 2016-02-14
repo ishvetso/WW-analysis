@@ -211,7 +211,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      LumiWeights_ = edm::LumiReWeighting(MC_dist(), data_dist());
 
     genInfoToken = mayConsume<GenEventInfoProduct> (iConfig.getParameter<edm::InputTag>( "genInfo" ) );
-    LHEEventProductToken = mayConsume<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrc" ) );
+    if (isSignal) LHEEventProductToken = mayConsume<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrc" ) );
    }
 
  
