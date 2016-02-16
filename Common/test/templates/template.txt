@@ -1,16 +1,13 @@
 from WMCore.Configuration import Configuration
 config = Configuration()
-
 config.section_("General")
-config.General.requestName = 'WJets_Ht200To400_mu_$FEATURE$'
+config.General.requestName = '$PROCESS$_$CHANNEL$_$FEATURE$'
 config.General.workArea = 'crab_projects'
-
 config.section_("JobType")
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = '$configDIR$analysis_mu_MC.py'
-
+config.JobType.psetName = '$configDIR$analysis_$CHANNEL$$MCvsDATA$.py'
 config.section_("Data")
-config.Data.inputDataset = '/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'
+config.Data.inputDataset = '$SAMPLE$'
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
