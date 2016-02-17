@@ -37,7 +37,8 @@ def createFileForJob(processName, channel, sampleName, feature, configDIR, outDi
 			tempFile.write( line)
 	tempFile.close()
 	if wantToSubmit :
-		os.system("crab submit -c " + configDIR + outDir + "/" + processName + "-" + channel + ".py")
+		os.system("crab submit -c " + os.path.dirname(os.path.abspath(__file__)) + "/" + outDir + "/"  + processName + "-" + channel + ".py")
+		print "\033[0;40;32mtask:", processName + "-" + channel, "was submitted!\033[0m"
 	return;
 
 
@@ -85,4 +86,4 @@ DataDictionaryElectronChannel = {'data-RunC':'/SingleElectron/Run2015C_25ns-16De
 								 'data-RunD':'/SingleElectron/Run2015D-16Dec2015-v1/MINIAOD'}
 	
 
-submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, False)
+submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, True)
