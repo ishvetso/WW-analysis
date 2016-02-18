@@ -12,6 +12,7 @@ import re
 # 4) move the file the configurable directory
 
 # Author: Ivan Shvetsov, 5 of November 2015
+# Numquam ponenda est pluralitas sine necessitate
 
 def checkTaskStatus(taskName):
 	tmp = os.popen("crab status crab_projects/crab_" + taskName +  " | grep 'finished'").read()
@@ -36,24 +37,34 @@ def RetrieveTask(taskName, outputFileName, outDir):
 #RetrieveTask("WJets_Ht400To600_ele_4November2015", "WJets_Ht400To600_ele","/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_5November2015/" )
 
 TaskDictionaryName = {
-	"STop_s_channel_analysis":"s-ch",
-	"STop_t_channel_antitop":"t-ch_top",
-	"STop_t_channel_top": "t-ch_antitop",
-	"STop_tW_channel": "tW-ch",
+	"SingleTop-s-channel":"s-ch",
+	"SingleTop-t-channel":"t-ch",
+	"SingleTop-tW-channel-top": "tW-ch-top",
+	"SingleTop-tW-channel-antitop": "tW-ch-antitop",
 	"WW":"WW",
 	"WZ":"WZ",
 	"ttbar": "ttbar",
-	"WJets_Ht100To200":"WJets_Ht100To200",
-	"WJets_Ht200To400":"WJets_Ht200To400",
-	"WJets_Ht400To600":"WJets_Ht400To600",
-	"WJets_Ht600ToInf":"WJets_Ht600ToInf"	
+	"WJets_HT-100To200":"WJets_Ht100To200",
+	"WJets_HT-200To400":"WJets_Ht200To400",
+	"WJets_HT-400To600":"WJets_Ht400To600",
+	"WJets_HT-600To800":"WJets_Ht600To800",
+	"WJets_HT-800To1200":"WJets_Ht800To1200",
+	"WJets_HT1200To2500":"WJets_Ht1200To2500",
+	"WJets_HT2500ToInf":"WJets_Ht2500ToInf",
+	"WW-signal":"WW-signal",	
+	"WZ-signal":"WZ-signal",	
+	"data-RunC":"data-RunC",
+	"data-RunD":"data-RunD",
 }
 
 
 def Retrieval(feature, outDir):
+	if not os.path.exists(outDir):
+		os.makedirs(outDir)
+
 	for TaskName, OutName in TaskDictionaryName.items():
 		RetrieveTask(TaskName + "_mu_" + feature, OutName + "_mu", outDir)
 		RetrieveTask(TaskName + "_ele_" + feature, OutName + "_ele", outDir )
 
 
-Retrieval("4November2015", "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_5November2015/" )
+Retrieval("my_feature", "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_18February2016/" )
