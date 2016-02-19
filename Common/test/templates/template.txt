@@ -9,8 +9,9 @@ config.JobType.psetName = '$configDIR$analysis_$CHANNEL$$MCvsDATA$.py'
 config.section_("Data")
 config.Data.inputDataset = '$SAMPLE$'
 config.Data.inputDBS = 'global'
-config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 1
+config.Data.splitting = '$JOBSplitting$'
+config.Data.unitsPerJob = $UNITSPERJOB$
+$IsData$
 config.Data.publication = False
 config.section_("Site")
 config.Site.storageSite = 'T2_DE_DESY'
