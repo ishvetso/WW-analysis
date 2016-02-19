@@ -4,7 +4,10 @@ import fileinput
 import optparse
 import sys
 
-def createFileForJob(processName, channel, sampleName, feature, configDIR, outDir, isMC, isSignal, wantToSubmit=False, fileName='template.txt'):
+# Author: Ivan Shvetsov
+# Numquam ponenda est pluralitas sine necessitate
+
+def createFileForJob(processName, channel, sampleName, feature, configDIR, outDir, YourJSONFile, RunRange, isMC, isSignal, wantToSubmit=False, fileName='template.txt'):
 	if not os.path.exists(outDir):
     		os.makedirs(outDir)
 
@@ -14,6 +17,9 @@ def createFileForJob(processName, channel, sampleName, feature, configDIR, outDi
 	patternSample = "$SAMPLE$"
 	patternMCvsData= "$MCvsDATA$"
 	configDIRToSearch = "$configDIR$"
+	patternJobSplitting = "$JOBSplitting$"
+	patternForDataOnly = "$IsData$"
+	patterUnitPerJob = "$UNITSPERJOB$"
 
 
 	fileTemplate = 'templates/' + fileName
@@ -33,6 +39,22 @@ def createFileForJob(processName, channel, sampleName, feature, configDIR, outDi
 				raise ValueError('This should not happen!')
 		elif patternSample in line:
 			tempFile.write( line.replace( patternSample, sampleName))
+		elif patternJobSplitting in line:
+			if isMC :
+				tempFile.write( line.replace( patternJobSplitting, "FileBased"))
+			else :
+				tempFile.write( line.replace( patternJobSplitting, "LumiBased"))
+		elif patternForDataOnly in line:
+			if not isMC:
+				tempFile.write( "config.Data.lumiMask = '" + YourJSONFile + "'\n")
+				tempFile.write( "config.Data.runRange = '" + RunRange + "'\n")
+			else :
+				continue
+		elif patterUnitPerJob in line :
+			if isMC :
+				tempFile.write( line.replace( patterUnitPerJob, "2"))
+			else :
+				tempFile.write( line.replace( patterUnitPerJob, "20"))
 		else:
 			tempFile.write( line)
 	tempFile.close()
@@ -48,17 +70,17 @@ parser.add_option('-d', '--dir', dest="directory", default='/afs/cern.ch/work/i/
 (options, arg) = parser.parse_args()
 
 
-def submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, wantToSubmit=False):
-	for key in MCBackgroundsSampleDictionary:
-		createFileForJob(key, "mu", MCBackgroundsSampleDictionary[key], options.Feature, options.directory,  "crabConfigs", True, False, wantToSubmit)
-		createFileForJob(key, "ele", MCBackgroundsSampleDictionary[key], options.Feature, options.directory,  "crabConfigs", True, False, wantToSubmit)
-	for key in SignalMCSampleDictionary:
-		createFileForJob(key, "mu", SignalMCSampleDictionary[key], options.Feature, options.directory,  "crabConfigs", True, True, wantToSubmit)
-		createFileForJob(key, "ele", SignalMCSampleDictionary[key], options.Feature, options.directory,  "crabConfigs", True, True, wantToSubmit)
+def submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, JSONFile, YourRunRange,wantToSubmit=False):
+	#for key in MCBackgroundsSampleDictionary:
+		createFileForJob(key, "mu", MCBackgroundsSampleDictionary[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, True, False, wantToSubmit)
+		createFileForJob(key, "ele", MCBackgroundsSampleDictionary[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, True, False, wantToSubmit)
+	#for key in SignalMCSampleDictionary:
+		createFileForJob(key, "mu", SignalMCSampleDictionary[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, True, True, wantToSubmit)
+		createFileForJob(key, "ele", SignalMCSampleDictionary[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, True, True, wantToSubmit)
 	for key in DataDictionaryElectronChannel:
-		createFileForJob(key, "ele", DataDictionaryElectronChannel[key], options.Feature, options.directory,  "crabConfigs", False, True, wantToSubmit)
+		createFileForJob(key, "ele", DataDictionaryElectronChannel[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, False, True, wantToSubmit)
 	for key in DataDictionaryMuonChannel:
-		createFileForJob(key, "mu", DataDictionaryMuonChannel[key], options.Feature, options.directory,  "crabConfigs", False, True, wantToSubmit)
+		createFileForJob(key, "mu", DataDictionaryMuonChannel[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, False, True, wantToSubmit)
 
 
 MCBackgroundsSampleDictionary =    {'ttbar':'/TTJets_13TeV-amcatnloFXFX-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/MINIAODSIM',
@@ -84,6 +106,8 @@ DataDictionaryMuonChannel = {'data-RunC':'/SingleMuon/Run2015C_25ns-16Dec2015-v1
 
 DataDictionaryElectronChannel = {'data-RunC':'/SingleElectron/Run2015C_25ns-16Dec2015-v1/MINIAOD',
 								 'data-RunD':'/SingleElectron/Run2015D-16Dec2015-v1/MINIAOD'}
+
+MyJSON = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt"
 	
 
-submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, True)
+submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, MyJSON,"254000-261000", False)
