@@ -71,10 +71,10 @@ parser.add_option('-d', '--dir', dest="directory", default='/afs/cern.ch/work/i/
 
 
 def submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, JSONFile, YourRunRange,wantToSubmit=False):
-	#for key in MCBackgroundsSampleDictionary:
+	for key in MCBackgroundsSampleDictionary:
 		createFileForJob(key, "mu", MCBackgroundsSampleDictionary[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, True, False, wantToSubmit)
 		createFileForJob(key, "ele", MCBackgroundsSampleDictionary[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, True, False, wantToSubmit)
-	#for key in SignalMCSampleDictionary:
+	for key in SignalMCSampleDictionary:
 		createFileForJob(key, "mu", SignalMCSampleDictionary[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, True, True, wantToSubmit)
 		createFileForJob(key, "ele", SignalMCSampleDictionary[key], options.Feature, options.directory,  "crabConfigs",  JSONFile, YourRunRange, True, True, wantToSubmit)
 	for key in DataDictionaryElectronChannel:
