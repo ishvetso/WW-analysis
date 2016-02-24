@@ -12,6 +12,8 @@
 #include <sstream>
 #include <map>
 #include "Plotter.cpp"
+#include "TThread.h"
+
 
 void draw(std::string channel, std::string region)
 {
@@ -23,18 +25,10 @@ void draw(std::string channel, std::string region)
 		std::cerr << "Control region should be ttbar or WJets.Stopped." << std::endl;
 		exit(0);
 	}
-	vector <Var> variables;
+
+	std::vector<Var> variables;
+
 	Var var;
-	var.VarName = "jet_mass_pruned";
-	var.Title = "m_{jet pruned}";
-	var.SetRange(40., 130.);
-	variables.push_back(var);
-
-	var.VarName = "m_lvj";
-	var.Title = "m_{WV}";
-	var.SetRange(400., 2500.);
-	variables.push_back(var);
-
 	var.VarName = "nPV";
 	var.Title = "n_{PV}";
 	var.SetRange(0., 30.);
@@ -176,7 +170,6 @@ void draw(std::string channel, std::string region)
 
 
 
-
 	Plotter p;
 
 	if (channel == "mu")p = Plotter(MUON);
@@ -266,7 +259,7 @@ void draw(std::string channel, std::string region)
 	p.DataSample = dataSample;
 	p.SignalSample = signalSample;
 	p.withData = true;
- 	p.Plotting(("plots_25ns_" + channel + "_9February2016_WJets_control_region/").c_str());
+ 	p.PlotAllVars(("plots_25ns_" + channel + "_9February2016_WJets_control_region/").c_str());
 
 }
 
@@ -280,8 +273,10 @@ void draw(std::string channel, std::string region)
 
 int main(int argc, char* argv[]){
 
+
 	if (argc != 3) std::cerr << "You should use only 2 arguments ..." << std::endl; 
- 	draw(string(argv[1]), string(argv[2]));
+	draw(string(argv[1]), string(argv[2]));
+ 	
 }
 
 

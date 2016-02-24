@@ -18,6 +18,12 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include <thread>
+#include <iostream>
+#include <cmath>
+#include <future>
+#include <functional>
+#include <TThread.h>
 #include <stdio.h>      
 #include <stdlib.h>  
 #include <Sample.hpp>
@@ -56,9 +62,13 @@ class Plotter
 	void SetVar(vector <Var> variables_);
 	void SetSamples(vector <Sample> samples_);	
 	void SetDataSample(Sample sample_);
-	void Plotting(std::string OutPrefix_);
-	void PlottingVar(std::string OutPrefix_, Var var);
+	void GetHist(Sample sample_, Var var_, std::string TreeName, TH1D *& hist_);
+	void GetHistFromSingleFile(std::string filename_, Var var_, Sample sample_, std::string TreeName, int Number, TH1D *& hist_);
+	void GetHistThreaded(Sample sample_, Var var_, const  std::string & TreeName, TH1D *& hist_);
+	
+	void PlottingSingleVar(std::string OutPrefix_, Var var);
 	void Systematics(Var var, TH1D *& hist_nominal);
+	void PlotAllVars(std::string OutPrefix_);
 	
 
 };
