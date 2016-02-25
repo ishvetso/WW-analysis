@@ -37,6 +37,7 @@ void Plotter::GetHist(Sample sample_, Var var_, std::string TreeName, TH1D *& hi
 
 	for (uint file_i = 0; file_i < sample_.filenames.size(); ++file_i)
 	{
+    	std::cout << sample_.filenames.at(file_i) << std::endl;
     	TFile file((sample_.filenames.at(file_i)).c_str(), "READ");
 		TTree * tree = (TTree*)file.Get(TreeName.c_str());
 		TH1D *temp = new TH1D(((sample_.Processname)+ "_temp").c_str(),((sample_.Processname)+ "_temp").c_str(), Nbins,var_.Range.low, var_.Range.high);
@@ -46,6 +47,7 @@ void Plotter::GetHist(Sample sample_, Var var_, std::string TreeName, TH1D *& hi
 }
 
 void Plotter::GetHistFromSingleFile(std::string filename_, Var var_, Sample sample_, std::string TreeName, int Number, TH1D *& hist_){
+	std::cout <<  "from the thread : " << filename_ << std::endl;
    	TFile file(filename_.c_str(), "READ");
 	TTree * tree = (TTree*)file.Get(TreeName.c_str());
 	TH1D *temp = new TH1D((sample_.Processname +  "temp_" + var_.VarName + to_string(Number)).c_str(),(sample_.Processname +  "temp_" + var_.VarName + to_string(Number)).c_str(), Nbins,var_.Range.low, var_.Range.high);
@@ -60,6 +62,7 @@ void Plotter::GetHistThreaded(Sample sample_, Var var_, const  std::string & Tre
 	int Nthread = sample_.filenames.size();
 	TThread *t[Nthread];
 	std::thread workers[Nthread];
+	std::cout << "Let's go threaded .. " << std::endl;
 	TThread::Initialize();
 	for (uint file_i = 0; file_i < sample_.filenames.size(); ++file_i)
 	{
@@ -73,7 +76,8 @@ void Plotter::GetHistThreaded(Sample sample_, Var var_, const  std::string & Tre
 	for (uint file_i = 0; file_i < sample_.filenames.size(); ++file_i)
 	{
     	t[file_i] -> Join();
-    	workers[file_i].join();    	
+    	workers[file_i].join(); 
+    	delete t[file_i];   	
 
 	}
 
@@ -114,7 +118,7 @@ void Plotter::PlottingSingleVar(std::string OutPrefix_, Var var)
 
 	TH1D *signalHist = new TH1D((SignalSample.Processname + var.VarName ).c_str(), (SignalSample.Processname + var.VarName).c_str(), Nbins, var.Range.low, var.Range.high);
 	signalHist -> Sumw2();
-	 GetHistThreaded(SignalSample, var, "treeDumper/BasicTree", signalHist);
+	 GetHist(SignalSample, var, "treeDumper/BasicTree", signalHist);
   	signalHist -> SetLineColor(SignalSample.color);
   	signalHist -> SetLineWidth(2.);
 
@@ -329,63 +333,65 @@ void Plotter::Systematics(Var var, TH1D *& hist_nominal)
 		hist_SystUp -> Sumw2();
 		hist_SystDown -> Sumw2();
 
-		 for (uint process_i = 0; process_i < samples.size(); process_i++)
-		  {		
+		Sample MCSamples;
+		vector<std::vector<std::string>> MCfileNames;
+		std::string selectionPattern = samples[0].selection;
+
+		for (uint process_i = 0; process_i < samples.size(); process_i++)
+		  {	
+			for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
+			{	
+		   		if (samples.at(process_i).selection == selectionPattern) MCSamples.filenames.push_back(samples.at(process_i).filenames.at(file_i));
+		   		else std::cerr << "that's crazy!" << std::endl;
+			} 
+		}
+		MCSamples.selection = selectionPattern;
+		MCSamples.Processname = "MC";
+
 		    
-		    std::string selection_Up = samples.at(process_i).selection;
-		    std::string selection_Down = samples.at(process_i).selection;
+	    std::string selection_Up = MCSamples.selection;
+	    std::string selection_Down = MCSamples.selection;
 
-	       //split the string of selection, this is needed because some of variables start with the same characters, thus we split the string to be sure we get correct variable
-	       std::vector<std::string> splittedSelectionUp;	
-	       boost::split(splittedSelectionUp,selection_Up,boost::is_any_of(" *+=-:/)(|&<>0123456789."));
-	       //erase duplicates from the string
-	       std::sort(splittedSelectionUp.begin(), splittedSelectionUp.end());
-	       splittedSelectionUp.erase(std::unique(splittedSelectionUp.begin(), splittedSelectionUp.end()), splittedSelectionUp.end());
-	       //std::cout << selection_Up << std::endl;
-	       //std::cout << selection_Down << std::endl;
-	       for (unsigned int iS = 0; iS < splittedSelectionUp.size(); iS ++){
-	      		if (splittedSelectionUp[iS].empty()) continue;
-	      		bool found = false;
-	      		for (unsigned int iVarSyst = 0 ; iVarSyst < VariablesAffected[ListOfSystematics.at(iSyst)].size(); iVarSyst ++){
-	      		 	 found = ( VariablesAffected[ListOfSystematics.at(iSyst)].at(iVarSyst) == splittedSelectionUp[iS] );
-	      			if (found) {
-	      				boost::replace_all(selection_Up,    VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_" + ListOfSystematics.at(iSyst) + "Up");
-	      				boost::replace_all(selection_Down,  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_"+ ListOfSystematics.at(iSyst) + "Down");
-	      				continue;
-	      			}
-	       		}
-	      	}
-		    //beginning of cycle over files corresponding to each process
-		    TChain chain("BasicTree");
-		    Sample MCSamples;
-		    vector<std::vector<std::string>> MCfileNames;
-		    for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
-		    {
-		      chain.Add(((samples.at(process_i)).filenames.at(file_i)).c_str());
-		    } 
-		    TH1D *tempUp = new TH1D((((samples.at(process_i)).Processname)+ "_tempUp").c_str(),((samples.at(process_i)).Processname + "_tempUp").c_str(), Nbins,var.Range.low, var.Range.high);
-		    TH1D *tempDown = new TH1D((((samples.at(process_i)).Processname)+ "_tempDown").c_str(),((samples.at(process_i)).Processname + "_tempDown").c_str(), Nbins,var.Range.low, var.Range.high);	
-		    tempUp -> Sumw2();
-		    tempDown -> Sumw2();
-
-		    if (isAffected){
-		    	chain.Project(((samples.at(process_i)).Processname + "_tempUp").c_str(), ( var.VarName  + "_" + ListOfSystematics.at(iSyst) + "Up").c_str(), selection_Up.c_str() );
-		    	chain.Project(((samples.at(process_i)).Processname + "_tempDown").c_str(), ( var.VarName  + "_"  + ListOfSystematics.at(iSyst) + "Down").c_str(), selection_Down.c_str()	 );
-		  	  }
-		  	else {
-		  		chain.Project(((samples.at(process_i)).Processname + "_tempUp").c_str(), ( var.VarName ).c_str(),  selection_Up.c_str() );
-		      	chain.Project(((samples.at(process_i)).Processname + "_tempDown").c_str(), ( var.VarName ).c_str(),  selection_Down.c_str() );
-		  	}
-		      
-		    hist_SystUp -> Add(tempUp);	     
-		    hist_SystDown -> Add(tempDown);	       
-
-		    delete tempUp;
-		    delete tempDown;
-
-		  }//end of the cycle over processes
-
-		
+	    //split the string of selection, this is needed because some of variables start with the same characters, thus we split the string to be sure we get correct variable
+	    std::vector<std::string> splittedSelectionUp;	
+	    boost::split(splittedSelectionUp,selection_Up,boost::is_any_of(" *+=-:/)(|&<>0123456789."));
+	    //erase duplicates from the string
+	    std::sort(splittedSelectionUp.begin(), splittedSelectionUp.end());
+	    splittedSelectionUp.erase(std::unique(splittedSelectionUp.begin(), splittedSelectionUp.end()), splittedSelectionUp.end());
+	    //std::cout << selection_Up << std::endl;
+	    //std::cout << selection_Down << std::endl;
+	    for (unsigned int iS = 0; iS < splittedSelectionUp.size(); iS ++){
+	    	if (splittedSelectionUp[iS].empty()) continue;
+	    	bool found = false;
+	    	for (unsigned int iVarSyst = 0 ; iVarSyst < VariablesAffected[ListOfSystematics.at(iSyst)].size(); iVarSyst ++){
+	    	 	 found = ( VariablesAffected[ListOfSystematics.at(iSyst)].at(iVarSyst) == splittedSelectionUp[iS] );
+	    		if (found) {
+	    			boost::replace_all(selection_Up,    VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_" + ListOfSystematics.at(iSyst) + "Up");
+	    			boost::replace_all(selection_Down,  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_"+ ListOfSystematics.at(iSyst) + "Down");
+	    			continue;
+	    		}
+	    	}
+	    }
+		 
+		Sample MCSamplesUp, MCSamplesDown;
+		MCSamplesUp = MCSamples;
+		MCSamplesDown = MCSamples;
+		MCSamplesUp.selection = selection_Up;
+		MCSamplesDown.selection = selection_Down;
+		Var var_Up, var_Down;
+		var_Up = var;
+		var_Down = var;
+		var_Up.VarName = var.VarName  + "_" + ListOfSystematics.at(iSyst) + "Up";
+		var_Down.VarName = var.VarName  + "_" + ListOfSystematics.at(iSyst) + "Down";
+		if (isAffected){
+			GetHistThreaded(MCSamplesUp, var_Up, "BasicTree", hist_SystUp);
+			GetHistThreaded(MCSamplesDown, var_Down, "BasicTree", hist_SystDown);
+		}
+		else {
+			GetHistThreaded(MCSamplesUp, var, "BasicTree", hist_SystUp);
+			GetHistThreaded(MCSamplesDown, var, "BasicTree", hist_SystDown);
+		}
+		   	
 		  	    
 		  //now sum up the differences quadratically
 		 for (unsigned int iBin = 1; iBin <= hist_nominal -> GetNbinsX(); iBin ++){

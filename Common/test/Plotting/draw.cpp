@@ -39,7 +39,7 @@ void draw(std::string channel, std::string region)
 	var.SetRange(50., 800.);
 	variables.push_back(var);
 
-	var.VarName = "l_eta";
+	/*var.VarName = "l_eta";
 	var.Title = "#eta_{lepton}";
 	var.SetRange(-2.5, 2.5);
 	variables.push_back(var);
@@ -166,7 +166,7 @@ void draw(std::string channel, std::string region)
 	var.VarName = "deltaPhi_WJetWlep";
 	var.Title = "#Delta#phi(WJet, WLep)";
 	var.SetRange(-3.2, 3.2);
-	variables.push_back(var);
+	variables.push_back(var);*/
 
 
 
