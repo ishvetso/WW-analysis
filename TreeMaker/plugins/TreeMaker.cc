@@ -40,6 +40,7 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -50,6 +51,7 @@
 #include "Particle.h"
 #include "SystematicsHelper.h"
 #include "PU.h"
+#include "PDFVariationMap.h"
 
 namespace reco {
   typedef edm::Ptr<reco::Muon> MuonPtr;
@@ -66,7 +68,9 @@ public:
   
 private:
   virtual void beginJob() override;
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&) override;
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+  virtual void endRun(edm::Run const& iEvent, edm::EventSetup const&) override;
   virtual void endJob() override;
   
   // ----------member data ---------------------------
@@ -126,6 +130,10 @@ private:
   double refXsec;
   //aTGC weights
   std::vector<double> aTGCWeights;
+
+  int NominalPDF;
+
+  std::vector<double> PDFWeights;
   
   
   //Defining Tokens
@@ -147,6 +155,8 @@ private:
   edm::EDGetTokenT<LHEEventProduct> LHEEventProductToken;
   edm::LumiReWeighting  LumiWeights_;
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
+  edm::EDGetTokenT<LHEEventProduct> LHEEventProductTokenExternal;
+  edm::EDGetTokenT<LHERunInfoProduct> lheProducerToken;
  
   //for JEC
   boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
@@ -212,6 +222,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      LumiWeights_ = edm::LumiReWeighting(MC_dist(), data_dist());
 
     genInfoToken = mayConsume<GenEventInfoProduct> (iConfig.getParameter<edm::InputTag>( "genInfo" ) );
+    LHEEventProductTokenExternal = mayConsume<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrcExternal" ) );
+    lheProducerToken = consumes< LHERunInfoProduct, edm::InRun >(edm::InputTag("externalLHEProducer"));
     
    }
 
@@ -232,6 +244,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   if (isMC) {
      outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
      outTree_->Branch("genWeight",       &genWeight,     "genWeight/D"          );
+     outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
    };
   
   //number of loose leptons
@@ -433,7 +446,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   }
 
  if (isSignal) {
-  outTree_ -> Branch("aTGCWeights",  &aTGCWeights);
+  outTree_ -> Branch("aTGCWeights", "std::vector<double>",  &aTGCWeights);
   outTree_ -> Branch("refXsec", &refXsec, "refXsec/D");
   }
 
@@ -516,6 +529,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle<std::vector< PileupSummaryInfo > >  PUInfo;
    edm::Handle <GenEventInfoProduct> genInfo; 
    edm::Handle<LHEEventProduct> evtProduct;
+   
   if (isMC) {
     iEvent.getByToken(PUInfoToken_, PUInfo);
     std::vector<PileupSummaryInfo>::const_iterator PVI;
@@ -532,6 +546,29 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    iEvent.getByToken( genInfoToken , genInfo);
    genWeight = (genInfo -> weight());
+
+
+   //PDF uncertainties
+   edm::Handle<LHEEventProduct> LHEevtProductExternal;
+   iEvent.getByToken(LHEEventProductTokenExternal, LHEevtProductExternal);
+   range PDFRange = PDFVariationMap.at(NominalPDF);
+   
+   //define number of PDF variations 
+   unsigned int NPDFs = PDFRange.high - PDFRange.low + 1;
+   PDFWeights.clear();
+   PDFWeights.resize(NPDFs);
+
+   unsigned int iPDF_ID = PDFRange.low;
+   if (LHEevtProductExternal->weights().size() == 0 ) std::fill(PDFWeights.begin(), PDFWeights.end(), 1.);
+   for (unsigned int i=0; i<LHEevtProductExternal->weights().size(); i++) {
+    if (iPDF_ID > PDFRange.high) break;
+    if (LHEevtProductExternal->weights()[i].id == std::to_string(iPDF_ID)){
+      unsigned int iPDF = iPDF_ID - PDFRange.low;
+      PDFWeights.at(iPDF) = LHEevtProductExternal->weights()[i].wgt;
+      std::cout << iPDF_ID << std::endl;
+      iPDF_ID++;
+     }
+   }
 
    if(isSignal){
     iEvent.getByToken(LHEEventProductToken, evtProduct);
@@ -1074,6 +1111,29 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 
+void TreeMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
+
+
+  edm::Handle<LHERunInfoProduct> run; 
+
+
+  iRun.getByLabel( "externalLHEProducer", run );
+  std::cout << "Nominal : " << run->heprup().PDFSUP.first << std::endl;
+  NominalPDF = run->heprup().PDFSUP.first;
+  //typedef std::vector<LHERunInfoProduct::Header>::const_iterator headers_const_iterator;
+  //LHERunInfoProduct myLHERunInfoProduct = *(run.product());
+
+  /*for (headers_const_iterator iter=myLHERunInfoProduct.headers_begin(); iter!=myLHERunInfoProduct.headers_end(); iter++){
+  std::cout << iter->tag() << std::endl;
+  std::vector<std::string> lines = iter->lines();
+  for (unsigned int iLine = 0; iLine<lines.size(); iLine++) {
+   std::cout << lines.at(iLine);
+  }
+}*/
+
+}
+
+void TreeMaker::endRun(const edm::Run& iRun, const edm::EventSetup& iSetup){}
 // ------------ method called once each job just before starting event loop  ------------
 void 
 TreeMaker::beginJob()
