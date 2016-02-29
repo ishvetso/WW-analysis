@@ -134,6 +134,7 @@ private:
   int NominalPDF;
 
   std::vector<double> PDFWeights;
+  std::vector<double> ScaleWeights;
   
   
   //Defining Tokens
@@ -243,6 +244,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
      outTree_->Branch("genWeight",       &genWeight,     "genWeight/D"          );
      outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
+     outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
    };
   
   //number of loose leptons
@@ -553,19 +555,37 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //define number of PDF variations 
    unsigned int NPDFs = PDFRange.high - PDFRange.low + 1;
    PDFWeights.clear();
+   ScaleWeights.clear();
    PDFWeights.resize(NPDFs);
+   ScaleWeights.resize(9);
 
    unsigned int iPDF_ID = PDFRange.low;
+   //if there are no weights for PDF uncertainties just fill with ones, that's the case for tW single top  sample
    if (LHEevtProductExternal->weights().size() == 0 ) std::fill(PDFWeights.begin(), PDFWeights.end(), 1.);
    for (unsigned int i=0; i<LHEevtProductExternal->weights().size(); i++) {
     if (iPDF_ID > PDFRange.high) break;
     if (LHEevtProductExternal->weights()[i].id == std::to_string(iPDF_ID)){
       unsigned int iPDF = iPDF_ID - PDFRange.low;
       PDFWeights.at(iPDF) = (LHEevtProductExternal->weights()[i].wgt)/LHEevtProductExternal->originalXWGTUP();
-      std::cout << iPDF_ID << std::endl;
       iPDF_ID++;
      }
    }
+
+   //scale variation uncertainties
+   range RangeOfScaleVariation;
+   if (NominalPDF == 263000 ) RangeOfScaleVariation = range(1,9);
+   else RangeOfScaleVariation = range(1001, 1009);
+
+   unsigned int iScale_ID = RangeOfScaleVariation.low;
+   for (unsigned int i=0; i<LHEevtProductExternal->weights().size(); i++) {
+    if (iScale_ID > RangeOfScaleVariation.high) break;
+    if (LHEevtProductExternal->weights()[i].id == std::to_string(iScale_ID)){
+      unsigned int iScale = iScale_ID - RangeOfScaleVariation.low;
+      ScaleWeights.at(iScale) = (LHEevtProductExternal->weights()[i].wgt)/LHEevtProductExternal->originalXWGTUP();
+      iScale_ID++;
+     }
+   }
+
 
    if(isSignal){
     aTGCWeights.clear();
