@@ -104,7 +104,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseEleSrc = cms.InputTag("looseElectrons"),
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightElectrons"),
-                                    LHEEventProductSrc = cms.InputTag("source"),
+                                    LHEEventProductSrcExternal = cms.InputTag("source"),
                                     isMC = cms.bool(True),
                                     isSignal = cms.bool(True),
                                     channel = cms.string("el")
@@ -123,9 +123,8 @@ process.analysis = cms.Path( process.HBHENoiseFilterResultProducer + process.App
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/WWToLNuQQ_aTGC_13TeV-madgraph-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/50000/B64AA5AE-B5B8-E511-80FD-001EC9B21623.root'),
-    #eventsToProcess = cms.untracked.VEventRange('1:75:72317')
-    
+    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/WWToLNuQQ_aTGC_13TeV-madgraph-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/50000/2491B8AF-B5B8-E511-BEFD-00215AAFFBE8.root'),
+        
 )
 
 #file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_PHYS14.root'

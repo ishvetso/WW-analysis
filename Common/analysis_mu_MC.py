@@ -105,8 +105,9 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseEleSrc = cms.InputTag("looseElectrons"),
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightMuons"),
+                                    LHEEventProductSrcExternal = cms.InputTag("externalLHEProducer"),
                                     isMC = cms.bool(True),
-				    isSignal = cms.bool(False),
+				                    isSignal = cms.bool(False),
                                     channel = cms.string("mu")
                                     )
 
@@ -123,8 +124,7 @@ process.analysis = cms.Path(process.HBHENoiseFilterResultProducer + process.Appl
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/WWToLNuQQ_13TeV-powheg/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/00000/08ACEF6B-86B9-E511-BDA7-001D0970C217.root'),
-   # eventsToProcess = cms.untracked.VEventRange('1:509589:127270357')
+    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/10000/008262ED-4CB8-E511-BDF3-D067E5F90F2A.root'),
     
 )
 
