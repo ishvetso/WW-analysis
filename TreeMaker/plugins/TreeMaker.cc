@@ -152,7 +152,6 @@ private:
   edm::EDGetTokenT<double> rhoToken_;
   bool isSignal;
   std::string channel;
-  edm::EDGetTokenT<LHEEventProduct> LHEEventProductToken;
   edm::LumiReWeighting  LumiWeights_;
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
   edm::EDGetTokenT<LHEEventProduct> LHEEventProductTokenExternal;
@@ -212,8 +211,6 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   // Make the FactorizedJetCorrector
   jecAK8_ = boost::shared_ptr<FactorizedJetCorrector> ( new FactorizedJetCorrector(vPar) );
 
-  if (isSignal) LHEEventProductToken = consumes<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrc" ) );
-
   //loading PU and generator information for MC
    if (isMC) {
      PUInfoToken_ = consumes<std::vector< PileupSummaryInfo > >(iConfig.getParameter<edm::InputTag>("PUInfo"));
@@ -223,7 +220,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
 
     genInfoToken = mayConsume<GenEventInfoProduct> (iConfig.getParameter<edm::InputTag>( "genInfo" ) );
     LHEEventProductTokenExternal = mayConsume<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrcExternal" ) );
-    lheProducerToken = consumes< LHERunInfoProduct, edm::InRun >(edm::InputTag("externalLHEProducer"));
+    if(!isSignal)lheProducerToken = consumes< LHERunInfoProduct, edm::InRun >(edm::InputTag("externalLHEProducer"));
+    else lheProducerToken = consumes< LHERunInfoProduct, edm::InRun >(edm::InputTag("source"));
     
    }
 
@@ -528,7 +526,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    edm::Handle<std::vector< PileupSummaryInfo > >  PUInfo;
    edm::Handle <GenEventInfoProduct> genInfo; 
-   edm::Handle<LHEEventProduct> evtProduct;
    
   if (isMC) {
     iEvent.getByToken(PUInfoToken_, PUInfo);
@@ -564,21 +561,20 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (iPDF_ID > PDFRange.high) break;
     if (LHEevtProductExternal->weights()[i].id == std::to_string(iPDF_ID)){
       unsigned int iPDF = iPDF_ID - PDFRange.low;
-      PDFWeights.at(iPDF) = LHEevtProductExternal->weights()[i].wgt;
+      PDFWeights.at(iPDF) = (LHEevtProductExternal->weights()[i].wgt)/LHEevtProductExternal->originalXWGTUP();
       std::cout << iPDF_ID << std::endl;
       iPDF_ID++;
      }
    }
 
    if(isSignal){
-    iEvent.getByToken(LHEEventProductToken, evtProduct);
     aTGCWeights.clear();
-    refXsec = evtProduct -> originalXWGTUP();
-    aTGCWeights.resize(evtProduct->weights().size());
+    refXsec = LHEevtProductExternal -> originalXWGTUP();
+    aTGCWeights.resize(LHEevtProductExternal->weights().size());
     int weightNumber = 1;
-    if( evtProduct->weights().size() ) {
-      for ( unsigned int iwgt = 0; iwgt < evtProduct->weights().size(); ++iwgt ) {
-        const LHEEventProduct::WGT& wgt = evtProduct->weights().at(iwgt);
+    if( LHEevtProductExternal->weights().size() ) {
+      for ( unsigned int iwgt = 0; iwgt < LHEevtProductExternal->weights().size(); ++iwgt ) {
+        const LHEEventProduct::WGT& wgt = LHEevtProductExternal->weights().at(iwgt);
         if( boost::algorithm::contains(wgt.id, "mg_reweight_" + std::to_string(weightNumber))){
          aTGCWeights[iwgt] = wgt.wgt;
          weightNumber ++;
@@ -1117,7 +1113,8 @@ void TreeMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
   edm::Handle<LHERunInfoProduct> run; 
 
 
-  iRun.getByLabel( "externalLHEProducer", run );
+  if(!isSignal) iRun.getByLabel( "externalLHEProducer", run );
+  else iRun.getByLabel( "source", run );
   std::cout << "Nominal : " << run->heprup().PDFSUP.first << std::endl;
   NominalPDF = run->heprup().PDFSUP.first;
   //typedef std::vector<LHERunInfoProduct::Header>::const_iterator headers_const_iterator;
