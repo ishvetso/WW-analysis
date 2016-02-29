@@ -19,7 +19,7 @@ process.load("aTGCsAnalysis.Common.leptonicW_cff")
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
-process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_v12'
+process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_RunIIFall15DR76_v1'
 
 ##___________________________HCAL_Noise_Filter________________________________||
 process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')

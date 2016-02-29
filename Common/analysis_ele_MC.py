@@ -17,7 +17,7 @@ process.load("aTGCsAnalysis.Common.leptonicW_cff")
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
-process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_v12'
+process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_RunIIFall15DR76_v1'
 
 ##___________________________HCAL_Noise_Filter________________________________||
 process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
@@ -123,7 +123,7 @@ process.analysis = cms.Path( process.HBHENoiseFilterResultProducer + process.App
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/10000/008262ED-4CB8-E511-BDF3-D067E5F90F2A.root'),
+    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/TTJets_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/00000/000EEBFE-D1D0-E511-B584-0025905964BA.root'),
     
 )
 
