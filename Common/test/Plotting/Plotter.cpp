@@ -48,7 +48,8 @@ void Plotter::GetHist(Sample sample_, Var var_, std::string TreeName, TH1D *& hi
 
 void Plotter::GetHistFromSingleFile(std::string filename_, Var var_, Sample sample_, std::string TreeName, int Number, TH1D *& hist_){
 	std::cout <<  "from the thread : " << filename_ << std::endl;
-   	TFile file(filename_.c_str(), "READ");
+   	TThread t;
+	TFile file(filename_.c_str(), "READ");
 	TTree * tree = (TTree*)file.Get(TreeName.c_str());
 	TH1D *temp = new TH1D((sample_.Processname +  "temp_" + var_.VarName + to_string(Number)).c_str(),(sample_.Processname +  "temp_" + var_.VarName + to_string(Number)).c_str(), Nbins,var_.Range.low, var_.Range.high);
 	tree ->Project((sample_.Processname +  "temp_" + var_.VarName + to_string(Number)).c_str(),var_.VarName.c_str(), sample_.selection.c_str());
@@ -60,14 +61,14 @@ void* DoNothing(void*){}
 void Plotter::GetHistThreaded(Sample sample_, Var var_, const  std::string & TreeName, TH1D *& hist_){
 
 	int Nthread = sample_.filenames.size();
-	TThread *t[Nthread];
+	//TThread *t[Nthread];
 	std::thread workers[Nthread];
 	std::cout << "Let's go threaded .. " << std::endl;
 	TThread::Initialize();
 	for (uint file_i = 0; file_i < sample_.filenames.size(); ++file_i)
 	{
-    	t[file_i] = new TThread(("t" + to_string(file_i)).c_str(), DoNothing, (void*)0 );
-    	t[file_i] -> Run();
+    	//t[file_i] = new TThread(("t" + to_string(file_i)).c_str(), DoNothing, (void*)0 );
+    	//t[file_i] -> Run();
     	workers[file_i] = std::thread(std::bind(&Plotter::GetHistFromSingleFile,this, sample_.filenames.at(file_i), var_, sample_, TreeName, file_i, hist_ ));
 
 	}
@@ -75,9 +76,9 @@ void Plotter::GetHistThreaded(Sample sample_, Var var_, const  std::string & Tre
 
 	for (uint file_i = 0; file_i < sample_.filenames.size(); ++file_i)
 	{
-    	t[file_i] -> Join();
+    	//t[file_i] -> Join();
     	workers[file_i].join(); 
-    	delete t[file_i];   	
+    //	delete t[file_i];   	
 
 	}
 
