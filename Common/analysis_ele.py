@@ -16,7 +16,7 @@ process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
-process.GlobalTag.globaltag = '76X_dataRun2_v15'
+process.GlobalTag.globaltag = '76X_dataRun2_16Dec2015_v0'
 
 
 ##___________________________HCAL_Noise_Filter________________________________||

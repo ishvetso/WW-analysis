@@ -1133,8 +1133,9 @@ void TreeMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
   edm::Handle<LHERunInfoProduct> run; 
 
 
-  if(!isSignal) iRun.getByLabel( "externalLHEProducer", run );
-  else iRun.getByLabel( "source", run );
+  if(!isSignal && isMC) iRun.getByLabel( "externalLHEProducer", run );
+  else if (isSignal )iRun.getByLabel( "source", run );
+  else return;
   std::cout << "Nominal : " << run->heprup().PDFSUP.first << std::endl;
   NominalPDF = run->heprup().PDFSUP.first;
   //typedef std::vector<LHERunInfoProduct::Header>::const_iterator headers_const_iterator;
