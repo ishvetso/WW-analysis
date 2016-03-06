@@ -5,6 +5,7 @@ struct range
 {
   double low;
   double high;
+  range (){};
   range(double low_, double high_):low(low_),high(high_){};
   
 };
