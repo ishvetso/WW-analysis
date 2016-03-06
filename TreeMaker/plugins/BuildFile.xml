@@ -9,6 +9,7 @@
 <use name="DataFormats/Math"/>
 <use name="CondFormats/JetMETObjects"/>
 <use name="JetMETCorrections/Objects"/>
+<use name="JetMETCorrections/Modules"/>
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="PhysicsTools/Utilities"/>
 <use name="root"/>
