@@ -45,6 +45,7 @@
 
 #include "TTree.h"
 #include "TFile.h"
+#include "TH2F.h"
 #include "TLorentzVector.h"
 
 #include "DecayChannel.h"
@@ -53,6 +54,7 @@
 #include "SystematicsHelper.h"
 #include "PU.h"
 #include "PDFVariationMap.h"
+#include "getScaleFactor.h"
 
 namespace reco {
   typedef edm::Ptr<reco::Muon> MuonPtr;
@@ -86,6 +88,7 @@ private:
   double PUweight;
 
   double genWeight;
+  double LeptonSF;
   double rho_;
   
   Particle Wboson_lep, METCand, Electron, Muon, Lepton;
@@ -242,8 +245,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("rho",       &rho_,     "rho/D"          );
   //PUweight
   if (isMC) {
-     outTree_->Branch("PUweight",       &PUweight,     "PUweight/D"          );
-     outTree_->Branch("genWeight",       &genWeight,     "genWeight/D"          );
+     outTree_->Branch("puweight",       &PUweight,     "puweight/D"          );
+     outTree_->Branch("LeptonSF",       &LeptonSF,     "LeptonSF/D"          );
+     outTree_->Branch("genweight",       &genWeight,     "genweight/D"          );
      outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
    };
@@ -408,7 +412,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet_eta",  	      &jet_eta,	  	  "jet_eta/D"   );
   outTree_->Branch("jet_phi",  	      &jet_phi,	  	  "jet_phi/D"   );
   outTree_->Branch("jet_mass",         &jet_mass,       "jet_mass/D"   );
-  outTree_->Branch("jet_mass_pruned", &jet_mass_pruned,	  "jet_mass_pruned/D"   );
+  outTree_->Branch("Mjpruned", &jet_mass_pruned,	  "Mjpruned/D"   );
   outTree_->Branch("jet_mass_softdrop",&jet_mass_softdrop,"jet_mass_softdrop/D"   );
   outTree_->Branch("jet_tau2tau1",    &jet_tau2tau1,	  "jet_tau2tau1/D"   );
 
@@ -420,8 +424,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     outTree_->Branch("jet_mass_JECUp",    &jet_mass_JECUp,    "jet_mass_JECUp/D"   ); 
     outTree_->Branch("jet_mass_JECDown",    &jet_mass_JECDown,    "jet_mass_JECDown/D"   );  
     
-    outTree_->Branch("jet_mass_pruned_JECUp",    &jet_mass_pruned_JECUp,    "jet_mass_pruned_JECUp/D"   ); 
-    outTree_->Branch("jet_mass_pruned_JECDown",    &jet_mass_pruned_JECDown,    "jet_mass_pruned_JECDown/D"   );  
+    outTree_->Branch("Mjpruned_JECUp",    &jet_mass_pruned_JECUp,    "Mjpruned_JECUp/D"   ); 
+    outTree_->Branch("Mjpruned_JECDown",    &jet_mass_pruned_JECDown,    "Mjpruned_JECDown/D"   );  
     
     outTree_->Branch("jet_mass_softdrop_JECUp",    &jet_mass_softdrop_JECUp,    "jet_mass_softdrop_JECUp/D"   ); 
     outTree_->Branch("jet_mass_softdrop_JECDown",    &jet_mass_softdrop_JECDown,    "jet_mass_softdrop_JECDown/D"   );  
@@ -434,16 +438,16 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet3_pt",  	      &jet3_pt,	          "jet3_pt/D"   );
   outTree_->Branch("jet3_btag",	      &jet3_btag,         "jet3_btag/D"   );
   
-  outTree_->Branch("m_lvj",	      &m_lvj,         "m_lvj/D"   );
+  outTree_->Branch("MWW",	      &m_lvj,         "MWW/D"   );
   if (isMC) {
-    outTree_->Branch("m_lvj_UnclEnUp",       &m_lvj_UnclEnUp,         "m_lvj_UnclEnUp/D"   );
-    outTree_->Branch("m_lvj_UnclEnDown",       &m_lvj_UnclEnDown,         "m_lvj_UnclEnDown/D"   );      
-    outTree_->Branch("m_lvj_JECUp",       &m_lvj_JECUp,         "m_lvj_JECUp/D"   );
-    outTree_->Branch("m_lvj_JECDown",       &m_lvj_JECDown,         "m_lvj_JECDown/D"   );  
-    outTree_->Branch("m_lvj_LeptonEnUp",       &m_lvj_LeptonEnUp,         "m_lvj_LeptonEnUp/D"   );
-    outTree_->Branch("m_lvj_LeptonEnDown",       &m_lvj_LeptonEnDown,         "m_lvj_LeptonEnDown/D"   );      
-    outTree_->Branch("m_lvj_LeptonResUp",       &m_lvj_LeptonResUp,         "m_lvj_LeptonResUp/D"   );
-    outTree_->Branch("m_lvj_LeptonResDown",       &m_lvj_LeptonResDown,         "m_lvj_LeptonResDown/D"   );      
+    outTree_->Branch("MWW_UnclEnUp",       &m_lvj_UnclEnUp,         "MWW_UnclEnUp/D"   );
+    outTree_->Branch("MWW_UnclEnDown",       &m_lvj_UnclEnDown,         "MWW_UnclEnDown/D"   );      
+    outTree_->Branch("MWW_JECUp",       &m_lvj_JECUp,         "MWW_JECUp/D"   );
+    outTree_->Branch("MWW_JECDown",       &m_lvj_JECDown,         "MWW_JECDown/D"   );  
+    outTree_->Branch("MWW_LeptonEnUp",       &m_lvj_LeptonEnUp,         "MWW_LeptonEnUp/D"   );
+    outTree_->Branch("MWW_LeptonEnDown",       &m_lvj_LeptonEnDown,         "MWW_LeptonEnDown/D"   );      
+    outTree_->Branch("MWW_LeptonResUp",       &m_lvj_LeptonResUp,         "MWW_LeptonResUp/D"   );
+    outTree_->Branch("MWW_LeptonResDown",       &m_lvj_LeptonResDown,         "MWW_LeptonResDown/D"   );      
   }
 
  if (isSignal) {
@@ -546,6 +550,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    iEvent.getByToken( genInfoToken , genInfo);
    genWeight = (genInfo -> weight());
+
+
 
 
    //PDF uncertainties
@@ -660,9 +666,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        Lepton.pt_LeptonResUp = LeptonSystMap.at("LeptonResUp").Pt();
        Lepton.pt_LeptonResDown = LeptonSystMap.at("LeptonResDown").Pt();
     }
-   }
-
-    
+   }    
    else 
    {
      Lepton.pt = -99.;
@@ -673,6 +677,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Lepton.pt_LeptonResUp = -99.;
      Lepton.pt_LeptonResDown = -99.;
    }
+
+  
+  LeptonSF = getScaleFactor(Lepton.pt, std::abs(Lepton.eta));
+ 
 
    //leptonically decaying W
    if (leptonicVs -> size() > 0)
@@ -978,6 +986,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     double corr = jecAK8_->getCorrection();
     jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
     jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
+
 
     //JEC uncertainty
     jet_pt_JECDown = (1 - JECunc)*jet_pt;
