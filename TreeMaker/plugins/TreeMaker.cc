@@ -41,6 +41,7 @@
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -185,11 +186,11 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   SystematicsHelper_(SystematicsHelper())
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
-  edm::FileInPath L2("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L2Relative_AK8PFchs.txt");
-  edm::FileInPath L3("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_L3Absolute_AK8PFchs.txt");
-  edm::FileInPath L2Data("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_DATA_L2Relative_AK8PFchs.txt");
-  edm::FileInPath L3Data("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_DATA_L3Absolute_AK8PFchs.txt");
-  edm::FileInPath L2L3Res("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_DATA_L2L3Residual_AK8PFchs.txt"); 
+  edm::FileInPath L2("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_MC_L2Relative_AK8PFchs.txt");
+  edm::FileInPath L3("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_MC_L3Absolute_AK8PFchs.txt");
+  edm::FileInPath L2Data("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L2Relative_AK8PFchs.txt");
+  edm::FileInPath L3Data("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L3Absolute_AK8PFchs.txt");
+  edm::FileInPath L2L3Res("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L2L3Residual_AK8PFchs.txt"); 
   std::vector<std::string> jecAK8PayloadNames_;
   if (isMC){
     jecAK8PayloadNames_.push_back(L2.fullPath());
@@ -604,22 +605,17 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
 
   }
-  /*edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
+  edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
   iSetup.get<JetCorrectionsRecord>().get("AK8PFchs",JetCorParCollAK8);
 
   JetCorrectorParameters const & JetCorPar = (*JetCorParCollAK8)["Uncertainty"];
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);*/
-  //edm::FileInPath JECUncertainty("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_Uncertainty_AK8PFchs.txt");
-  edm::FileInPath JECUncertainty("aTGCsAnalysis/TreeMaker/data/Summer15_25nsV5_MC_Uncertainty_AK8PFchs.txt");
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JECUncertainty.fullPath());
+  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
   jecUnc->setJetEta((jets -> at(0)).eta());
   jecUnc->setJetPt((jets -> at(0)).pt()); // here you must use the CORRECTED jet pt
  
   JECunc = jecUnc->getUncertainty(true);
 
-
-   
       
    //  Defining decay channel on the gen level
    N_had_Wgen  = 0, N_lep_Wgen = 0 ;
