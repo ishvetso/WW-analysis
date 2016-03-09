@@ -451,7 +451,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   }
 
  if (isSignal) {
-  outTree_ -> Branch("aTGCWeights", "std::vector<double>",  &aTGCWeights);
+  outTree_ -> Branch("aTGCWeights",  &aTGCWeights);
   outTree_ -> Branch("refXsec", &refXsec, "refXsec/D");
   }
 
@@ -597,13 +597,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(isSignal){
     aTGCWeights.clear();
     refXsec = LHEevtProductExternal -> originalXWGTUP();
-    aTGCWeights.resize(LHEevtProductExternal->weights().size());
     int weightNumber = 1;
     if( LHEevtProductExternal->weights().size() ) {
       for ( unsigned int iwgt = 0; iwgt < LHEevtProductExternal->weights().size(); ++iwgt ) {
         const LHEEventProduct::WGT& wgt = LHEevtProductExternal->weights().at(iwgt);
         if( boost::algorithm::contains(wgt.id, "mg_reweight_" + std::to_string(weightNumber))){
-         aTGCWeights[iwgt] = wgt.wgt;
+          std::cout << wgt.id <<  " " << wgt.wgt << std::endl;
+          aTGCWeights.push_back(wgt.wgt);
          weightNumber ++;
        }
       }
