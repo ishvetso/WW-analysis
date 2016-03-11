@@ -33,13 +33,13 @@
 #include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/CMS_lumi.cpp>
 #include <boost/algorithm/string/replace.hpp>
 #include "boost/algorithm/string.hpp"
-
+#include <mutex>
 /*
  * Class to make data-MC comparison plots
  */
 
 typedef unsigned int uint;
-
+std::mutex PlotterMutex;
 enum CHANNEL {
 	ELECTRON,	MUON
 };
