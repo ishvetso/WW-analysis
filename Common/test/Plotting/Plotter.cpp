@@ -53,7 +53,9 @@ void Plotter::GetHistFromSingleFile(std::string filename_, Var var_, Sample samp
 	TTree * tree = (TTree*)file.Get(TreeName.c_str());
 	TH1D *temp = new TH1D((sample_.Processname +  "temp_" + var_.VarName + to_string(Number)).c_str(),(sample_.Processname +  "temp_" + var_.VarName + to_string(Number)).c_str(), Nbins,var_.Range.low, var_.Range.high);
 	tree ->Project((sample_.Processname +  "temp_" + var_.VarName + to_string(Number)).c_str(),var_.VarName.c_str(), sample_.selection.c_str());
+	PlotterMutex.lock();
 	hist_ -> Add(temp);
+	PlotterMutex.unlock();
 	delete temp;
 }
 
@@ -62,14 +64,14 @@ void Plotter::GetHistThreaded(Sample sample_, Var var_, const  std::string & Tre
 
 	int Nthread = sample_.filenames.size();
 	//TThread *t[Nthread];
-	std::thread workers[Nthread];
+	std::thread * workers[Nthread];
 	std::cout << "Let's go threaded .. " << std::endl;
 	TThread::Initialize();
 	for (uint file_i = 0; file_i < sample_.filenames.size(); ++file_i)
 	{
     	//t[file_i] = new TThread(("t" + to_string(file_i)).c_str(), DoNothing, (void*)0 );
     	//t[file_i] -> Run();
-    	workers[file_i] = std::thread(std::bind(&Plotter::GetHistFromSingleFile,this, sample_.filenames.at(file_i), var_, sample_, TreeName, file_i, hist_ ));
+    	workers[file_i] = new std::thread(std::bind(&Plotter::GetHistFromSingleFile,this, sample_.filenames.at(file_i), var_, sample_, TreeName, file_i, hist_ ));
 
 	}
 
@@ -77,8 +79,8 @@ void Plotter::GetHistThreaded(Sample sample_, Var var_, const  std::string & Tre
 	for (uint file_i = 0; file_i < sample_.filenames.size(); ++file_i)
 	{
     	//t[file_i] -> Join();
-    	workers[file_i].join(); 
-    //	delete t[file_i];   	
+    	workers[file_i] -> join(); 
+    	delete workers[file_i]; 
 
 	}
 
@@ -119,7 +121,7 @@ void Plotter::PlottingSingleVar(std::string OutPrefix_, Var var)
 
 	TH1D *signalHist = new TH1D((SignalSample.Processname + var.VarName ).c_str(), (SignalSample.Processname + var.VarName).c_str(), Nbins, var.Range.low, var.Range.high);
 	signalHist -> Sumw2();
-	 GetHist(SignalSample, var, "treeDumper/BasicTree", signalHist);
+	 GetHistThreaded(SignalSample, var, "treeDumper/BasicTree", signalHist);
   	signalHist -> SetLineColor(SignalSample.color);
   	signalHist -> SetLineWidth(2.);
 

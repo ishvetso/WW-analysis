@@ -13,7 +13,7 @@
 #include <map>
 #include "Plotter.cpp"
 #include "TThread.h"
-
+#include <ctime>
 
 void draw(std::string channel, std::string region)
 {
@@ -39,7 +39,7 @@ void draw(std::string channel, std::string region)
 	var.SetRange(50., 800.);
 	variables.push_back(var);
 
-	/*var.VarName = "l_eta";
+	var.VarName = "l_eta";
 	var.Title = "#eta_{lepton}";
 	var.SetRange(-2.5, 2.5);
 	variables.push_back(var);
@@ -166,9 +166,7 @@ void draw(std::string channel, std::string region)
 	var.VarName = "deltaPhi_WJetWlep";
 	var.Title = "#Delta#phi(WJet, WLep)";
 	var.SetRange(-3.2, 3.2);
-	variables.push_back(var);*/
-
-
+	variables.push_back(var);
 
 	Plotter p;
 
@@ -252,7 +250,7 @@ void draw(std::string channel, std::string region)
  	dataSample.SetFileNames(prefix + "data_Prompt_" + channel + ".root");
 
  	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = 12 TeV^{-2}}", SignalSelection, kRed);
- 	signalSample.SetFileNames("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_aTGC_" + channel +"_5February2016/results/WW-aTGC-" + channel + ".root");
+ 	signalSample.SetFileNames(prefix + "WW-aTGC-" + channel + ".root");
 	
 	
 	p.SetSamples(samples);
@@ -273,10 +271,12 @@ void draw(std::string channel, std::string region)
 
 int main(int argc, char* argv[]){
 
-
+	clock_t begin = clock();
 	if (argc != 3) std::cerr << "You should use only 2 arguments ..." << std::endl; 
 	draw(string(argv[1]), string(argv[2]));
- 	
+ 	clock_t end = clock();
+	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+	std::cout << elapsed_secs << std::endl;	
 }
 
 
