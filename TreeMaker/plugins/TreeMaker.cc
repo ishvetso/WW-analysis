@@ -42,6 +42,8 @@
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "FWCore/Common/interface/TriggerNames.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -139,6 +141,7 @@ private:
 
   std::vector<double> PDFWeights;
   std::vector<double> ScaleWeights;
+  bool HLT_Ele_105, HLT_Ele_27;
   
   
   //Defining Tokens
@@ -153,6 +156,7 @@ private:
   edm::EDGetTokenT<edm::View<reco::Candidate>> looseEleToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonsToken_;
   edm::EDGetTokenT<edm::View<pat::Muon>> muonsToken_;
+  edm::EDGetTokenT<edm::TriggerResults> TriggerResultsToken;
   bool isMC;
   edm::EDGetTokenT<double> rhoToken_;
   bool isSignal;
@@ -230,6 +234,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     
    }
 
+   if (channel == "el")TriggerResultsToken = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggers"));
  
   //now do what ever initialization is needed
   edm::Service<TFileService> fs;
@@ -251,6 +256,10 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
    };
+  if (channel == "el") {
+    outTree_->Branch("HLT_Ele_105",       &HLT_Ele_105,     "HLT_Ele_105/B"          );
+    outTree_->Branch("HLT_Ele_27",       &HLT_Ele_27,     "HLT_Ele_27/B"          );
+  }
   
   //number of loose leptons
   outTree_->Branch("nLooseEle",      &nLooseEle, 	  "nLooseEle/I"       );
@@ -1121,6 +1130,17 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    else {
     m_lvj_LeptonResUp = -99.;
     m_lvj_LeptonResDown = -99.;
+   }
+
+   edm::Handle<edm::TriggerResults> Triggers;
+   if (channel == "el") {
+      iEvent.getByToken(TriggerResultsToken, Triggers); 
+      edm::TriggerNames names = iEvent.triggerNames(*Triggers);
+      for (unsigned int iTrig = 0; iTrig < Triggers -> size(); iTrig ++)
+      {
+        if( boost::algorithm::contains(names.triggerName(iTrig), "HLT_Ele105_CaloIdVT_GsfTrkIdT_v") ) HLT_Ele_105 = Triggers -> accept(iTrig);
+        if( boost::algorithm::contains(names.triggerName(iTrig), "HLT_Ele27_WPLoose_Gsf_v") ) HLT_Ele_27 =  Triggers -> accept(iTrig);
+     }
    }
 
  // uncomment the line used in the synchronization exercise!
