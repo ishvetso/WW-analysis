@@ -86,8 +86,9 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseEleSrc = cms.InputTag("looseElectrons"),
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightElectrons"),
+                                    triggers = cms.InputTag("TriggerResults","","HLT"),
                                     isMC = cms.bool(False),
-				    isSignal = cms.bool(False),
+				                    isSignal = cms.bool(False),
                                     channel = cms.string("el")
                                     )
 
@@ -102,7 +103,7 @@ process.analysis = cms.Path(process.NoiseFilters + process.TriggerElectron + pro
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/data/Run2015C_25ns/SingleElectron/MINIAOD/16Dec2015-v1/50000/16C8D55D-F4B2-E511-A0EA-E41D2D08E0E0.root'),
+    fileNames = cms.untracked.vstring('/store/data/Run2015D/SingleElectron/MINIAOD/16Dec2015-v1/20000/00050EF1-F9A6-E511-86B2-0025905A48D0.root'),
     #eventsToProcess = cms.untracked.VEventRange('1:75:72317')
     
 )
@@ -111,7 +112,7 @@ process.source = cms.Source("PoolSource",
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #process.MessageLogger.cerr.FwkReport.limit = 99999999
 '''
 process.out = cms.OutputModule("PoolOutputModule",

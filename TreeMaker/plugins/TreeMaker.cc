@@ -141,7 +141,7 @@ private:
 
   std::vector<double> PDFWeights;
   std::vector<double> ScaleWeights;
-  bool HLT_Ele_105, HLT_Ele_27;
+  bool bit_HLT_Ele_105, bit_HLT_Ele_27;
   
   
   //Defining Tokens
@@ -257,8 +257,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
    };
   if (channel == "el") {
-    outTree_->Branch("HLT_Ele_105",       &HLT_Ele_105,     "HLT_Ele_105/B"          );
-    outTree_->Branch("HLT_Ele_27",       &HLT_Ele_27,     "HLT_Ele_27/B"          );
+    outTree_->Branch("bit_HLT_Ele_105",       &bit_HLT_Ele_105,     "bit_HLT_Ele_105/B"          );
+    outTree_->Branch("bit_HLT_Ele_27",       &bit_HLT_Ele_27,     "bit_HLT_Ele_27/B"          );
   }
   
   //number of loose leptons
@@ -611,8 +611,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       for ( unsigned int iwgt = 0; iwgt < LHEevtProductExternal->weights().size(); ++iwgt ) {
         const LHEEventProduct::WGT& wgt = LHEevtProductExternal->weights().at(iwgt);
         if( boost::algorithm::contains(wgt.id, "mg_reweight_" + std::to_string(weightNumber))){
-          std::cout << wgt.id <<  " " << wgt.wgt << std::endl;
-          aTGCWeights.push_back(wgt.wgt);
+         aTGCWeights.push_back(wgt.wgt);
          weightNumber ++;
        }
       }
@@ -1138,8 +1137,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       edm::TriggerNames names = iEvent.triggerNames(*Triggers);
       for (unsigned int iTrig = 0; iTrig < Triggers -> size(); iTrig ++)
       {
-        if( boost::algorithm::contains(names.triggerName(iTrig), "HLT_Ele105_CaloIdVT_GsfTrkIdT_v") ) HLT_Ele_105 = Triggers -> accept(iTrig);
-        if( boost::algorithm::contains(names.triggerName(iTrig), "HLT_Ele27_WPLoose_Gsf_v") ) HLT_Ele_27 =  Triggers -> accept(iTrig);
+        if( boost::algorithm::contains(names.triggerName(iTrig), "HLT_Ele105_CaloIdVT_GsfTrkIdT_v") ) bit_HLT_Ele_105 = Triggers -> accept(iTrig);
+        if( boost::algorithm::contains(names.triggerName(iTrig), "HLT_Ele27_WPLoose_Gsf_v") )  bit_HLT_Ele_27 =  Triggers -> accept(iTrig);
      }
    }
 
