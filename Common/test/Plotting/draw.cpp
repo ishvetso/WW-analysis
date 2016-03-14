@@ -187,7 +187,7 @@ void draw(std::string channel, std::string region)
 	p.SetNbins(30);
 
 	
-	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.5  && jet_mass_pruned < 130. && jet_mass_pruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2.";
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && jet_mass_pruned < 130. && jet_mass_pruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2.";
 	if (channel == "ele") defaulCuts += " && l_pt > 140. && pfMET > 80. )"; 
 	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
