@@ -59,11 +59,9 @@ class BTaggingEffAnalyzer : public edm::EDAnalyzer {
       const std::string   discriminatorTag;
       const double  discriminatorValue;
       const int     ptNBins;
-      const double  ptMin;
-      const double  ptMax;
+      const std::vector<double>  ptBinning;
       const int     etaNBins;
-      const double  etaMin;
-      const double  etaMax;
+      const std::vector<double>  etaBinning;
       edm::Service<TFileService>  fs;
       TH2D  *h2_BTaggingEff_Denom_b;
       TH2D  *h2_BTaggingEff_Denom_c;
@@ -89,20 +87,18 @@ BTaggingEffAnalyzer::BTaggingEffAnalyzer(const edm::ParameterSet& iConfig) :
   discriminatorTag(iConfig.getParameter<std::string>("DiscriminatorTag")),
   discriminatorValue(iConfig.getParameter<double>("DiscriminatorValue")),
   ptNBins(iConfig.getParameter<int>("PtNBins")),
-  ptMin(iConfig.getParameter<double>("PtMin")),
-  ptMax(iConfig.getParameter<double>("PtMax")),
+  ptBinning(iConfig.getParameter<std::vector<double>>("ptBinning")),
   etaNBins(iConfig.getParameter<int>("EtaNBins")),
-  etaMin(iConfig.getParameter<double>("EtaMin")),
-  etaMax(iConfig.getParameter<double>("EtaMax"))
+  etaBinning(iConfig.getParameter<std::vector<double>>("etaBinning"))
 
 {
    //now do what ever initialization is needed
-   h2_BTaggingEff_Denom_b    = fs->make<TH2D>("h2_BTaggingEff_Denom_b", ";p_{T} [GeV];#eta", ptNBins, ptMin, ptMax, etaNBins, etaMin, etaMax);
-   h2_BTaggingEff_Denom_c    = fs->make<TH2D>("h2_BTaggingEff_Denom_c", ";p_{T} [GeV];#eta", ptNBins, ptMin, ptMax, etaNBins, etaMin, etaMax);
-   h2_BTaggingEff_Denom_udsg = fs->make<TH2D>("h2_BTaggingEff_Denom_udsg", ";p_{T} [GeV];#eta", ptNBins, ptMin, ptMax, etaNBins, etaMin, etaMax);
-   h2_BTaggingEff_Num_b    = fs->make<TH2D>("h2_BTaggingEff_Num_b", ";p_{T} [GeV];#eta", ptNBins, ptMin, ptMax, etaNBins, etaMin, etaMax);
-   h2_BTaggingEff_Num_c    = fs->make<TH2D>("h2_BTaggingEff_Num_c", ";p_{T} [GeV];#eta", ptNBins, ptMin, ptMax, etaNBins, etaMin, etaMax);
-   h2_BTaggingEff_Num_udsg = fs->make<TH2D>("h2_BTaggingEff_Num_udsg", ";p_{T} [GeV];#eta", ptNBins, ptMin, ptMax, etaNBins, etaMin, etaMax);
+   h2_BTaggingEff_Denom_b    = fs->make<TH2D>("h2_BTaggingEff_Denom_b", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   h2_BTaggingEff_Denom_c    = fs->make<TH2D>("h2_BTaggingEff_Denom_c", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   h2_BTaggingEff_Denom_udsg = fs->make<TH2D>("h2_BTaggingEff_Denom_udsg", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   h2_BTaggingEff_Num_b    = fs->make<TH2D>("h2_BTaggingEff_Num_b", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   h2_BTaggingEff_Num_c    = fs->make<TH2D>("h2_BTaggingEff_Num_c", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   h2_BTaggingEff_Num_udsg = fs->make<TH2D>("h2_BTaggingEff_Num_udsg", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
 }
 
 
