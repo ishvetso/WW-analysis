@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process( "BtagEff" )
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10000)
+    input = cms.untracked.int32(-1)
 )
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
@@ -79,12 +79,11 @@ process.BtagAnalyzer = cms.EDAnalyzer("BTaggingEffAnalyzer",
                                       JetsTag = cms.InputTag("goodAK4Jets"),
                                       DiscriminatorTag = cms.string("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
                                       DiscriminatorValue = cms.double(0.935),
-                                      PtNBins = cms.int32(10),
-                                      PtMin = cms.double(30.),
-                                      PtMax = cms.double(530.),
+                                      PtNBins = cms.int32(5),
+                                      ptBinning = cms.vdouble(30.,40., 50.,100., 200.,2000. ),
                                       EtaNBins = cms.int32(5),
-                                      EtaMin = cms.double(-2.4),
-                                      EtaMax = cms.double(2.4)
+                                      etaBinning = cms.vdouble(-2.4, -1.5, -0.8, 0.8,1.5, 2.4),
+                                      
                                     )
 
 # PATH
