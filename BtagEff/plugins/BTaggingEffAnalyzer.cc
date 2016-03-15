@@ -29,6 +29,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TH2D.h"
+#include "TEfficiency.h"
 typedef std::vector<pat::Jet> PatJetCollection;
 
 //
@@ -63,12 +64,9 @@ class BTaggingEffAnalyzer : public edm::EDAnalyzer {
       const int     etaNBins;
       const std::vector<double>  etaBinning;
       edm::Service<TFileService>  fs;
-      TH2D  *h2_BTaggingEff_Denom_b;
-      TH2D  *h2_BTaggingEff_Denom_c;
-      TH2D  *h2_BTaggingEff_Denom_udsg;
-      TH2D  *h2_BTaggingEff_Num_b;
-      TH2D  *h2_BTaggingEff_Num_c;
-      TH2D  *h2_BTaggingEff_Num_udsg;
+      TEfficiency  *h2_BTaggingEff_b;
+      TEfficiency  *h2_BTaggingEff_c;
+      TEfficiency  *h2_BTaggingEff_udsg;
 };
 
 //
@@ -93,12 +91,10 @@ BTaggingEffAnalyzer::BTaggingEffAnalyzer(const edm::ParameterSet& iConfig) :
 
 {
    //now do what ever initialization is needed
-   h2_BTaggingEff_Denom_b    = fs->make<TH2D>("h2_BTaggingEff_Denom_b", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   h2_BTaggingEff_Denom_c    = fs->make<TH2D>("h2_BTaggingEff_Denom_c", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   h2_BTaggingEff_Denom_udsg = fs->make<TH2D>("h2_BTaggingEff_Denom_udsg", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   h2_BTaggingEff_Num_b    = fs->make<TH2D>("h2_BTaggingEff_Num_b", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   h2_BTaggingEff_Num_c    = fs->make<TH2D>("h2_BTaggingEff_Num_c", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   h2_BTaggingEff_Num_udsg = fs->make<TH2D>("h2_BTaggingEff_Num_udsg", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   h2_BTaggingEff_b    = fs->make<TEfficiency>("h2_BTaggingEff_b", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   h2_BTaggingEff_c    = fs->make<TEfficiency>("h2_BTaggingEff_c", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   h2_BTaggingEff_udsg = fs->make<TEfficiency>("h2_BTaggingEff_udsg", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   
 }
 
 
@@ -126,21 +122,21 @@ BTaggingEffAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
   {
     int partonFlavor = it->partonFlavour();
+    bool passed;
+    if( it->bDiscriminator(discriminatorTag.c_str()) >= discriminatorValue ) passed = true;
+    else passed = false;
 
     if( abs(partonFlavor)==5 )
     {
-      h2_BTaggingEff_Denom_b->Fill(it->pt(), it->eta());
-      if( it->bDiscriminator(discriminatorTag.c_str()) >= discriminatorValue ) h2_BTaggingEff_Num_b->Fill(it->pt(), it->eta());
+      h2_BTaggingEff_b->Fill(passed,it->pt(), it->eta());
     }
     else if( abs(partonFlavor)==4 )
     {
-      h2_BTaggingEff_Denom_c->Fill(it->pt(), it->eta());
-      if( it->bDiscriminator(discriminatorTag.c_str()) >= discriminatorValue ) h2_BTaggingEff_Num_c->Fill(it->pt(), it->eta());
+      h2_BTaggingEff_c->Fill(passed,it->pt(), it->eta());
     }
     else
     {
-      h2_BTaggingEff_Denom_udsg->Fill(it->pt(), it->eta());
-      if( it->bDiscriminator(discriminatorTag.c_str()) >= discriminatorValue ) h2_BTaggingEff_Num_udsg->Fill(it->pt(), it->eta());
+      h2_BTaggingEff_udsg->Fill(passed,it->pt(), it->eta());
     }
   }
 }
