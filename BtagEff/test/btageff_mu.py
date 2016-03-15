@@ -23,7 +23,6 @@ process.NoiseFilters = cms.EDFilter("NoiseFilter",
             filterNames = cms.vstring("Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter",  "Flag_CSCTightHaloFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_eeBadScFilter") 
             )
 
-
 #
 # Set up electron ID (VID framework)
 #
@@ -47,24 +46,25 @@ for idmod in my_id_modules:
 #
 
 process.ElectronVeto = cms.EDFilter("LeptonVeto",
-				    looseLeptonSrc = cms.InputTag("looseElectrons"),
-				    tightLeptonSrc = cms.InputTag("tightElectrons"),
-                                    minNLoose = cms.int32(1),
-                                    maxNLoose = cms.int32(1),
-                                    minNTight = cms.int32(1),
-                                    maxNTight = cms.int32(1),
-				   )
-
-process.MuonVeto = cms.EDFilter("LeptonVeto",
-            looseLeptonSrc = cms.InputTag("looseMuons"),
-            tightLeptonSrc = cms.InputTag("tightMuons"),
+            looseLeptonSrc = cms.InputTag("looseElectrons"),
+            tightLeptonSrc = cms.InputTag("tightElectrons"),
                                     minNLoose = cms.int32(0),
                                     maxNLoose = cms.int32(0),
                                     minNTight = cms.int32(0),
                                     maxNTight = cms.int32(0),
            )
 
-process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto  )
+process.MuonVeto = cms.EDFilter("LeptonVeto",
+            looseLeptonSrc = cms.InputTag("looseMuons"),
+            tightLeptonSrc = cms.InputTag("tightMuons"),
+                                    minNLoose = cms.int32(1),
+                                    maxNLoose = cms.int32(1),
+                                    minNTight = cms.int32(1),
+                                    maxNTight = cms.int32(1),
+           )
+
+
+process.leptonSequence = cms.Sequence(process.muSequence + process.eleSequence + process.ElectronVeto + process.MuonVeto )
 
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                  src = cms.InputTag("goodJets"),
@@ -72,23 +72,23 @@ process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                 )
 
 process.jetSequence = cms.Sequence(process.fatJetsSequence +
-				                            process.jetFilter+
-                          				   process.AK4JetsSequence)
+                                    process.jetFilter+
+                                     process.AK4JetsSequence )
 
 process.BtagAnalyzer = cms.EDAnalyzer("BTaggingEffAnalyzer",
-                  									  JetsTag = cms.InputTag("goodAK4Jets"),
-                  									  DiscriminatorTag = cms.string("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
-                  									  DiscriminatorValue = cms.double(0.935),
-                  									  PtNBins = cms.int32(10),
-                  									  PtMin = cms.double(30.),
-                  									  PtMax = cms.double(530.),
-                  									  EtaNBins = cms.int32(5),
-                  									  EtaMin = cms.double(-2.4),
-                  									  EtaMax = cms.double(2.4)
-									                   )
+                                      JetsTag = cms.InputTag("goodAK4Jets"),
+                                      DiscriminatorTag = cms.string("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
+                                      DiscriminatorValue = cms.double(0.935),
+                                      PtNBins = cms.int32(10),
+                                      PtMin = cms.double(30.),
+                                      PtMax = cms.double(530.),
+                                      EtaNBins = cms.int32(5),
+                                      EtaMin = cms.double(-2.4),
+                                      EtaMax = cms.double(2.4)
+                                    )
 
 # PATH
-process.btagPath = cms.Path(process.NoiseFilters  + process.TriggerElectron + process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.BtagAnalyzer)
+process.analysis = cms.Path(process.NoiseFilters + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.BtagAnalyzer )
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
@@ -96,10 +96,10 @@ process.source = cms.Source("PoolSource",
     
 )
 
-
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
+
 process.TFileService = cms.Service("TFileService",
-                                 fileName = cms.string("tree_ele.root")
+                                 fileName = cms.string("tree_mu.root")
                                   )
