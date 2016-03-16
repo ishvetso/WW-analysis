@@ -12,5 +12,6 @@
 <use name="JetMETCorrections/Modules"/>
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="PhysicsTools/Utilities"/>
+<use name="CondFormats/BTauObjects"/>
 <use name="root"/>
 <flags EDM_PLUGIN="1"/>
