@@ -28,7 +28,6 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "TH2D.h"
 #include "TEfficiency.h"
 typedef std::vector<pat::Jet> PatJetCollection;
 
@@ -91,9 +90,9 @@ BTaggingEffAnalyzer::BTaggingEffAnalyzer(const edm::ParameterSet& iConfig) :
 
 {
    //now do what ever initialization is needed
-   BTaggingEff_b    = fs->make<TEfficiency>("BTaggingEff_b", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   BTaggingEff_c    = fs->make<TEfficiency>("BTaggingEff_c", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   BTaggingEff_udsg = fs->make<TEfficiency>("BTaggingEff_udsg", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   BTaggingEff_b    = fs->make<TEfficiency>("BTaggingEff_b", ";p_{T} (GeV);#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   BTaggingEff_c    = fs->make<TEfficiency>("BTaggingEff_c", ";p_{T} (GeV);#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   BTaggingEff_udsg = fs->make<TEfficiency>("BTaggingEff_udsg", ";p_{T} (GeV);#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
    BTaggingEff_b    -> SetStatisticOption(TEfficiency::kFCP);
    BTaggingEff_c    -> SetStatisticOption(TEfficiency::kFCP);
    BTaggingEff_udsg -> SetStatisticOption(TEfficiency::kFCP);
