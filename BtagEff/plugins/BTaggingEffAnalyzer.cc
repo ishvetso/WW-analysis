@@ -64,9 +64,9 @@ class BTaggingEffAnalyzer : public edm::EDAnalyzer {
       const int     etaNBins;
       const std::vector<double>  etaBinning;
       edm::Service<TFileService>  fs;
-      TEfficiency  *h2_BTaggingEff_b;
-      TEfficiency  *h2_BTaggingEff_c;
-      TEfficiency  *h2_BTaggingEff_udsg;
+      TEfficiency  *BTaggingEff_b;
+      TEfficiency  *BTaggingEff_c;
+      TEfficiency  *BTaggingEff_udsg;
 };
 
 //
@@ -91,9 +91,13 @@ BTaggingEffAnalyzer::BTaggingEffAnalyzer(const edm::ParameterSet& iConfig) :
 
 {
    //now do what ever initialization is needed
-   h2_BTaggingEff_b    = fs->make<TEfficiency>("h2_BTaggingEff_b", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   h2_BTaggingEff_c    = fs->make<TEfficiency>("h2_BTaggingEff_c", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
-   h2_BTaggingEff_udsg = fs->make<TEfficiency>("h2_BTaggingEff_udsg", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   BTaggingEff_b    = fs->make<TEfficiency>("BTaggingEff_b", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   BTaggingEff_c    = fs->make<TEfficiency>("BTaggingEff_c", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   BTaggingEff_udsg = fs->make<TEfficiency>("BTaggingEff_udsg", ";p_{T} [GeV];#eta", ptNBins, &ptBinning[0], etaNBins, &etaBinning[0]);
+   BTaggingEff_b    -> SetStatisticOption(TEfficiency::kFCP);
+   BTaggingEff_c    -> SetStatisticOption(TEfficiency::kFCP);
+   BTaggingEff_udsg -> SetStatisticOption(TEfficiency::kFCP);
+
    
 }
 
@@ -128,15 +132,15 @@ BTaggingEffAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 
     if( abs(partonFlavor)==5 )
     {
-      h2_BTaggingEff_b->Fill(passed,it->pt(), it->eta());
+      BTaggingEff_b->Fill(passed,it->pt(), it->eta());
     }
     else if( abs(partonFlavor)==4 )
     {
-      h2_BTaggingEff_c->Fill(passed,it->pt(), it->eta());
+      BTaggingEff_c->Fill(passed,it->pt(), it->eta());
     }
     else
     {
-      h2_BTaggingEff_udsg->Fill(passed,it->pt(), it->eta());
+      BTaggingEff_udsg->Fill(passed,it->pt(), it->eta());
     }
   }
 }
