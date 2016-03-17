@@ -1,5 +1,4 @@
-#include "CondFormats/BTauObjects/interface/BTagCalibration.h"
-#include "CondFormats/BTauObjects/interface/BTagCalibrationReader.h"
+#include "aTGCsAnalysis/TreeMaker/interface/BTagCalibrationStandalone.h"
 
 template<class T> class BTagHelper{
 
@@ -17,7 +16,7 @@ public:
 	double getScaleFactor(T jet){
 		float jetPt = jet.pt();
       	if (jetPt>MaxBJetPt) jetPt = MaxBJetPt;  
-		 double jet_scalefactor = reader.eval(BTagEntry::FLAV_B, jet.eta(), jetPt); 
+		 double jet_scalefactor = reader.eval(BTagEntry::FLAV_C, jet.eta(), jetPt); 
 		 return jet_scalefactor;
 	}
 
