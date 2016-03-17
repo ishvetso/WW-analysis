@@ -3,7 +3,7 @@
 template<class T> class BTagHelper{
 
 	BTagCalibration calib;
-	BTagCalibrationReader reader;
+	std::auto_ptr<BTagCalibrationReader>  reader;
 	float MaxBJetPt = 670.;
 public:
 	BTagHelper()
