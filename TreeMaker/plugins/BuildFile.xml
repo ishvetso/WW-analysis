@@ -12,6 +12,5 @@
 <use name="JetMETCorrections/Modules"/>
 <use name="SimDataFormats/GeneratorProducts"/>
 <use name="PhysicsTools/Utilities"/>
-<use name="aTGCsAnalysis/TreeMaker"/>
 <use name="root"/>
 <flags EDM_PLUGIN="1"/>

@@ -194,7 +194,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   isSignal(iConfig.getParameter<bool>("isSignal")),
   channel(iConfig.getParameter<std::string>("channel")),
   SystematicsHelper_(SystematicsHelper()),
-  BTagHelper_(BTagHelper<pat::Jet>())
+  BTagHelper_()
 
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
@@ -1034,6 +1034,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //Loop over the collection of the AK4 jets which contain b-tagging information (to veto b-jets)
   njets = AK4Jets -> size(); 
   nbtag = 0;
+ // std::cout << BTagHelper_.getScaleFactor(AK4Jets -> at(0)) << std::endl;
   
   for (unsigned int iBtag = 0; iBtag < AK4Jets -> size(); iBtag ++)
   {
