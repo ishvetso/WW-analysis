@@ -41,7 +41,6 @@
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
-#include "JetMETCorrections/Modules/interface/JetResolution.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 
@@ -57,6 +56,8 @@
 #include "PU.h"
 #include "PDFVariationMap.h"
 #include "getScaleFactor.h"
+#include "BTagHelper.h"
+
 
 namespace reco {
   typedef edm::Ptr<reco::Muon> MuonPtr;
@@ -165,10 +166,12 @@ private:
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
   edm::EDGetTokenT<LHEEventProduct> LHEEventProductTokenExternal;
   edm::EDGetTokenT<LHERunInfoProduct> lheProducerToken;
+//BTagCalibrationReader reader(&calib,  BTagEntry::OP_LOOSE, "comb", "central");
  
   //for JEC
   boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
   SystematicsHelper SystematicsHelper_;
+  BTagHelper<pat::Jet>BTagHelper_;
 
 };
 
@@ -190,7 +193,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   rhoToken_(consumes<double> (iConfig.getParameter<edm::InputTag>("rho"))),
   isSignal(iConfig.getParameter<bool>("isSignal")),
   channel(iConfig.getParameter<std::string>("channel")),
-  SystematicsHelper_(SystematicsHelper())
+  SystematicsHelper_(SystematicsHelper()),
+  BTagHelper_(BTagHelper<pat::Jet>())
+
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
   edm::FileInPath L2("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_MC_L2Relative_AK8PFchs.txt");
