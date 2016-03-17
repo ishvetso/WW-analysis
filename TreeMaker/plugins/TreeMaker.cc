@@ -57,6 +57,7 @@
 #include "PDFVariationMap.h"
 #include "getScaleFactor.h"
 #include "BTagHelper.h"
+#include "JetResolutionSmearer.h"
 
 
 namespace reco {
@@ -1034,7 +1035,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //Loop over the collection of the AK4 jets which contain b-tagging information (to veto b-jets)
   njets = AK4Jets -> size(); 
   nbtag = 0;
- // std::cout << BTagHelper_.getScaleFactor(AK4Jets -> at(0)) << std::endl;
+ if (njets > 0) std::cout << BTagHelper_.getScaleFactor(AK4Jets -> at(0)) << std::endl;
   
   for (unsigned int iBtag = 0; iBtag < AK4Jets -> size(); iBtag ++)
   {
