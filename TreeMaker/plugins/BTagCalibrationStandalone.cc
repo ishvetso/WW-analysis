@@ -3,7 +3,7 @@
 #include <exception>
 #include <algorithm>
 #include <sstream>
-
+using namespace btag;
 
 BTagEntry::Parameters::Parameters(
   OperatingPoint op,

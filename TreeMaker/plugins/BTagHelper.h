@@ -1,5 +1,5 @@
 #include "aTGCsAnalysis/TreeMaker/interface/BTagCalibrationStandalone.h"
-
+using namespace btag;
 template<class T> class BTagHelper{
 
 	BTagCalibration calib;
@@ -17,6 +17,8 @@ public:
 	double getScaleFactor(T jet){
 		float jetPt = jet.pt();
       	if (jetPt>MaxBJetPt) jetPt = MaxBJetPt;  
+      	std::cout << " jet_scalefactor "  << jetPt << jet.eta() << std::endl;
+
 		 double jet_scalefactor = reader->eval(BTagEntry::FLAV_B, jet.eta(), jetPt);
 		 return jet_scalefactor;
 	}

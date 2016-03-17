@@ -173,6 +173,7 @@ private:
   boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
   SystematicsHelper SystematicsHelper_;
   BTagHelper<pat::Jet>BTagHelper_;
+  JetResolutionSmearer<pat::Jet>JetResolutionSmearer_;
 
 };
 
@@ -195,7 +196,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   isSignal(iConfig.getParameter<bool>("isSignal")),
   channel(iConfig.getParameter<std::string>("channel")),
   SystematicsHelper_(SystematicsHelper()),
-  BTagHelper_()
+  BTagHelper_(),
+  JetResolutionSmearer_()
 
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
@@ -979,6 +981,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   
   NAK8jet = jets -> size();
 
+  //std::cout << JetResolutionSmearer_.resolutionPt(jets->at(0)) << std::endl;
    
    if (jets -> size() > 0)
   {
