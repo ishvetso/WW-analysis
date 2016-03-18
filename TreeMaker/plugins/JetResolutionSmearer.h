@@ -36,28 +36,39 @@ public:
 		double r = resolution_phi.getResolution(parameters);
 		return r;
 	}
-	double ScaleFactor(T jet){
+	double ScaleFactor(T jet, Variation variation = Variation::NOMINAL){
 		JME::JetParameters parameters = {{JME::Binning::JetEta, jet.eta()}};
-		float sf = resolution_sf.getScaleFactor(parameters);
+		float sf = resolution_sf.getScaleFactor(parameters,variation);
 		return sf;
 	}
-	double smearedPt(T jet){
+	double smearedPt(T jet, Variation variation = Variation::NOMINAL){
 		double resolutionPt_ = resolutionPt(jet);
-		double SF = ScaleFactor(jet);
+		double SF = ScaleFactor(jet,variation);
 		double width = resolutionPt_ * sqrt(SF*SF - 1.);
   		std::normal_distribution<double> distribution(jet.pt(),width);
   		double pt = distribution(generator);
   		return pt;
 
 	}
-	double smearedPhi(T jet){
+	//this is basically not supposed to be used in the analysis, consider only pt resolution uncetainty
+	double smearedPhi(T jet, Variation variation = Variation::NOMINAL){
 		double resolutionPhi_ = resolutionPhi(jet);
-		double SF = ScaleFactor(jet);
+		double SF = ScaleFactor(jet,variation);
 		double width = resolutionPhi_ * sqrt(SF*SF - 1.);
   		std::normal_distribution<double> distribution(jet.phi(),width);
   		double phi = distribution(generator);
   		return phi;
 
+	}
+	math::XYZTLorentzVector  LorentzVectorWithSmearedPt(T jet, Variation variation = Variation::NOMINAL){
+		math::XYZTLorentzVector smearedP4;
+		smearedP4.SetPxPyPzE(smearedPt(jet,variation)*cos(jet.phi()), smearedPt(jet,variation)*sin(jet.phi()), jet.pz(), sqrt(smearedPt(jet, variation)*smearedPt(jet, variation)  + jet.pz()*jet.pz()));
+		return smearedP4;
+
+	}
+	double smearedCorrection(T jet){
+		double correction = smearedPt(jet)/jet.pt();
+		return correction;
 	}
 
 };
