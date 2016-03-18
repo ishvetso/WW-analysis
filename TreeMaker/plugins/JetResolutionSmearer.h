@@ -62,7 +62,8 @@ public:
 	}
 	math::XYZTLorentzVector  LorentzVectorWithSmearedPt(T jet, Variation variation = Variation::NOMINAL){
 		math::XYZTLorentzVector smearedP4;
-		smearedP4.SetPxPyPzE(smearedPt(jet,variation)*cos(jet.phi()), smearedPt(jet,variation)*sin(jet.phi()), jet.pz(), sqrt(smearedPt(jet, variation)*smearedPt(jet, variation)  + jet.pz()*jet.pz()));
+		double pt = smearedPt(jet,variation);
+		smearedP4.SetPxPyPzE(pt*cos(jet.phi()), pt*sin(jet.phi()), jet.pz(), pt/cos(jet.theta()));
 		return smearedP4;
 
 	}
