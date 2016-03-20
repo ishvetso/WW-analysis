@@ -13,7 +13,7 @@ looseMuons = cms.EDFilter("PATMuonSelector",
 
 tightMuons = cms.EDFilter("PATMuonSelector",
                          src = cms.InputTag("HighPtMuons"),
-                         cut = cms.string("pt > 50 & trackIso/pt < 0.1 & abs(eta) < 2.1"),
+                         cut = cms.string("tunePMuonBestTrack().pt > 50 & trackIso/pt < 0.1 & abs(eta) < 2.1"),
                          filter = cms.bool(False)
                          )
 
