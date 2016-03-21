@@ -19,7 +19,10 @@ public:
 		resolution_phi = JME::JetResolution(ResolutionFile_Phi.fullPath());
 		resolution_sf = JME::JetResolutionScaleFactor(SF_File.fullPath());
 	}
-	void setRho(double rho_){rho = rho;};
+	void setRhoAndSeed(double rho_, const edm::Event& iEvent){
+		rho = rho;
+		generator.seed(iEvent.eventAuxiliary().event());
+	};
 	double resolutionPt( T jet){
 		JME::JetParameters parameters;
 		parameters.setJetPt(jet.pt());
@@ -46,7 +49,6 @@ public:
 		double SF = ScaleFactor(jet,variation);
 		double width = resolutionPt_ * sqrt(SF*SF - 1.);
   		std::normal_distribution<double> distribution(jet.pt(),width);
-  		generator.seed(22.);
   		double pt = distribution(generator);
   		return pt;
 
