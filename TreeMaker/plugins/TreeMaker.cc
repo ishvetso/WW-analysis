@@ -121,7 +121,8 @@ private:
   //JEC uncertainties
   double JECunc;
   double jet_pt_JECUp, jet_pt_JECDown, jet_mass_JECUp, jet_mass_JECDown, jet_mass_pruned_JECUp, jet_mass_pruned_JECDown, jet_mass_softdrop_JECUp, jet_mass_softdrop_JECDown;
-  
+  //JER uncerainties
+  double jet_pt_JERUp, jet_pt_JERDown, jet_mass_JERUp, jet_mass_JERDown, jet_mass_softdrop_JERUp, jet_mass_softdrop_JERDown, jet_mass_pruned_JERUp, jet_mass_pruned_JERDown;
   //AK4 jets
   double jet2_pt, jet2_btag, jet3_pt, jet3_btag;
 
@@ -133,7 +134,7 @@ private:
   //m_lvj
   double m_lvj;
   //m_lvj systematics
-  double m_lvj_UnclEnUp, m_lvj_UnclEnDown, m_lvj_JECUp, m_lvj_JECDown, m_lvj_LeptonEnUp, m_lvj_LeptonEnDown, m_lvj_LeptonResUp, m_lvj_LeptonResDown;
+  double m_lvj_UnclEnUp, m_lvj_UnclEnDown, m_lvj_JECUp, m_lvj_JECDown, m_lvj_LeptonEnUp, m_lvj_LeptonEnDown, m_lvj_LeptonResUp, m_lvj_LeptonResDown, m_lvj_JetResUp, m_lvj_JetResDown;
 
   double refXsec;
   //aTGC weights
@@ -197,7 +198,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   channel(iConfig.getParameter<std::string>("channel")),
   SystematicsHelper_(SystematicsHelper()),
   BTagHelper_(),
-  JetResolutionSmearer_()
+  JetResolutionSmearer_(iConfig.getParameter<bool>("isMC"))
 
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
@@ -433,19 +434,28 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet_mass_softdrop",&jet_mass_softdrop,"jet_mass_softdrop/D"   );
   outTree_->Branch("jet_tau2tau1",    &jet_tau2tau1,	  "jet_tau2tau1/D"   );
 
-  //JEC uncertainties
   if (isMC) {
+     //JEC uncertainties
     outTree_->Branch("JECunc",    &JECunc,    "JECunc/D"   ); 
     outTree_->Branch("jet_pt_JECUp",    &jet_pt_JECUp,    "jet_pt_JECUp/D"   ); 
     outTree_->Branch("jet_pt_JECDown",    &jet_pt_JECDown,    "jet_pt_JECDown/D"   );  
     outTree_->Branch("jet_mass_JECUp",    &jet_mass_JECUp,    "jet_mass_JECUp/D"   ); 
     outTree_->Branch("jet_mass_JECDown",    &jet_mass_JECDown,    "jet_mass_JECDown/D"   );  
-    
+    //JER uncertainties
+    outTree_->Branch("jet_pt_JERUp",    &jet_pt_JERUp,    "jet_pt_JERUp/D"   ); 
+    outTree_->Branch("jet_pt_JERDown",    &jet_pt_JERDown,    "jet_pt_JERDown/D"   );  
+    outTree_->Branch("jet_mass_JERUp",    &jet_mass_JERUp,    "jet_mass_JERUp/D"   ); 
+    outTree_->Branch("jet_mass_JERDown",    &jet_mass_JERDown,    "jet_mass_JERDown/D"   );  
+    //JEC uncertainties
     outTree_->Branch("Mjpruned_JECUp",    &jet_mass_pruned_JECUp,    "Mjpruned_JECUp/D"   ); 
     outTree_->Branch("Mjpruned_JECDown",    &jet_mass_pruned_JECDown,    "Mjpruned_JECDown/D"   );  
-    
     outTree_->Branch("jet_mass_softdrop_JECUp",    &jet_mass_softdrop_JECUp,    "jet_mass_softdrop_JECUp/D"   ); 
     outTree_->Branch("jet_mass_softdrop_JECDown",    &jet_mass_softdrop_JECDown,    "jet_mass_softdrop_JECDown/D"   );  
+    //JER uncertainties
+    outTree_->Branch("Mjpruned_JERUp",    &jet_mass_pruned_JERUp,    "Mjpruned_JERUp/D"   ); 
+    outTree_->Branch("Mjpruned_JERDown",    &jet_mass_pruned_JERDown,    "Mjpruned_JERDown/D"   );  
+    outTree_->Branch("jet_mass_softdrop_JERUp",    &jet_mass_softdrop_JERUp,    "jet_mass_softdrop_JERUp/D"   ); 
+    outTree_->Branch("jet_mass_softdrop_JERDown",    &jet_mass_softdrop_JERDown,    "jet_mass_softdrop_JERDown/D"   );  
   }
   outTree_->Branch("njets",  	      &njets,	          "njets/I"   );
   outTree_->Branch("nbtag",  	      &nbtag,	          "nbtag/I"   );
@@ -464,7 +474,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     outTree_->Branch("MWW_LeptonEnUp",       &m_lvj_LeptonEnUp,         "MWW_LeptonEnUp/D"   );
     outTree_->Branch("MWW_LeptonEnDown",       &m_lvj_LeptonEnDown,         "MWW_LeptonEnDown/D"   );      
     outTree_->Branch("MWW_LeptonResUp",       &m_lvj_LeptonResUp,         "MWW_LeptonResUp/D"   );
-    outTree_->Branch("MWW_LeptonResDown",       &m_lvj_LeptonResDown,         "MWW_LeptonResDown/D"   );      
+    outTree_->Branch("MWW_LeptonResDown",       &m_lvj_LeptonResDown,         "MWW_LeptonResDown/D"   );   
+    outTree_->Branch("MWW_JetResUp",       &m_lvj_JetResUp,         "MWW_JetResUp/D"   );
+    outTree_->Branch("MWW_JetResDown",       &m_lvj_JetResDown,         "MWW_JetResDown/D"   );       
   }
 
  if (isSignal) {
@@ -980,17 +992,16 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
   
   NAK8jet = jets -> size();
+  JetResolutionSmearer_.setRho(rho_);
+  math::XYZTLorentzVector smearedJet, smearedJetUp, smearedJetDown; 
 
-  //std::cout << JetResolutionSmearer_.resolutionPt(jets->at(0)) << std::endl;
-   
    if (jets -> size() > 0)
   {
-    jet_pt = (jets -> at(0)).pt();
-    jet_eta = (jets -> at(0)).eta();
-    jet_phi = (jets -> at(0)).phi();
-    jet_mass = (jets -> at(0)).mass();
-    //jet_mass_pruned = (jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
-    //jet_mass_softdrop = (jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
+    smearedJet = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0));
+    jet_pt = smearedJet.Pt();
+    jet_eta = smearedJet.Eta();
+    jet_phi = smearedJet.Phi();
+    jet_mass = smearedJet.M();
     jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
 
     math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
@@ -1015,6 +1026,22 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_mass_softdrop_JECDown = (1 - JECunc)*jet_mass_softdrop; 
     jet_mass_softdrop_JECUp = (1 + JECunc)*jet_mass_softdrop; 
 
+    //JER uncertainty
+    smearedJetUp = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0),Variation::UP);  
+    smearedJetDown = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0),Variation::DOWN);  
+    double JERUpCorrection = smearedJetUp.Pt()/smearedJet.Pt();
+    double JERDownCorrection = smearedJetDown.Pt()/smearedJet.Pt();
+    jet_pt_JERUp = smearedJetUp.Pt();
+    jet_pt_JERDown = smearedJetDown.Pt();
+    jet_mass_JERUp = smearedJetUp.M();
+    jet_mass_JERDown = smearedJetDown.M();
+    
+    jet_mass_pruned_JERUp = JERUpCorrection*jet_mass_pruned;
+    jet_mass_pruned_JERDown = JERDownCorrection*jet_mass_pruned;
+    
+    jet_mass_softdrop_JERUp = JERUpCorrection*jet_mass_softdrop;
+    jet_mass_softdrop_JERDown = JERDownCorrection*jet_mass_softdrop;
+
   }
   
   else 
@@ -1031,6 +1058,16 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_pt_JECUp   = -99.;
     jet_mass_JECDown = -99.;
     jet_mass_JECUp   = -99.;
+    //JER uncertainty
+    jet_pt_JERUp = -99.;
+    jet_pt_JERDown = -99.;
+    jet_mass_JERUp = -99.;
+    jet_mass_JERDown = -99.;
+
+    jet_mass_pruned_JERUp = -99.;
+    jet_mass_pruned_JERDown = -99.;
+    jet_mass_softdrop_JERUp = -99.;
+    jet_mass_softdrop_JERDown = -99.;
   }
   
   
@@ -1038,7 +1075,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //Loop over the collection of the AK4 jets which contain b-tagging information (to veto b-jets)
   njets = AK4Jets -> size(); 
   nbtag = 0;
- if (njets > 0) std::cout << BTagHelper_.getScaleFactor(AK4Jets -> at(0)) << std::endl;
+ //if (njets > 0) std::cout  << " eff : "<< BTagHelper_.getEventWeight(AK4Jets) << std::endl;
   
   for (unsigned int iBtag = 0; iBtag < AK4Jets -> size(); iBtag ++)
   {
@@ -1139,6 +1176,19 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    else {
     m_lvj_LeptonResUp = -99.;
     m_lvj_LeptonResDown = -99.;
+   }
+
+   //jet energy resolution uncertainty
+   if (leptonicVs -> size() > 0 && jets -> size() > 0 && isMC)  {
+    lvj_p4_Up = smearedJetUp + SystMap.at("JetResUp");
+    lvj_p4_Down = smearedJetDown + SystMap.at("JetResDown");
+    m_lvj_JetResUp = lvj_p4_Up.M();
+    m_lvj_JetResDown = lvj_p4_Down.M();
+
+   }
+   else {
+    m_lvj_JetResUp = -99.;
+    m_lvj_JetResDown = -99.;
    }
 
    edm::Handle<edm::TriggerResults> Triggers;

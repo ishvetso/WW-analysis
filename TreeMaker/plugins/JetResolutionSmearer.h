@@ -46,6 +46,7 @@ public:
 		double SF = ScaleFactor(jet,variation);
 		double width = resolutionPt_ * sqrt(SF*SF - 1.);
   		std::normal_distribution<double> distribution(jet.pt(),width);
+  		generator.seed(22.);
   		double pt = distribution(generator);
   		return pt;
 
@@ -63,12 +64,12 @@ public:
 	math::XYZTLorentzVector  LorentzVectorWithSmearedPt(T jet, Variation variation = Variation::NOMINAL){
 		math::XYZTLorentzVector smearedP4;
 		double pt = smearedPt(jet,variation);
-		smearedP4.SetPxPyPzE(pt*cos(jet.phi()), pt*sin(jet.phi()), jet.pz(), pt/cos(jet.theta()));
+		smearedP4.SetPxPyPzE(pt*cos(jet.phi()), pt*sin(jet.phi()), jet.pz(), sqrt(pt*pt*cosh(jet.eta())*cosh(jet.eta()) + jet.mass()*jet.mass() ));
 		return smearedP4;
 
 	}
-	double smearedCorrection(T jet){
-		double correction = smearedPt(jet)/jet.pt();
+	double smearedCorrection(T jet, Variation variation = Variation::NOMINAL){
+		double correction = smearedPt(jet, variation)/jet.pt();
 		return correction;
 	}
 
