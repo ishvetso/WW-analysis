@@ -55,7 +55,6 @@ public:
 		double probabMC = 1., probabData = 1.;
 		for(unsigned int iBtag = 0; iBtag < jets -> size(); iBtag ++)
 		{
-			std::cout << "eta : " << jets->at(iBtag).eta() << " pt: " << jets->at(iBtag).pt() << " SF : " << getScaleFactor(jets->at(iBtag)) << std::endl;
 			if (jets->at(iBtag).bDiscriminator(DiscrName) > DiscrCut){
 				probabMC *= getEfficiency(jets->at(iBtag));
 				probabData *= getEfficiency(jets->at(iBtag)) * getScaleFactor(jets->at(iBtag));

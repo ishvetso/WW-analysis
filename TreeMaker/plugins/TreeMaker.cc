@@ -90,7 +90,7 @@ private:
   int nPV;
 
   double PUweight;
-
+  double btagWeight;
   double genWeight;
   double LeptonSF;
   double rho_;
@@ -262,6 +262,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("puweight",       &PUweight,     "puweight/D"          );
      outTree_->Branch("LeptonSF",       &LeptonSF,     "LeptonSF/D"          );
      outTree_->Branch("genweight",       &genWeight,     "genweight/D"          );
+     outTree_->Branch("btagWeight",       &btagWeight,     "btagWeight/D"          );
      outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
    };
@@ -579,8 +580,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    iEvent.getByToken( genInfoToken , genInfo);
    genWeight = (genInfo -> weight());
-
-
+   //btag weights
+   if (njets > 0) btagWeight =  BTagHelper_.getEventWeight(AK4Jets);
+   else btagWeight = 1.;
 
 
    //PDF uncertainties
@@ -992,7 +994,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
   
   NAK8jet = jets -> size();
-  JetResolutionSmearer_.setRho(rho_);
+  JetResolutionSmearer_.setRhoAndSeed(rho_, iEvent);
   math::XYZTLorentzVector smearedJet, smearedJetUp, smearedJetDown; 
 
    if (jets -> size() > 0)
@@ -1075,8 +1077,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //Loop over the collection of the AK4 jets which contain b-tagging information (to veto b-jets)
   njets = AK4Jets -> size(); 
   nbtag = 0;
- //if (njets > 0) std::cout  << " eff : "<< BTagHelper_.getEventWeight(AK4Jets) << std::endl;
-  
+    
   for (unsigned int iBtag = 0; iBtag < AK4Jets -> size(); iBtag ++)
   {
     //WP for 8 TeV and preliminary. Should be updated at some point
