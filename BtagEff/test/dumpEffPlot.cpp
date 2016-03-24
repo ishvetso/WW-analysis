@@ -38,7 +38,7 @@ TH2D * convertEffToTH2F(TEfficiency * eff_){
 	return hist_eff;
 }
 
-void dumpPlotCategory(std::string filename, std::string ProcessName, std::string category){
+void dumpPlotCategory(std::string filename, std::string ProcessName, std::string category, std::string outDir){
 
 	if (category != "udsg" && category != "c" && category != "b") {
 		std::cerr << "Wrong category used .." << std::endl;
@@ -63,7 +63,7 @@ void dumpPlotCategory(std::string filename, std::string ProcessName, std::string
 	hist_eff -> Draw("COLZTEXTE");
 	CMS_lumi( c1, 4, 0 );
 	c1 -> SetTitle(ProcessName.c_str());
-	c1-> SaveAs((ProcessName + "_" + category + ".png").c_str());
+	c1-> SaveAs((outDir + "/" + ProcessName + "_" + category + ".png").c_str());
 	delete c1;
 }
 
@@ -73,7 +73,8 @@ void dumpEffPlot(){
 	categories.push_back("b");
 	categories.push_back("c");
 	categories.push_back("udsg");
-
+	std::string OutPrefix_  = "plots";
+	system(("mkdir -p " + OutPrefix_ ).c_str());
 	Sample s;
 	vector<Sample> samples;
 	
@@ -132,7 +133,7 @@ void dumpEffPlot(){
 	for (unsigned int iSample = 0; iSample < samples.size(); iSample ++ ){
 		for (unsigned int iFileName = 0; iFileName < samples.at(iSample).filenames.size() ; iFileName++){
 			for (auto category: categories){
-				dumpPlotCategory(samples.at(iSample).filenames.at(iFileName), samples.at(iSample).Processname, category);
+				dumpPlotCategory(samples.at(iSample).filenames.at(iFileName), samples.at(iSample).Processname, category, OutPrefix_);
 			}
 		}
 	}
