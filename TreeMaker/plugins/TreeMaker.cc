@@ -90,7 +90,7 @@ private:
   int nPV;
 
   double PUweight;
-  double btagWeight;
+  double btagWeight, btagWeight_BTagUp, btagWeight_BTagDown, btagWeight_MistagUp, btagWeight_MistagDown;
   double genWeight;
   double LeptonSF;
   double rho_;
@@ -263,6 +263,10 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("LeptonSF",       &LeptonSF,     "LeptonSF/D"          );
      outTree_->Branch("genweight",       &genWeight,     "genweight/D"          );
      outTree_->Branch("btagWeight",       &btagWeight,     "btagWeight/D"          );
+     outTree_->Branch("btagWeight_BTagUp",       &btagWeight_BTagUp,     "btagWeight_BTagUp/D"          );
+     outTree_->Branch("btagWeight_BTagDown",       &btagWeight_BTagDown,     "btagWeight_BTagDown/D"          );
+     outTree_->Branch("btagWeight_MistagUp",       &btagWeight_MistagUp,     "btagWeight_MistagUp/D"          );
+     outTree_->Branch("btagWeight_MistagDown",       &btagWeight_MistagDown,     "btagWeight_MistagDown/D"          );
      outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
    };
@@ -581,8 +585,20 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByToken( genInfoToken , genInfo);
    genWeight = (genInfo -> weight());
    //btag weights
-   if (njets > 0) btagWeight =  BTagHelper_.getEventWeight(AK4Jets);
-   else btagWeight = 1.;
+   if (njets > 0) {
+     btagWeight =  BTagHelper_.getEventWeight(AK4Jets);
+     btagWeight_BTagUp =  BTagHelper_.getEventWeight(AK4Jets, UP, BTAG);
+     btagWeight_BTagDown =  BTagHelper_.getEventWeight(AK4Jets, DOWN, BTAG);
+     btagWeight_MistagUp =  BTagHelper_.getEventWeight(AK4Jets, UP, MISTAG);
+     btagWeight_MistagDown =  BTagHelper_.getEventWeight(AK4Jets, DOWN, MISTAG);
+   }
+   else {
+    btagWeight = 1.;
+    btagWeight_BTagUp = 1.;
+    btagWeight_BTagDown = 1.;
+    btagWeight_MistagUp = 1.;
+    btagWeight_MistagDown = 1.;
+   }
 
 
    //PDF uncertainties

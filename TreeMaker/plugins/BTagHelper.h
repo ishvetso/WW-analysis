@@ -2,6 +2,11 @@
 #include "TEfficiency.h"
 #include "TH2.h"
 using namespace btag;
+enum VARIATION {
+	UP, DOWN, NOMINAL};
+
+enum BTagUncertaintyType{
+	BTAG, MISTAG, NOMINALTYPE};
 template<class T> class BTagHelper{
 
 	BTagCalibration calib;
@@ -11,17 +16,28 @@ template<class T> class BTagHelper{
 	double DiscrCut;
 	std::string DiscrName;
 public:
-	std::auto_ptr<BTagCalibrationReader>  reader;
+	std::auto_ptr<BTagCalibrationReader>  reader, reader_up, reader_down;
 	BTagHelper()
 	{	
 		//scale factors from CSV file
 		edm::FileInPath CSVFile("aTGCsAnalysis/TreeMaker/data/CSVv2.csv");
 		edm::FileInPath EfficiencyFile("aTGCsAnalysis/TreeMaker/data/eff_ttbar_mu.root");
 		calib = BTagCalibration("CSVv2", CSVFile.fullPath());
+		//nominal
 		reader.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "central"));
 		reader->load(calib, BTagEntry::FLAV_B, "mujets");
 		reader->load(calib, BTagEntry::FLAV_C, "mujets");
 		reader->load(calib, BTagEntry::FLAV_UDSG, "incl");
+		//up
+		reader_up.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "up"));
+		reader_up->load(calib, BTagEntry::FLAV_B, "mujets");
+		reader_up->load(calib, BTagEntry::FLAV_C, "mujets");
+		reader_up->load(calib, BTagEntry::FLAV_UDSG, "incl");
+		//down
+		reader_down.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "down"));
+		reader_down->load(calib, BTagEntry::FLAV_B, "mujets");
+		reader_down->load(calib, BTagEntry::FLAV_C, "mujets");
+		reader_down->load(calib, BTagEntry::FLAV_UDSG, "incl");
 		MaxBJetPt = 670.;
 		//get measured efficiencies
 		TFile effFile(EfficiencyFile.fullPath().c_str());
@@ -32,13 +48,44 @@ public:
 		DiscrCut = 0.935;
 		DiscrName = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
 	}
-	double getScaleFactor(T jet){
+	double getScaleFactor(T jet, VARIATION var=NOMINAL, BTagUncertaintyType BTagUncertaintyType_=NOMINALTYPE){
 		float jetPt = jet.pt();
       	if (jetPt>MaxBJetPt) jetPt = MaxBJetPt;
       	double jet_scalefactor;
-      	if (jet.partonFlavour() == 5) jet_scalefactor = reader->eval(BTagEntry::FLAV_B, jet.eta(), jetPt);
-      	else if (jet.partonFlavour() == 4) jet_scalefactor = reader->eval(BTagEntry::FLAV_C, jet.eta(), jetPt);
-      	else jet_scalefactor = reader->eval(BTagEntry::FLAV_UDSG, jet.eta(), jetPt);
+      	if (var == NOMINAL){
+      		if (BTagUncertaintyType_ != NOMINALTYPE) throw cms::Exception("InvalidValue") << "BTagUncertaintyType is not valid, should be NOMINALTYPE in this case." << std::endl;
+	      	if (jet.partonFlavour() == 5) jet_scalefactor = reader->eval(BTagEntry::FLAV_B, jet.eta(), jetPt);
+	      	else if (jet.partonFlavour() == 4) jet_scalefactor = reader->eval(BTagEntry::FLAV_C, jet.eta(), jetPt);
+	      	else jet_scalefactor = reader->eval(BTagEntry::FLAV_UDSG, jet.eta(), jetPt);
+	      }
+	    else if (var == UP){
+	    	if (BTagUncertaintyType_ == BTAG){
+	    		if (jet.partonFlavour() == 5) jet_scalefactor = reader_up->eval(BTagEntry::FLAV_B, jet.eta(), jetPt);
+	      		else if (jet.partonFlavour() == 4) jet_scalefactor = reader_up->eval(BTagEntry::FLAV_C, jet.eta(), jetPt);
+	      		else jet_scalefactor = reader->eval(BTagEntry::FLAV_UDSG, jet.eta(), jetPt);
+	      	}
+	      	else if (BTagUncertaintyType_ == MISTAG){
+	    		if (jet.partonFlavour() == 5) jet_scalefactor = reader->eval(BTagEntry::FLAV_B, jet.eta(), jetPt);
+	      		else if (jet.partonFlavour() == 4) jet_scalefactor = reader->eval(BTagEntry::FLAV_C, jet.eta(), jetPt);
+	      		else jet_scalefactor = reader_up->eval(BTagEntry::FLAV_UDSG, jet.eta(), jetPt);
+	      	}
+	      	else throw cms::Exception("InvalidValue") << "BTagUncertaintyType is not valid." << std::endl;
+	    }
+	    else if (var == DOWN){
+	    	if (BTagUncertaintyType_ == BTAG){
+	    		if (jet.partonFlavour() == 5) jet_scalefactor = reader_down->eval(BTagEntry::FLAV_B, jet.eta(), jetPt);
+	      		else if (jet.partonFlavour() == 4) jet_scalefactor = reader_down->eval(BTagEntry::FLAV_C, jet.eta(), jetPt);
+	      		else jet_scalefactor = reader->eval(BTagEntry::FLAV_UDSG, jet.eta(), jetPt);
+	      	}
+	      	else if (BTagUncertaintyType_ == MISTAG){
+	    		if (jet.partonFlavour() == 5) jet_scalefactor = reader->eval(BTagEntry::FLAV_B, jet.eta(), jetPt);
+	      		else if (jet.partonFlavour() == 4) jet_scalefactor = reader->eval(BTagEntry::FLAV_C, jet.eta(), jetPt);
+	      		else jet_scalefactor = reader_down->eval(BTagEntry::FLAV_UDSG, jet.eta(), jetPt);
+	      	}
+	      	else throw cms::Exception("InvalidValue") << "BTagUncertaintyType is not valid." << std::endl;
+	    }
+	    else throw cms::Exception("InvalidValue") << "Variation type is not valid." << std::endl;
+
 		return jet_scalefactor;
 	}
 	double getEfficiency(T jet){
@@ -51,17 +98,17 @@ public:
 		else  efficiency = eff_udsg->GetEfficiency(eff_udsg->GetGlobalBin(ptBin,etaBin));
 		return efficiency;
 	}
-	double getEventWeight(edm::Handle<edm::View<T>> jets){
+	double getEventWeight(edm::Handle<edm::View<T>> jets, VARIATION var=NOMINAL, BTagUncertaintyType BTagUncertaintyType_=NOMINALTYPE){
 		double probabMC = 1., probabData = 1.;
 		for(unsigned int iBtag = 0; iBtag < jets -> size(); iBtag ++)
 		{
 			if (jets->at(iBtag).bDiscriminator(DiscrName) > DiscrCut){
 				probabMC *= getEfficiency(jets->at(iBtag));
-				probabData *= getEfficiency(jets->at(iBtag)) * getScaleFactor(jets->at(iBtag));
+				probabData *= getEfficiency(jets->at(iBtag)) * getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_);
 			}
 			else {
 				probabMC *= (1 - getEfficiency(jets->at(iBtag)));
-				probabData *= (1 - getEfficiency(jets->at(iBtag))*getScaleFactor(jets->at(iBtag)));
+				probabData *= (1 - getEfficiency(jets->at(iBtag))*getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_));
 			}			
 		}
 		double weight = probabData/probabMC;
