@@ -174,8 +174,8 @@ private:
   //for JEC
   boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
   SystematicsHelper SystematicsHelper_;
-  BTagHelper<pat::Jet>BTagHelper_;
   JetResolutionSmearer<pat::Jet>JetResolutionSmearer_;
+  BTagHelper<pat::Jet>BTagHelper_;
 
 };
 
@@ -198,8 +198,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   isSignal(iConfig.getParameter<bool>("isSignal")),
   channel(iConfig.getParameter<std::string>("channel")),
   SystematicsHelper_(SystematicsHelper()),
-  BTagHelper_(iConfig.getParameter<std::string>("BtagEffFile")),
-  JetResolutionSmearer_(iConfig.getParameter<bool>("isMC"))
+  JetResolutionSmearer_(iConfig.getParameter<bool>("isMC")),
+  BTagHelper_(iConfig.getParameter<std::string>("BtagEffFile"))
 
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
@@ -728,8 +728,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
    
    if (channel == "mu")LeptonSF = getScaleFactor(Lepton.pt, std::abs(Lepton.eta));
-   else if (channel == "ele ") LeptonSF = 1.;
-   else  throw cms::Exception("InvalidValue") << "Invalid channel, should be mu or ele." << std::endl; 
+   else if (channel == "el") LeptonSF = 1.;
+   else  throw cms::Exception("InvalidValue") << "Invalid channel, should be mu or el." << std::endl; 
    //leptonically decaying W
    if (leptonicVs -> size() > 0)
    {
