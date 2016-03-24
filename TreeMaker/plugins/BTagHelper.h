@@ -6,6 +6,8 @@
 * the class calculates b-tag weight for the event
 * what is being done following the description:
 * https://twiki.cern.ch/twiki/bin/view/CMS/BTagSFMethods#1a_Event_reweighting_using_scale
+* if the string of the efficiency file is empty then the returned weight is 1
+* else the proper calculation is being done
 * Ivan Shvetsov, March 2016
 * muhsam ernahrt sich das Eichhornchen
 */
