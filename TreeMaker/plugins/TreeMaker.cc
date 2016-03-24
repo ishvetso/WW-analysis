@@ -94,7 +94,8 @@ private:
   double genWeight;
   double LeptonSF;
   double rho_;
-  
+  double totWeight;
+  double VTagSF;
   Particle Wboson_lep, METCand, Electron, Muon, Lepton;
   double m_pruned;
 
@@ -197,7 +198,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   isSignal(iConfig.getParameter<bool>("isSignal")),
   channel(iConfig.getParameter<std::string>("channel")),
   SystematicsHelper_(SystematicsHelper()),
-  BTagHelper_(),
+  BTagHelper_(iConfig.getParameter<std::string>("BtagEffFile")),
   JetResolutionSmearer_(iConfig.getParameter<bool>("isMC"))
 
 {
@@ -267,6 +268,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("btagWeight_BTagDown",       &btagWeight_BTagDown,     "btagWeight_BTagDown/D"          );
      outTree_->Branch("btagWeight_MistagUp",       &btagWeight_MistagUp,     "btagWeight_MistagUp/D"          );
      outTree_->Branch("btagWeight_MistagDown",       &btagWeight_MistagDown,     "btagWeight_MistagDown/D"          );
+     outTree_->Branch("totWeight",       &totWeight,     "totWeight/D"          );
      outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
    };
@@ -600,6 +602,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     btagWeight_MistagDown = 1.;
    }
 
+   VTagSF = 1.031;//from AN2015_196_v8.pdf, Table 12: The pure W scale factor for the combination of muon and electron channel.
 
    //PDF uncertainties
    edm::Handle<LHEEventProduct> LHEevtProductExternal;
@@ -723,11 +726,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Lepton.pt_LeptonResUp = -99.;
      Lepton.pt_LeptonResDown = -99.;
    }
-
-  
-  LeptonSF = getScaleFactor(Lepton.pt, std::abs(Lepton.eta));
- 
-
+   
+   if (channel == "mu")LeptonSF = getScaleFactor(Lepton.pt, std::abs(Lepton.eta));
+   else if (channel == "ele ") LeptonSF = 1.;
+   else  throw cms::Exception("InvalidValue") << "Invalid channel, should be mu or ele." << std::endl; 
    //leptonically decaying W
    if (leptonicVs -> size() > 0)
    {
@@ -1062,33 +1064,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   }
   
-  else 
-  {
-    jet_pt = -99.;
-    jet_eta = -99.;
-    jet_phi = -99.;
-    jet_mass_pruned = -99.;
-    jet_mass_softdrop = -99.;
-    jet_tau2tau1 = -99.;
-
-    //JEC Uncertainty
-    jet_pt_JECDown = -99.;
-    jet_pt_JECUp   = -99.;
-    jet_mass_JECDown = -99.;
-    jet_mass_JECUp   = -99.;
-    //JER uncertainty
-    jet_pt_JERUp = -99.;
-    jet_pt_JERDown = -99.;
-    jet_mass_JERUp = -99.;
-    jet_mass_JERDown = -99.;
-
-    jet_mass_pruned_JERUp = -99.;
-    jet_mass_pruned_JERDown = -99.;
-    jet_mass_softdrop_JERUp = -99.;
-    jet_mass_softdrop_JERDown = -99.;
-  }
-  
-  
+  else throw cms::Exception("InvalidValue") << "This shouldn't happen, we require at least 1 jet, but the size of the jet collection for this event is zero!" << std::endl; 
    
   //Loop over the collection of the AK4 jets which contain b-tagging information (to veto b-jets)
   njets = AK4Jets -> size(); 
@@ -1219,6 +1195,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
    }
 
+  if (isMC) totWeight = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight*VTagSF; 
  // uncomment the line used in the synchronization exercise!
  //if (deltaR_LeptonWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
   outTree_->Fill();

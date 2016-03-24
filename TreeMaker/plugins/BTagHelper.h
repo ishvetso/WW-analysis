@@ -1,6 +1,14 @@
 #include "aTGCsAnalysis/TreeMaker/interface/BTagCalibrationStandalone.h"
 #include "TEfficiency.h"
 #include "TH2.h"
+
+/*
+* the class calculates b-tag weight for the event
+* what is being done following the description:
+* https://twiki.cern.ch/twiki/bin/view/CMS/BTagSFMethods#1a_Event_reweighting_using_scale
+* Ivan Shvetsov, March 2016
+* muhsam ernahrt sich das Eichhornchen
+*/
 using namespace btag;
 enum VARIATION {
 	UP, DOWN, NOMINAL};
@@ -15,38 +23,45 @@ template<class T> class BTagHelper{
 	TEfficiency *eff_b, *eff_c, *eff_udsg;
 	double DiscrCut;
 	std::string DiscrName;
+	std::string BtagEffFileName;
+	bool DONOTHING;
 public:
 	std::auto_ptr<BTagCalibrationReader>  reader, reader_up, reader_down;
-	BTagHelper()
+	BTagHelper(std::string BtagEffFileName_)
 	{	
-		//scale factors from CSV file
-		edm::FileInPath CSVFile("aTGCsAnalysis/TreeMaker/data/CSVv2.csv");
-		edm::FileInPath EfficiencyFile("aTGCsAnalysis/TreeMaker/data/eff_ttbar_mu.root");
-		calib = BTagCalibration("CSVv2", CSVFile.fullPath());
-		//nominal
-		reader.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "central"));
-		reader->load(calib, BTagEntry::FLAV_B, "mujets");
-		reader->load(calib, BTagEntry::FLAV_C, "mujets");
-		reader->load(calib, BTagEntry::FLAV_UDSG, "incl");
-		//up
-		reader_up.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "up"));
-		reader_up->load(calib, BTagEntry::FLAV_B, "mujets");
-		reader_up->load(calib, BTagEntry::FLAV_C, "mujets");
-		reader_up->load(calib, BTagEntry::FLAV_UDSG, "incl");
-		//down
-		reader_down.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "down"));
-		reader_down->load(calib, BTagEntry::FLAV_B, "mujets");
-		reader_down->load(calib, BTagEntry::FLAV_C, "mujets");
-		reader_down->load(calib, BTagEntry::FLAV_UDSG, "incl");
-		MaxBJetPt = 670.;
-		//get measured efficiencies
-		TFile effFile(EfficiencyFile.fullPath().c_str());
-		eff_b = (TEfficiency*)effFile.Get("BtagAnalyzer/h2_BTaggingEff_b");
-		eff_c = (TEfficiency*)effFile.Get("BtagAnalyzer/h2_BTaggingEff_c");
-		eff_udsg = (TEfficiency*)effFile.Get("BtagAnalyzer/h2_BTaggingEff_udsg");
-		hist_eff = (TH2D*) eff_b->GetPassedHistogram();//get histogram to get binning info
-		DiscrCut = 0.935;
-		DiscrName = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
+		if (BtagEffFileName_.empty()) DONOTHING = true;
+		else DONOTHING = false;
+		if (!DONOTHING){
+			//scale factors from CSV file
+			edm::FileInPath CSVFile("aTGCsAnalysis/TreeMaker/data/CSVv2.csv");
+			std::cout << "is empty ? " << BtagEffFileName_.empty() << std::endl;
+			edm::FileInPath EfficiencyFile(BtagEffFileName_);
+			calib = BTagCalibration("CSVv2", CSVFile.fullPath());
+			//nominal
+			reader.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "central"));
+			reader->load(calib, BTagEntry::FLAV_B, "mujets");
+			reader->load(calib, BTagEntry::FLAV_C, "mujets");
+			reader->load(calib, BTagEntry::FLAV_UDSG, "incl");
+			//up
+			reader_up.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "up"));
+			reader_up->load(calib, BTagEntry::FLAV_B, "mujets");
+			reader_up->load(calib, BTagEntry::FLAV_C, "mujets");
+			reader_up->load(calib, BTagEntry::FLAV_UDSG, "incl");
+			//down
+			reader_down.reset(new BTagCalibrationReader(BTagEntry::OP_TIGHT, "down"));
+			reader_down->load(calib, BTagEntry::FLAV_B, "mujets");
+			reader_down->load(calib, BTagEntry::FLAV_C, "mujets");
+			reader_down->load(calib, BTagEntry::FLAV_UDSG, "incl");
+			MaxBJetPt = 670.;
+			//get measured efficiencies
+			TFile effFile(EfficiencyFile.fullPath().c_str());
+			eff_b = (TEfficiency*)effFile.Get("BtagAnalyzer/h2_BTaggingEff_b");
+			eff_c = (TEfficiency*)effFile.Get("BtagAnalyzer/h2_BTaggingEff_c");
+			eff_udsg = (TEfficiency*)effFile.Get("BtagAnalyzer/h2_BTaggingEff_udsg");
+			hist_eff = (TH2D*) eff_b->GetPassedHistogram();//get histogram to get binning info
+			DiscrCut = 0.935;
+			DiscrName = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
+		}
 	}
 	double getScaleFactor(T jet, VARIATION var=NOMINAL, BTagUncertaintyType BTagUncertaintyType_=NOMINALTYPE){
 		float jetPt = jet.pt();
@@ -99,20 +114,23 @@ public:
 		return efficiency;
 	}
 	double getEventWeight(edm::Handle<edm::View<T>> jets, VARIATION var=NOMINAL, BTagUncertaintyType BTagUncertaintyType_=NOMINALTYPE){
-		double probabMC = 1., probabData = 1.;
-		for(unsigned int iBtag = 0; iBtag < jets -> size(); iBtag ++)
-		{
-			if (jets->at(iBtag).bDiscriminator(DiscrName) > DiscrCut){
-				probabMC *= getEfficiency(jets->at(iBtag));
-				probabData *= getEfficiency(jets->at(iBtag)) * getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_);
+		if (DONOTHING) return 1.;
+		else {
+			double probabMC = 1., probabData = 1.;
+			for(unsigned int iBtag = 0; iBtag < jets -> size(); iBtag ++)
+			{
+				if (jets->at(iBtag).bDiscriminator(DiscrName) > DiscrCut){
+					probabMC *= getEfficiency(jets->at(iBtag));
+					probabData *= getEfficiency(jets->at(iBtag)) * getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_);
+				}
+				else {
+					probabMC *= (1 - getEfficiency(jets->at(iBtag)));
+					probabData *= (1 - getEfficiency(jets->at(iBtag))*getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_));
+				}			
 			}
-			else {
-				probabMC *= (1 - getEfficiency(jets->at(iBtag)));
-				probabData *= (1 - getEfficiency(jets->at(iBtag))*getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_));
-			}			
+			double weight = probabData/probabMC;
+			return weight;
 		}
-		double weight = probabData/probabMC;
-		return weight;
 	}
 
 };
