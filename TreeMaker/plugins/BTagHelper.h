@@ -17,7 +17,7 @@ enum VARIATION {
 
 enum BTagUncertaintyType{
 	BTAG, MISTAG, NOMINALTYPE};
-template<class T> class BTagHelper{
+ class BTagHelper{
 
 	BTagCalibration calib;
 	float MaxBJetPt;
@@ -65,7 +65,7 @@ public:
 			DiscrName = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
 		}
 	}
-	double getScaleFactor(T jet, VARIATION var=NOMINAL, BTagUncertaintyType BTagUncertaintyType_=NOMINALTYPE){
+	template<class T> double getScaleFactor(T jet, VARIATION var=NOMINAL, BTagUncertaintyType BTagUncertaintyType_=NOMINALTYPE){
 		float jetPt = jet.pt();
       	if (jetPt>MaxBJetPt) jetPt = MaxBJetPt;
       	double jet_scalefactor;
@@ -105,7 +105,7 @@ public:
 
 		return jet_scalefactor;
 	}
-	double getEfficiency(T jet){
+	template<class T> double getEfficiency(T jet){
 		int ptBin = hist_eff ->GetXaxis() -> FindBin(jet.pt());
 		int etaBin = hist_eff ->GetYaxis() -> FindBin(jet.eta());
 		if (jet.pt() >= hist_eff -> GetXaxis() -> GetBinUpEdge(hist_eff -> GetNbinsX()) ) ptBin =  hist_eff -> GetNbinsX();//protection in case we go above the binning limit
@@ -115,7 +115,7 @@ public:
 		else  efficiency = eff_udsg->GetEfficiency(eff_udsg->GetGlobalBin(ptBin,etaBin));
 		return efficiency;
 	}
-	double getEventWeight(edm::Handle<edm::View<T>> jets, VARIATION var=NOMINAL, BTagUncertaintyType BTagUncertaintyType_=NOMINALTYPE){
+	template<class T> double getEventWeight(edm::Handle<edm::View<T>> jets, VARIATION var=NOMINAL, BTagUncertaintyType BTagUncertaintyType_=NOMINALTYPE){
 		if (DONOTHING) return 1.;
 		else {
 			double probabMC = 1., probabData = 1.;

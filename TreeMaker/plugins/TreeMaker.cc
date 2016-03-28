@@ -169,13 +169,13 @@ private:
   edm::EDGetTokenT<GenEventInfoProduct> genInfoToken;
   edm::EDGetTokenT<LHEEventProduct> LHEEventProductTokenExternal;
   edm::EDGetTokenT<LHERunInfoProduct> lheProducerToken;
-//BTagCalibrationReader reader(&calib,  BTagEntry::OP_LOOSE, "comb", "central");
- 
-  //for JEC
-  boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
   SystematicsHelper SystematicsHelper_;
   JetResolutionSmearer<pat::Jet>JetResolutionSmearer_;
-  BTagHelper<pat::Jet>BTagHelper_;
+  //for JEC
+  boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
+  BTagHelper BTagHelper_;
+  
+
 
 };
 
