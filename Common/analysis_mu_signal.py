@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 from aTGCsAnalysis.SystematicsProducers.metSystematics_cff import *
 
-process = cms.Process( "WWanalysis" )
+process = cms.Process( "aTGCanalysis" )
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(10000)
 )
@@ -93,6 +93,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     leptonSrc = cms.InputTag("tightMuons"),
                                     LHEEventProductSrcExternal = cms.InputTag("source"),
                                     isMC = cms.bool(True),
+                                    BtagEffFile = cms.string(""),
                                     isSignal = cms.bool(True),
                                     channel = cms.string("mu")
                                     )
@@ -106,29 +107,14 @@ process.metSequenceSystematics = CreateWLepWithSystematicsSequence(process, "mu"
 # PATH
 process.analysis = cms.Path(process.NoiseFilters + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.metSequenceSystematics +  process.treeDumper)
 
-
-#process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/WWToLNuQQ_aTGC_13TeV-madgraph-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/50000/B64AA5AE-B5B8-E511-80FD-001EC9B21623.root'),
-   # eventsToProcess = cms.untracked.VEventRange('1:509589:127270357')
-    
+    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/WWToLNuQQ_aTGC_13TeV-madgraph-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/50000/B64AA5AE-B5B8-E511-80FD-001EC9B21623.root'),    
 )
-
-#file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_PHYS14.root'
 
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
-#process.MessageLogger.cerr.FwkReport.limit = 99999999
-
-'''process.out = cms.OutputModule("PoolOutputModule",
- fileName = cms.untracked.string('patTuple.root'),
-  outputCommands = cms.untracked.vstring('keep *')
-)
-
-process.outpath = cms.EndPath(process.out)'''
-
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.TFileService = cms.Service("TFileService",
                                  fileName = cms.string("tree_mu.root")
                                   )

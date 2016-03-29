@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process( "WWanalysis" )
+process = cms.Process( "aTGCanalysis" )
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(10000000)
 )
@@ -88,7 +88,8 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     looseMuSrc = cms.InputTag("looseMuons"),
                                     leptonSrc = cms.InputTag("tightMuons"),
                                     isMC = cms.bool(False),
-				    isSignal = cms.bool(False),	
+                                    BtagEffFile = cms.string(""),
+				                    isSignal = cms.bool(False),	
                                     channel = cms.string("mu")
                                     )
 
@@ -99,28 +100,14 @@ process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 # PATH
 process.analysis = cms.Path(process.NoiseFilters +  process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
 
-
-#process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
     fileNames = cms.untracked.vstring('/store/data/Run2015C_25ns/SingleMuon/MINIAOD/16Dec2015-v1/00000/002C22D4-E1AF-E511-AE8E-001E673971CA.root')
     
 )
 
-#file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_PHYS14.root'
-
-
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-#process.MessageLogger.cerr.FwkReport.limit = 99999999
-
-'''process.out = cms.OutputModule("PoolOutputModule",
- fileName = cms.untracked.string('patTuple.root'),
-  outputCommands = cms.untracked.vstring('keep *')
-)
-
-process.outpath = cms.EndPath(process.out)'''
-
 process.TFileService = cms.Service("TFileService",
                                  fileName = cms.string("tree_mu.root")
                                   )

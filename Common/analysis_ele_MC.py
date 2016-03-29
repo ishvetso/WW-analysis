@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from aTGCsAnalysis.SystematicsProducers.metSystematics_cff import *
-process = cms.Process( "WWanalysis" )
+process = cms.Process( "aTGCanalysis" )
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(10000)
 )
@@ -93,6 +93,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     triggers = cms.InputTag("TriggerResults","","HLT"),
                                     LHEEventProductSrcExternal = cms.InputTag("externalLHEProducer"),
                                     isMC = cms.bool(True),
+                                    BtagEffFile = cms.string(""),
 				                    isSignal = cms.bool(False),
                                     channel = cms.string("el")
                                     )
@@ -110,23 +111,12 @@ process.analysis = cms.Path(process.NoiseFilters  + process.TriggerElectron + pr
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/mc/RunIIFall15MiniAODv2/TTJets_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/00000/000EEBFE-D1D0-E511-B584-0025905964BA.root'),
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/mc/RunIIFall15MiniAODv2/TTJets_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/40000/624CCA85-D5D0-E511-9858-0CC47A4D76AC.root'),
     
 )
 
-#file:///afs/cern.ch/work/i/ishvetso/RunII_preparation/samples/RSGravitonToWW_kMpl01_M_1000_Tune4C_13TeV_pythia8_PHYS14.root'
-
-
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-#process.MessageLogger.cerr.FwkReport.limit = 99999999
-'''
-process.out = cms.OutputModule("PoolOutputModule",
- fileName = cms.untracked.string('patTuple.root'),
-  outputCommands = cms.untracked.vstring('keep *')
-)
-
-process.outpath = cms.EndPath(process.out)'''
 
 process.TFileService = cms.Service("TFileService",
                                  fileName = cms.string("tree_ele.root")
