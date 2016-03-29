@@ -94,7 +94,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     LHEEventProductSrcExternal = cms.InputTag("externalLHEProducer"),
                                     isMC = cms.bool(True),
                                     BtagEffFile = cms.string(""),
-				                    isSignal = cms.bool(False),
+				    isSignal = cms.bool(False),
                                     channel = cms.string("mu")
                                     )
 
