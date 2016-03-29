@@ -36,7 +36,6 @@ public:
 		if (!DONOTHING){
 			//scale factors from CSV file
 			edm::FileInPath CSVFile("aTGCsAnalysis/TreeMaker/data/CSVv2.csv");
-			std::cout << "is empty ? " << BtagEffFileName_.empty() << std::endl;
 			edm::FileInPath EfficiencyFile(BtagEffFileName_);
 			calib = BTagCalibration("CSVv2", CSVFile.fullPath());
 			//nominal

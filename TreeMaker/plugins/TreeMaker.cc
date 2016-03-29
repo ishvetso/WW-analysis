@@ -94,7 +94,7 @@ private:
   double genWeight;
   double LeptonSF;
   double rho_;
-  double totWeight;
+  double totWeight, totWeight_BTagUp, totWeight_BTagDown, totWeight_MistagUp, totWeight_MistagDown;
   double VTagSF;
   Particle Wboson_lep, METCand, Electron, Muon, Lepton;
   double m_pruned;
@@ -268,9 +268,17 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("btagWeight_BTagDown",       &btagWeight_BTagDown,     "btagWeight_BTagDown/D"          );
      outTree_->Branch("btagWeight_MistagUp",       &btagWeight_MistagUp,     "btagWeight_MistagUp/D"          );
      outTree_->Branch("btagWeight_MistagDown",       &btagWeight_MistagDown,     "btagWeight_MistagDown/D"          );
+     //total weights: central and systematics
      outTree_->Branch("totWeight",       &totWeight,     "totWeight/D"          );
+     outTree_->Branch("totWeight_BTagUp",       &totWeight_BTagUp,     "totWeight_BTagUp/D"          );
+     outTree_->Branch("totWeight_BTagDown",       &totWeight_BTagDown,     "totWeight_BTagDown/D"          );
+     outTree_->Branch("totWeight_MistagUp",       &totWeight_MistagUp,     "totWeight_MistagUp/D"          );
+     outTree_->Branch("totWeight_MistagDown",       &totWeight_MistagDown,     "totWeight_MistagDown/D"          );
+     //PDF and scale weights: systematics
      outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
+     //generator info about the decay of WW
+     outTree_->Branch("WDecayClass",     &WDecayClass,    "WDecayClass/I"      );
    };
   if (channel == "el") {
     outTree_->Branch("bit_HLT_Ele_105",       &bit_HLT_Ele_105,     "bit_HLT_Ele_105/B"          );
@@ -348,8 +356,6 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("charge_W_lep",    &Wboson_lep.charge, "charge_W_lep/D"     );
     
   outTree_->Branch("N_lep_W",	      &N_lep_W,		  "N_lep_W/I"          );
-  
-  outTree_->Branch("WDecayClass",     &WDecayClass,	  "WDecayClass/I"      );
   
   outTree_->Branch("N_had_W_gen",     &N_had_Wgen,	  "N_had_W_gen/I"      );
   outTree_->Branch("N_lep_W_gen",     &N_lep_Wgen, 	  "N_lep_W_gen/I"      );
@@ -675,12 +681,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //  Defining decay channel on the gen level
    N_had_Wgen  = 0, N_lep_Wgen = 0 ;
 
-   if (isMC) DefineDecayChannel(genParticles, N_lep_Wgen , N_had_Wgen );
-   
-   if (N_lep_Wgen == 0 && N_had_Wgen == 2  ) WDecayClass = Hadronic;
-   else if (N_lep_Wgen == 1 && N_had_Wgen == 1 ) WDecayClass = Semileptonic;
-   else if (N_lep_Wgen == 2 && N_had_Wgen == 0 ) WDecayClass = Leptonic;
-   else WDecayClass = UnDefined;
+   if (isMC) {
+    DefineDecayChannel(genParticles, N_lep_Wgen , N_had_Wgen );
+    if (N_lep_Wgen == 0 && N_had_Wgen == 2  ) WDecayClass = Hadronic;
+    else if (N_lep_Wgen == 1 && N_had_Wgen == 1 ) WDecayClass = Semileptonic;
+    else if (N_lep_Wgen == 2 && N_had_Wgen == 0 ) WDecayClass = Leptonic;
+    else WDecayClass = UnDefined;
+  }
 
    N_lep_W = leptonicVs -> size();
    
@@ -1195,7 +1202,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
    }
 
-  if (isMC) totWeight = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight*VTagSF; 
+  if (isMC) {
+    totWeight = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight*VTagSF; 
+    totWeight_BTagUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_BTagUp*VTagSF;  
+    totWeight_BTagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_BTagDown*VTagSF;  
+    totWeight_MistagUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_MistagUp*VTagSF; 
+    totWeight_MistagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_MistagDown*VTagSF; 
+  }
  // uncomment the line used in the synchronization exercise!
  //if (deltaR_LeptonWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
   outTree_->Fill();
@@ -1216,16 +1229,6 @@ void TreeMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
   else return;
   std::cout << "Nominal : " << run->heprup().PDFSUP.first << std::endl;
   NominalPDF = run->heprup().PDFSUP.first;
-  //typedef std::vector<LHERunInfoProduct::Header>::const_iterator headers_const_iterator;
-  //LHERunInfoProduct myLHERunInfoProduct = *(run.product());
-
-  /*for (headers_const_iterator iter=myLHERunInfoProduct.headers_begin(); iter!=myLHERunInfoProduct.headers_end(); iter++){
-  std::cout << iter->tag() << std::endl;
-  std::vector<std::string> lines = iter->lines();
-  for (unsigned int iLine = 0; iLine<lines.size(); iLine++) {
-   std::cout << lines.at(iLine);
-  }
-}*/
 
 }
 
