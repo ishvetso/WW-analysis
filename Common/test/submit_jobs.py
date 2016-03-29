@@ -4,9 +4,27 @@ import fileinput
 import optparse
 import sys
 import shutil
+import subprocess
 
 # Author: Ivan Shvetsov
 # Numquam ponenda est pluralitas sine necessitate
+
+def DefineNJobs(sample): 
+	ps = subprocess.Popen(['./das_client.py', '--query', "file dataset=" + sample + " | count(file.name)"], stdout=subprocess.PIPE)
+	output = ps.communicate()[0]
+	for line in output.splitlines():
+		if "count(file.name)=" in line :
+			replacedline = line.replace("count(file.name)=","")
+	N = int(replacedline)
+	
+	if N < 100 :
+		NFilesPerJob = 1
+	else :
+		# let's roughly assume that number of files is ~1000 in the worst case
+		NFilesPerJob = int(N/100)
+	print "N of files : " , sample , " " , NFilesPerJob	
+	return NFilesPerJob
+
 
 def createConfigFile(processName, channel, isMC, isSignal):
 	if not os.path.exists("analysisConfigs"):
@@ -23,8 +41,6 @@ def createConfigFile(processName, channel, isMC, isSignal):
    		outFile = open("analysisConfigs/analysis_" + channel + "_" + processName + ".py", "w+")
    		for line in configFile:
    			if BTagEfficiencyPattern in line :
-   				print "found"
-   				print line
    				replaceWith = "BtagEffFile = cms.string(\"aTGCsAnalysis/TreeMaker/data/eff_" + processName + "_" + channel + ".root\"),\n"
    				outFile.write(line.replace(BTagEfficiencyPattern, replaceWith ))
    			else :
@@ -37,7 +53,6 @@ def createConfigFile(processName, channel, isMC, isSignal):
    		ConfigFileName = "analysisConfigs/analysis_" + channel + ".py"
    	else :
    		raise ValueError('This should not happen!')
-   	print os.path.abspath(ConfigFileName)
    	return os.path.abspath(ConfigFileName)
 
 
@@ -78,9 +93,10 @@ def createFileForJob(processName, channel, sampleName, feature, configFileName, 
 				continue
 		elif patterUnitPerJob in line :
 			if isMC :
-				tempFile.write( line.replace( patterUnitPerJob, "2"))
+				NUnitPerJobWise = DefineNJobs(sampleName)
+				tempFile.write( line.replace( patterUnitPerJob, str(NUnitPerJobWise)))
 			else :
-				tempFile.write( line.replace( patterUnitPerJob, "4"))
+				tempFile.write( line.replace( patterUnitPerJob, "50"))
 		else:
 			tempFile.write( line)
 	tempFile.close()
@@ -92,7 +108,6 @@ def createFileForJob(processName, channel, sampleName, feature, configFileName, 
 
 parser =  optparse.OptionParser()
 parser.add_option('-p', '--Feature', dest="Feature", default='my_feature')
-parser.add_option('-d', '--dir', dest="directory", default='/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_6_3_patch1/src/aTGCsAnalysis/Common/')
 (options, arg) = parser.parse_args()
 
 
@@ -140,4 +155,4 @@ DataDictionaryElectronChannel = {'data-RunD':'/SingleElectron/Run2015D-16Dec2015
 MyJSON = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt"
 	
 
-submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, MyJSON,"254000-261000", False)
+submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, MyJSON,"254000-261000", True)
