@@ -5,7 +5,7 @@ config.General.requestName = '$PROCESS$_$CHANNEL$_$FEATURE$'
 config.General.workArea = 'crab_projects'
 config.section_("JobType")
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = '$configDIR$analysis_$CHANNEL$$MCvsDATA$.py'
+config.JobType.psetName = '$CONFIGFILENAME$'
 config.section_("Data")
 config.Data.inputDataset = '$SAMPLE$'
 config.Data.inputDBS = 'global'
