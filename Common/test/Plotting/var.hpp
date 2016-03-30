@@ -23,16 +23,17 @@ struct Var
 	string VarName;
   string Title;
 	range Range;
+
+  Double_t value_d;
+  Int_t    value_i;
+  TBranch* branch;
+
+  EDataType type;
+
+  Double_t value();
 	
 	void SetRange(double xlow, double xhigh);
+  void Initialize(TTree* tree);
 };
 
-void Var::SetRange(double xlow, double xhigh)
-{
-
-  range RangeX;
-  RangeX.low = xlow;
-  RangeX.high = xhigh;
-  Range = RangeX;
-}
 #endif
