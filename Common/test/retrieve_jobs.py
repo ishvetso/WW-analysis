@@ -23,18 +23,28 @@ def checkTaskStatus(taskName):
 
 def RetrieveTask(taskName, outputFileName, outDir):
 	if checkTaskStatus(taskName) == '100':
- 		os.system("crab getoutput crab_projects/crab_" + taskName)
+ 		tmpOut = os.popen("crab getoutput crab_projects/crab_" + taskName ).read()
+ 		if tmpOut.find("All files successfully retrieved") != -1 :
+ 			print "\033[0;40;32mAll files successfully retrieved : " + taskName +  "\033[0m"
+ 		else :
+ 			print "\033[0;40;31mNot all of files were retrieved, let's try once more! \033[0m"
+ 			tmpOut = os.popen("crab getoutput crab_projects/crab_" + taskName ).read()
+ 			if tmpOut.find("All files successfully retrieved") != -1 :
+ 				print "\033[0;40;32mAll files successfully retrieved : " + taskName +  "\033[0m"
+ 			else :
+ 				print "\033[0;40;31mAfter 2 attempts not all of files were retrieved! \033[0m"
+ 				sys.exit(0)
  		os.chdir("crab_projects/crab_" + taskName + "/results/")
  		os.system("hadd " + outputFileName + ".root" + "  tree_*.root")
  		os.system("rm tree_*.root")
  		os.system("mv " + outputFileName + ".root  " +  outDir )
- 		os.chdir("../../..")
+ 		os.chdir("../../../")
  		print "\033[0;40;32m task : "  +  taskName +  " retrieved successfully. \033[0m"
  	else :
+ 		os.system("crab resubmit -d crab_projects/crab_" + taskName)	
  		print "\033[0;40;31m task is not retrieved as it's not 100% finished : " + taskName +  "\033[0m"
 
 
-#RetrieveTask("WJets_Ht400To600_ele_4November2015", "WJets_Ht400To600_ele","/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_5November2015/" )
 
 TaskDictionaryName = {
 	"SingleTop-s-channel":"s-ch",
@@ -51,9 +61,8 @@ TaskDictionaryName = {
 	"WJets_HT-800To1200":"WJets_Ht800To1200",
 	"WJets_HT1200To2500":"WJets_Ht1200To2500",
 	"WJets_HT2500ToInf":"WJets_Ht2500ToInf",
-	"WW-signal":"WW-signal",	
-	"WZ-signal":"WZ-signal",	
-	"data-RunC":"data-RunC",
+	"WW-signal":"WW-aTGC",	
+	"WZ-signal":"WZ-aTGC",	
 	"data-RunD":"data-RunD",
 }
 
@@ -67,4 +76,4 @@ def Retrieval(feature, outDir):
 		RetrieveTask(TaskName + "_ele_" + feature, OutName + "_ele", outDir )
 
 
-Retrieval("my_feature", "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_18February2016/" )
+Retrieval("76X_reprocessing", "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_31March2016/" )
