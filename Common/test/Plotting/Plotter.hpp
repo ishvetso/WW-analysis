@@ -23,8 +23,8 @@
 #include <Sample.hpp>
 #include <var.hpp>
 #include <TASImage.h>
-#include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/tdrstyle.C>
-#include </afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/CMS_stylistics/CMS_lumi.cpp>
+#include <tdrstyle.hpp>
+#include <CMS_lumi.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include "boost/algorithm/string.hpp"
 

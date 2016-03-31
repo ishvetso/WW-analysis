@@ -39,207 +39,259 @@ void Plotter::Plotting(std::string OutPrefix_)
 	gStyle->SetOptStat(0);
 	gStyle->SetOptTitle(0);
 	setTDRStyle();
-	TCanvas *c1=  new TCanvas("c1","canvas",1200,800);
-	
-	
-	
-	//beginning of cycle over variables
-	for (uint var_i = 0; var_i < variables.size(); ++ var_i )
-	{	
-	  TPad *pad1 = new TPad("pad1","This is pad1",0.0,0.25,0.8,1.0);
-	  TPad *pad2 = new TPad("pad2","This is pad2",0.0,0.02,0.8,0.25);
+	// Prepare plots for the various variables 
+	TCanvas* c1;
+	TPad* pad1;
+	TPad* pad2;
+	std::map<std::string,TLegend*> leg;
+	std::map<std::string,TH1D*> data;
+	std::map<std::string,TH1D*> signalHist;
+	std::map<std::string,THStack*> hs;
+	std::map<std::string,TH1D*> hist_summed;
 
-	  c1 -> cd();
-	  TLegend *leg = new TLegend(0.8,0.5,0.98,0.93);
-	  leg ->  SetFillColor(kWhite);
+	for (uint var_i = 0; var_i < variables.size(); ++ var_i )   {
 
-	  
-	  TH1D *data = new TH1D((DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(),(DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-	  data -> Sumw2();
-	      
-	  for (uint file_i = 0; file_i < DataSample.filenames.size(); ++file_i)
-	  {
-	    TFile file((DataSample.filenames.at(file_i)).c_str(), "READ");
-	    TTree * tree = (TTree*)file.Get("treeDumper/BasicTree");
-	    TH1D *temp = new TH1D(((DataSample.Processname)+ "_temp").c_str(),((DataSample.Processname)+ "_temp").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-	    tree ->Project(((DataSample.Processname)+ "_temp").c_str(),(variables.at(var_i).VarName).c_str(), (DataSample.selection).c_str());
-	    data -> Add(temp);
-	  }
+	    std::string vname = variables.at(var_i).VarName;
+	    leg[vname] = new TLegend(0.8,0.5,0.98,0.93);
+	    leg[vname] ->  SetFillColor(kWhite);
 
-	 leg->AddEntry(data, "Data","pad1");
-	      
-	 data->SetFillColor(78);
-	 data -> GetYaxis() -> SetRangeUser(0.1, (data -> GetMaximum())*7.);
-	 data->GetYaxis()->SetTitle("Number of events");
-	 data->SetMarkerColor(DataSample.color);
-	 data->SetMarkerStyle(21);
-	 data->GetXaxis() -> SetLabelSize(0.);
-	 data->GetXaxis() -> SetLabelOffset(100000.);
+	    data[vname] = new TH1D((DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(),(DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+	    data[vname] -> Sumw2();
 
-	 TH1D *signalHist = new TH1D(("signal_" + variables.at(var_i).VarName ).c_str(),("signal_" + variables.at(var_i).VarName ).c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-	 signalHist -> Sumw2();
-
-     for (uint file_i = 0; file_i < SignalSample.filenames.size(); ++file_i)
-  	{
-	    TFile file((SignalSample.filenames.at(file_i)).c_str(), "READ");
-	    TTree * tree = (TTree*)file.Get("treeDumper/BasicTree");
-	    TH1D *temp = new TH1D("signal_temp","signal_temp", Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-	    tree ->Project("signal_temp",(variables.at(var_i).VarName).c_str(), (SignalSample.selection).c_str());
-	    signalHist -> Add(temp);
+	    signalHist[vname] = new TH1D(("signal_" + variables.at(var_i).VarName ).c_str(),("signal_" + variables.at(var_i).VarName ).c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+	    signalHist[vname]-> Sumw2();
+	    //for Monte-Carlo samples
+	    hs[vname] = new THStack("hs",(";"+ vname +";Number of events").c_str());	  
+	  	// sum of all processes for a given variable
+	  	hist_summed[vname] = new TH1D((vname + "summed").c_str(),( vname+ "summed").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+	  	hist_summed[vname] -> Sumw2();
   	}
+  	//begin loop over data files
+  	for (uint file_i = 0; file_i < DataSample.filenames.size(); ++file_i){
+		TFile file((DataSample.filenames.at(file_i)).c_str(), "READ");
+	  	TTree * tree = (TTree*)file.Get("treeDumper/BasicTree");
+	  	TTreeFormula *dataSelection = new TTreeFormula("dataSelection",DataSample.selection.c_str(),tree);//that should be without any weights!
 
-  	signalHist -> SetLineColor(SignalSample.color);
-  	signalHist -> SetLineWidth(2.);
+	  	//initialize variables.
+	  	for(auto var = variables.begin(); var != variables.end() ; var++){
+	    	var->Initialize(tree);
+	  	}
+	  	//event loop
+	  	Long64_t nentries = tree->GetEntriesFast();
+	  	for (Long64_t jentry=0; jentry<nentries;jentry++) {
+	    	Long64_t nb = tree->GetEntry(jentry);
+	    	if(nb<0) break; // reached the end of the ntuple
 
+	    	// fill variables
+	    	for(auto var = variables.begin(); var != variables.end() ; var++){
+	      		std::string vname = var->VarName;
+	      		if(dataSelection -> EvalInstance())data[vname]->Fill(var->value());//check if the event passeds the selection, and if true fill the histogram
+	    	}
+	  	}
+	} // end of the loop over data files
 
+	//begin the loop over signal files      
+  	for (uint file_i = 0; file_i < SignalSample.filenames.size(); ++file_i)
+    { 
+     	TFile file((SignalSample.filenames.at(file_i)).c_str(), "READ");
+      	TTree * tree = (TTree*)file.Get("treeDumper/BasicTree");
+      	TTreeFormula *signalSelection = new TTreeFormula("signalSelection",SignalSample.selection.c_str(),tree);//that should be without any weights!
+      
+      	//initialize variables.
+      	for(auto var = variables.begin(); var != variables.end() ; var++){
+        	var->Initialize(tree);
+      	}
+      	//event loop
+      	Long64_t nentries = tree->GetEntriesFast();
+      	for (Long64_t jentry=0; jentry<nentries;jentry++) {
+        	Long64_t nb = tree->GetEntry(jentry);
+        	if(nb<0) break; // reached the end of the ntuple
+        
+        	// fill variables
+        	for(auto var = variables.begin(); var != variables.end() ; var++){
+          		std::string vname = var->VarName;
+          		if(signalSelection -> EvalInstance())signalHist[vname]->Fill(var->value());//check if the event passeds the selection, and if true fill the histogram
+        	}
+      	}
+    }// end loop over signal files
 
+     //condition histograms
+  	for(auto var = variables.begin(); var != variables.end() ; var++){
+	    std::string vname = var->VarName;
+	    leg[vname]->AddEntry(data[vname], "Data","pad1");
 
+	    data[vname]->SetFillColor(78);
+	    data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
+	    data[vname]->GetYaxis()->SetTitle("Number of events");
+	    data[vname]->SetMarkerColor(DataSample.color);
+	    data[vname]->SetMarkerStyle(21);
+	    data[vname]->GetXaxis() -> SetLabelSize(0.);
+	    data[vname]->GetXaxis() -> SetLabelOffset(100000.);
+
+	    signalHist[vname] -> SetLineColor(SignalSample.color);
+	    signalHist[vname] -> SetLineWidth(2.);
+  	}
 	  
 
-	  //Monte carlo samples
-	  THStack *hs = new THStack("hs",(";"+ variables.at(var_i).VarName +";Number of events").c_str());
-	  c1 -> cd();
-	  
-	  TH1D *hist_summed = new TH1D(); // sum of all processes for a given variable
-	  *hist_summed = TH1D((variables.at(var_i).VarName + "summed").c_str(),( variables.at(var_i).VarName + "summed").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-	  hist_summed -> Sumw2();
-	    
+	//Monte carlo samples
 	//beginning of cycle over processes
-	  for (uint process_i = 0; process_i < samples.size(); process_i++)
-	  {
-	     TH1D *hist = new TH1D(((samples.at(process_i)).Processname + variables.at(var_i).VarName).c_str(),((samples.at(process_i)).Processname + variables.at(var_i).VarName).c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-	     hist -> Sumw2();
-
-	    TChain chain("BasicTree");
-	     //beginning of cycle over files corresponding to each process
+	for (uint process_i = 0; process_i < samples.size(); process_i++)
+	{
+		//create a buffer for the process		  	
+	  	std::map<std::string,TH1D*> hist_per_process;
+      	for(auto var = variables.begin(); var != variables.end() ; var++){
+        		std::string vname = var-> VarName;
+        		hist_per_process[vname] = new TH1D((samples.at(process_i).Processname + "_" + vname).c_str(),(samples.at(process_i).Processname + "_" + vname).c_str(), Nbins,var->Range.low, var->Range.high);
+	    		hist_per_process[vname] -> Sumw2();
+      		}
+	    //loop over files for the given process
 	    for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
 	    {
-	      cout << (samples.at(process_i)).filenames.at(file_i) << endl;
-	      chain.Add(((samples.at(process_i)).filenames.at(file_i)).c_str());
+	      	TFile file((samples.at(process_i)).filenames.at(file_i).c_str(), "READ");
+      		TTree * tree = (TTree*)file.Get("BasicTree");
+      		double totEventWeight;
+      		tree -> SetBranchAddress("totEventWeight", &totEventWeight);
+      		TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
+
+      		//initialize variables.
+      		for(auto var = variables.begin(); var != variables.end() ; var++){
+        		var->Initialize(tree);
+      		}
+      		//event loop
+      		Long64_t nentries = tree->GetEntriesFast();
+      		for (Long64_t jentry=0; jentry<nentries;jentry++) {
+        		Long64_t nb = tree->GetEntry(jentry);
+        		if(nb<0) break; // reached the end of the ntuple
+        
+        		// fill variables
+        	for(auto var = variables.begin(); var != variables.end() ; var++){
+          		std::string vname = var->VarName;
+          		if(MCSampleSelection -> EvalInstance())hist_per_process[vname]->Fill(var->value(), totEventWeight);//check if the event passeds the selection, and if true fill the histogram
+        		}
+      		}
+	    }// end of the loop for the given process
+
+	    for(auto var = variables.begin(); var != variables.end() ; var++){
+	    	std::string vname = var -> VarName;
+	    	hs[vname] -> Add(hist_per_process[vname], "bar");
+	    	hist_summed[vname] -> Add(hist_per_process[vname]);
+	    	hist_per_process[vname] -> SetFillColor(samples.at(process_i).color);
+	    	hist_per_process[vname] -> SetLineColor(samples.at(process_i).color);
+		   	hist_per_process[vname] -> GetYaxis() -> SetRangeUser(0.1, (hist_per_process[vname] -> GetMaximum())*1.5);
+		   	hist_per_process[vname] -> SetLineColor(kBlack);
+		   	hist_per_process[vname] -> SetLineWidth(1.);
+		   	leg[vname]->AddEntry(hist_per_process[vname], (samples.at(process_i).Processname).c_str(),"f");
 	    }
-	    //end of cycle over files corresponding to each process
-	    
-	    chain.Project(((samples.at(process_i)).Processname + variables.at(var_i).VarName).c_str(),(variables.at(var_i).VarName).c_str(), (samples.at(process_i).selection).c_str());
-	    hist -> SetFillColor(samples.at(process_i).color);
-	    hist -> SetLineColor(samples.at(process_i).color);
-	   	hist -> GetYaxis() -> SetRangeUser(0.1, (hist -> GetMaximum())*1.5);
-	   	hist -> SetLineColor(kBlack);
-	   	hist -> SetLineWidth(1.);
-	    hs -> Add(hist, "bar");
-	    hist_summed -> Add(hist);
-	    
-	    
-	    leg->AddEntry(hist, (samples.at(process_i).Processname).c_str(),"f");
 
-	  }
-	  //end of cycle over processes
-	  Systematics(variables.at(var_i), hist_summed);
-	  leg -> AddEntry(signalHist, SignalSample.Processname.c_str()); 
+
+	}//end of cycle over processes
+	//Systematics(variables.at(var_i), hist_summed);
+	//cosmetics
+	for(auto var = variables.begin(); var != variables.end() ; var++){
+		std::string vname = var -> VarName;
+		c1=  new TCanvas("c1","canvas",1200,800);
+	    pad1 = new TPad("pad1","This is pad1",0.0,0.25,0.8,1.0);
+	    pad2 = new TPad("pad2","This is pad2",0.0,0.02,0.8,0.25);
+
+	    c1 -> cd();
+		std::cout << vname << std::endl;
+		leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
+		pad1 -> SetLogy();
+		pad1->Draw();
+		pad2->Draw();
+		pad1 -> cd();
 	  
-	 
-	  	  	
-	  pad1 -> SetLogy();
-	  pad1->Draw();
-	  pad2->Draw();
-	  pad1 -> cd();
-	  
-	  if(withData)
-      {	
-		data -> Draw("E1");
-    	hs->Draw("hist SAME s(0,0)");
-    	hist_summed -> SetFillColor(kBlack);
-		hist_summed -> SetFillStyle(3018);
-    	hist_summed -> Draw("E2 SAME");
-    	signalHist -> Draw("hist SAME");
-    	data -> Draw("E1 SAME");
-    	data -> GetXaxis() -> Draw("SAME");
-	  } 
-	  else { 
-	  	hs->Draw("hist");
-	  	signalHist -> Draw("HISTSAME");
-	  }
-	    
-	 c1 -> cd();
-
-
-	 TPaveText *pt = new TPaveText(0.15,0.83,0.35,0.93, "blNDC");
-	 pt -> SetFillStyle(0);
-	 pt -> SetBorderSize(0);
-	 if (channel == ELECTRON) pt -> AddText("Electron channel");
-	 else if (channel == MUON) pt -> AddText("Muon channel");
-	 else std::cerr << "no channel set..." << std::endl;
- 	 pt -> Draw("SAME");
-
-	       
-     pad1 -> SetTopMargin(0.07);
-     pad1 -> SetBottomMargin(0.03);
-     pad2 -> SetTopMargin(0.05);
-     pad2 -> SetBottomMargin(0.32);
-     pad2 -> cd();
+	  	if(withData)
+      	{	
+			data[vname] -> Draw("E1");
+	    	hs[vname]->Draw("hist SAME s(0,0)");
+	    	hist_summed[vname] -> SetFillColor(kBlack);
+			hist_summed[vname] -> SetFillStyle(3018);
+	    	hist_summed[vname] -> Draw("E2 SAME");
+	    	signalHist[vname] -> Draw("hist SAME");
+	    	data[vname] -> Draw("E1 SAME");
+	    	data[vname] -> GetXaxis() -> Draw("SAME");
+	  	} 
+	  	else { 
+	  		hs[vname]->Draw("hist");
+	  		signalHist[vname] -> Draw("HISTSAME");
+	  	}
+	    c1 -> cd();
+		
+		TPaveText *pt = new TPaveText(0.15,0.83,0.35,0.93, "blNDC");
+	 	pt -> SetFillStyle(0);
+	 	pt -> SetBorderSize(0);
+	 	if (channel == ELECTRON) pt -> AddText("Electron channel");
+	 	else if (channel == MUON) pt -> AddText("Muon channel");
+		else std::cerr << "no channel set..." << std::endl;
+ 	 	pt -> Draw("SAME");
+ 
+	    pad1 -> SetTopMargin(0.07);
+	    pad1 -> SetBottomMargin(0.03);
+	    pad2 -> SetTopMargin(0.05);
+	    pad2 -> SetBottomMargin(0.32);
+	    pad2 -> cd();
   
-
-    TH1D *data_dif = new TH1D((variables.at(var_i).VarName + "_dif").c_str(),( variables.at(var_i).VarName + "_dif").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-    data_dif -> Sumw2();
-    for (int iBin = 1; iBin <= hist_summed -> GetNbinsX(); ++iBin)
-    {
-		if (hist_summed -> GetBinContent(iBin) == 0.) data_dif -> SetBinContent(iBin,10000000.);
-		else {
-			data_dif -> SetBinContent(iBin, ((data -> GetBinContent(iBin)) - (hist_summed -> GetBinContent(iBin)))/(hist_summed -> GetBinContent(iBin)));
-			data_dif -> SetBinError(iBin, (data-> GetBinError(iBin))/(hist_summed -> GetBinContent(iBin)));
-		}
-    }
+  		TH1D *data_dif = new TH1D((vname + "_dif").c_str(),( vname + "_dif").c_str(), Nbins,var->Range.low, var->Range.high);
+    	data_dif -> Sumw2();
+    	for (int iBin = 1; iBin <= hist_summed[vname] -> GetNbinsX(); ++iBin)
+    	{
+			if (hist_summed[vname] -> GetBinContent(iBin) == 0.) data_dif -> SetBinContent(iBin,10000000.);
+			else {
+			data_dif -> SetBinContent(iBin, ((data[vname] -> GetBinContent(iBin)) - (hist_summed[vname] -> GetBinContent(iBin)))/(hist_summed[vname] -> GetBinContent(iBin)));
+			data_dif -> SetBinError(iBin, (data[vname]-> GetBinError(iBin))/(hist_summed[vname] -> GetBinContent(iBin)));
+			}
+    	}
     
-    TH1D *data_dif_MCerr = new TH1D((variables.at(var_i).VarName + "_dif_MCerror").c_str(),( variables.at(var_i).VarName + "_dif_MCerror").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-    data_dif_MCerr -> Sumw2();
-    data_dif_MCerr -> SetFillColor(kGray);
+    	TH1D *data_dif_MCerr = new TH1D((vname + "_dif_MCerror").c_str(),( vname + "_dif_MCerror").c_str(), Nbins,var->Range.low, var->Range.high);
+    	data_dif_MCerr -> Sumw2();
+    	data_dif_MCerr -> SetFillColor(kGray);
 
-    for (int iBin = 1; iBin <= Nbins ; ++iBin)
-    {
-    	if (hist_summed -> GetBinContent(iBin) == 0.) {
-    		data_dif_MCerr -> SetBinContent(iBin, 0.);
-    		data_dif_MCerr -> SetBinError(iBin, 0.);
+    	for (int iBin = 1; iBin <= Nbins ; ++iBin)
+    	{
+    		if (hist_summed[vname] -> GetBinContent(iBin) == 0.) {
+    			data_dif_MCerr -> SetBinContent(iBin, 0.);
+    			data_dif_MCerr -> SetBinError(iBin, 0.);
+    		}
+    		else {
+    			data_dif_MCerr -> SetBinContent(iBin, 0.);
+    			data_dif_MCerr -> SetBinError(iBin, (hist_summed[vname] -> GetBinError(iBin))/hist_summed[vname] -> GetBinContent(iBin) );
+    		}
     	}
-    	else {
-    		data_dif_MCerr -> SetBinContent(iBin, 0.);
-    		data_dif_MCerr -> SetBinError(iBin, (hist_summed -> GetBinError(iBin))/hist_summed -> GetBinContent(iBin) );
-    	}
-    }
 
-    TLine *line = new TLine(variables.at(var_i).Range.low,0.,variables.at(var_i).Range.high,0.);
-    data_dif_MCerr -> SetMaximum(2.);
-    data_dif_MCerr ->  SetMinimum(-2.);
-    data_dif_MCerr -> GetYaxis() -> SetNdivisions(5);
-    data_dif_MCerr -> GetYaxis() -> SetLabelSize(0.15);
-    data_dif_MCerr -> GetXaxis() -> SetLabelSize(0.2);
-    data_dif_MCerr -> GetYaxis()->SetTitle("#frac{Data - MC}{MC}");
-    data_dif_MCerr -> GetXaxis()->SetTitle((variables.at(var_i)).Title.c_str());
-    data_dif_MCerr -> GetXaxis()->SetTitleSize(0.2);
-    data_dif_MCerr -> GetYaxis()->SetTitleOffset(0.3);
-    data_dif_MCerr -> GetYaxis()->SetTitleSize(0.2);
-    data_dif ->SetMarkerStyle(21);
-    data_dif_MCerr -> Draw("E2");
-    data_dif -> Draw("E1 SAME");
-    line -> Draw("SAME");
+    	TLine *line = new TLine(var->Range.low,0.,var->Range.high,0.);
+    	data_dif_MCerr -> SetMaximum(2.);
+    	data_dif_MCerr ->  SetMinimum(-2.);
+    	data_dif_MCerr -> GetYaxis() -> SetNdivisions(5);
+    	data_dif_MCerr -> GetYaxis() -> SetLabelSize(0.15);
+    	data_dif_MCerr -> GetXaxis() -> SetLabelSize(0.2);
+	    data_dif_MCerr -> GetYaxis()->SetTitle("#frac{Data - MC}{MC}");
+	    data_dif_MCerr -> GetXaxis()->SetTitle((var->Title).c_str());
+	    data_dif_MCerr -> GetXaxis()->SetTitleSize(0.2);
+	    data_dif_MCerr -> GetYaxis()->SetTitleOffset(0.3);
+	    data_dif_MCerr -> GetYaxis()->SetTitleSize(0.2);
+    	data_dif ->SetMarkerStyle(21);
+   		data_dif_MCerr -> Draw("E2");
+   		data_dif -> Draw("E1 SAME");
+    	line -> Draw("SAME");
 
-    leg -> AddEntry(data_dif_MCerr, "Syst. unc", "f");
-    c1 -> cd();
-    leg->Draw("SAME");
+    	leg[vname] -> AddEntry(data_dif_MCerr, "Syst. unc", "f");
+    	c1 -> cd();
+    	leg[vname]->Draw("SAME");
 
    
-    CMS_lumi( c1, 4, 0 );
-    c1 -> SaveAs((OutPrefix_ + variables.at(var_i).VarName + ".png").c_str());
-    c1 -> Clear();
+    	CMS_lumi( c1, 4, 0 );
+    	c1 -> SaveAs((OutPrefix_ + var->VarName + ".png").c_str());
+    	c1 -> Clear();
+    	delete c1;
 
-    delete data;
-    delete data_dif_MCerr;
-    delete data_dif;
-    delete hist_summed;
-    delete hs;
-    delete signalHist;
-
-	}
-	//end of cycle over variables
-	
+	    /*delete data;
+	    delete data_dif_MCerr;
+	    delete data_dif;
+	    delete hist_summed;
+	    delete hs;
+	    delete signalHist;*/
+	}//end of cosmetics 
 }
 
 

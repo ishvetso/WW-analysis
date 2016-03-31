@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <TBranch.h>
+#include <TTree.h>
 
 /*
  * Structure to work with variable

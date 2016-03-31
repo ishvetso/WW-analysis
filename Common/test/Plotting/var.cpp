@@ -18,7 +18,7 @@ void Var::SetRange(double xlow, double xhigh)
   branch->GetExpectedType(tc,type);
   delete tc;
 
-  std::cout<< "connecting branch "<< VarName << " with type " << type << std::endl;
+  //std::cout<< "connecting branch "<< VarName << " with type " << type << std::endl;
 
   if (type==kDouble_t)
     tree->SetBranchAddress(VarName.c_str(),&value_d,&branch);
@@ -34,4 +34,5 @@ Double_t Var::value(){
     return (Double_t) value_i;
   }
   return value_d;
+}
 

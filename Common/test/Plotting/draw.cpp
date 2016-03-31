@@ -1,17 +1,4 @@
-#include <TFile.h>
-#include <TTree.h>
-#include <TTreeFormula.h>
-#include <TH1.h>
-#include <THStack.h>
-#include <TStyle.h>
-#include <TCanvas.h>
-#include <TLegend.h>
-#include <TAxis.h>
-#include <iostream>
-#include <iostream>
-#include <sstream>
-#include <map>
-#include "Plotter.cpp"
+#include "Plotter.hpp"
 
 void draw(std::string channel, std::string region)
 {
@@ -25,12 +12,12 @@ void draw(std::string channel, std::string region)
 	}
 	vector <Var> variables;
 	Var var;
-	var.VarName = "jet_mass_pruned";
+	var.VarName = "Mjpruned";
 	var.Title = "m_{jet pruned}";
 	var.SetRange(40., 130.);
 	variables.push_back(var);
 
-	var.VarName = "m_lvj";
+	/*var.VarName = "MWW";
 	var.Title = "m_{WV}";
 	var.SetRange(400., 2500.);
 	variables.push_back(var);
@@ -172,7 +159,7 @@ void draw(std::string channel, std::string region)
 	var.VarName = "deltaPhi_WJetWlep";
 	var.Title = "#Delta#phi(WJet, WLep)";
 	var.SetRange(-3.2, 3.2);
-	variables.push_back(var);
+	variables.push_back(var);*/
 
 
 
@@ -187,26 +174,26 @@ void draw(std::string channel, std::string region)
 	p.SetNbins(30);
 
 	
-	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && jet_mass_pruned < 130. && jet_mass_pruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2.";
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 130. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2.";
 	if (channel == "ele") defaulCuts += " && l_pt > 140. && pfMET > 80. )"; 
 	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
 		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
 		exit(0);
 	}
-	string addOnCutWjets = defaulCuts +  " * ( (jet_mass_pruned < 65. || jet_mass_pruned > 105. ) && nbtag == 0) ";
+	string addOnCutWjets = defaulCuts +  " * ( (Mjpruned < 65. || Mjpruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
 
 	std::string MCSelection,SignalSelection,DataSelection;
 
 	if (region == "WJets"){
-		MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutWjets + " )";
-		SignalSelection = "PUweight*(genWeight/abs(genWeight))*(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutWjets + " )";
+		MCSelection =  addOnCutWjets ;
+		SignalSelection = "(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutWjets + " )";
 		DataSelection = addOnCutWjets;
 	}
 	else if(region == "ttbar"){
-		MCSelection = "weight*PUweight*(genWeight/abs(genWeight))*( " + addOnCutTtbar + " )";
-		SignalSelection = "PUweight*(genWeight/abs(genWeight))*(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutTtbar + " )";
+		MCSelection =  addOnCutTtbar;
+		SignalSelection = "(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutTtbar + " )";
 		DataSelection = addOnCutTtbar;
 	}
 	else std::cout << "This should not happen ..." << std::endl;
@@ -221,7 +208,7 @@ void draw(std::string channel, std::string region)
 	
 	Sample s, dataSample, signalSample;
 	
-	string prefix = "/afs/cern.ch/work/i/ishvetso/public/samples_74X_15January2016/";
+	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_31March2016/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
  	s.SetFileNames( prefix + "WW_"+ channel + ".root");
@@ -237,7 +224,10 @@ void draw(std::string channel, std::string region)
  	s.SetFileNames(prefix + "WJets_Ht100To200_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_Ht200To400_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_Ht400To600_" + channel + ".root");
- 	s.SetFileNames(prefix + "WJets_Ht600ToInf_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_Ht600To800_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_Ht800To1200_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_Ht1200To2500_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_Ht2500ToInf_" + channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
 
@@ -247,19 +237,18 @@ void draw(std::string channel, std::string region)
 	s.ReSet();
 
 	s.SetParameters("Single Top", MCSelection, kBlue);
- 	s.SetFileNames(prefix + "t-ch_top_" + channel + ".root");
- 	s.SetFileNames(prefix + "t-ch_antitop_" + channel + ".root");
- 	s.SetFileNames(prefix + "tW-ch_" + channel + ".root");
+ 	s.SetFileNames(prefix + "tW-ch_top_" + channel + ".root");
+ 	s.SetFileNames(prefix + "tW-ch_antitop_" + channel + ".root");
+ 	s.SetFileNames(prefix + "t-ch_" + channel + ".root");
  	s.SetFileNames(prefix + "s-ch_" + channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
 
 	dataSample.SetParameters("data", DataSelection, kBlack);
- 	dataSample.SetFileNames(prefix + "data_05Oct_" + channel + ".root");
- 	dataSample.SetFileNames(prefix + "data_Prompt_" + channel + ".root");
+ 	dataSample.SetFileNames(prefix + "data-RunD_" + channel + ".root");
 
  	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = 12 TeV^{-2}}", SignalSelection, kRed);
- 	signalSample.SetFileNames("/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_4_14/src/aTGCsAnalysis/Common/test/crab_projects/crab_aTGC_" + channel +"_5February2016/results/WW-aTGC-" + channel + ".root");
+ 	signalSample.SetFileNames(prefix + "WW-aTGC_"+ channel + ".root");
 	
 	
 	p.SetSamples(samples);
