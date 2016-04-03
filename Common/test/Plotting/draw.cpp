@@ -17,7 +17,7 @@ void draw(std::string channel, std::string region)
 	var.SetRange(40., 130.);
 	variables.push_back(var);
 
-	/*var.VarName = "MWW";
+	var.VarName = "MWW";
 	var.Title = "m_{WV}";
 	var.SetRange(400., 2500.);
 	variables.push_back(var);
@@ -159,7 +159,7 @@ void draw(std::string channel, std::string region)
 	var.VarName = "deltaPhi_WJetWlep";
 	var.Title = "#Delta#phi(WJet, WLep)";
 	var.SetRange(-3.2, 3.2);
-	variables.push_back(var);*/
+	variables.push_back(var);
 
 
 
@@ -175,7 +175,7 @@ void draw(std::string channel, std::string region)
 
 	
 	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 130. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2.";
-	if (channel == "ele") defaulCuts += " && l_pt > 140. && pfMET > 80. )"; 
+	if (channel == "ele") defaulCuts += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
 		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
@@ -208,7 +208,7 @@ void draw(std::string channel, std::string region)
 	
 	Sample s, dataSample, signalSample;
 	
-	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_31March2016/";
+	string prefix = "/afs/cern.ch/work/i/ishvetso/public/samples_76X_31March2016/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
  	s.SetFileNames( prefix + "WW_"+ channel + ".root");
@@ -237,8 +237,8 @@ void draw(std::string channel, std::string region)
 	s.ReSet();
 
 	s.SetParameters("Single Top", MCSelection, kBlue);
- 	s.SetFileNames(prefix + "tW-ch_top_" + channel + ".root");
- 	s.SetFileNames(prefix + "tW-ch_antitop_" + channel + ".root");
+ 	s.SetFileNames(prefix + "tW-ch-top_" + channel + ".root");
+ 	s.SetFileNames(prefix + "tW-ch-antitop_" + channel + ".root");
  	s.SetFileNames(prefix + "t-ch_" + channel + ".root");
  	s.SetFileNames(prefix + "s-ch_" + channel + ".root");
 	samples.push_back(s);

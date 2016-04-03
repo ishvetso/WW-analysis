@@ -143,13 +143,15 @@ void Plotter::Plotting(std::string OutPrefix_)
         		std::string vname = var-> VarName;
         		hist_per_process[vname] = new TH1D((samples.at(process_i).Processname + "_" + vname).c_str(),(samples.at(process_i).Processname + "_" + vname).c_str(), Nbins,var->Range.low, var->Range.high);
 	    		hist_per_process[vname] -> Sumw2();
-      		}
+      	}
 	    //loop over files for the given process
 	    for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
 	    {
 	      	TFile file((samples.at(process_i)).filenames.at(file_i).c_str(), "READ");
-      		TTree * tree = (TTree*)file.Get("BasicTree");
-      		double totEventWeight;
+	      	std::cout << (samples.at(process_i)).filenames.at(file_i) << std::endl; 
+      		TTree * tree = (TTree*)file.Get("BasicTree;2");
+      		Double_t totEventWeight;
+      		double genWeight, lumiWeight,PUWeight;
       		tree -> SetBranchAddress("totEventWeight", &totEventWeight);
       		TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
 
@@ -185,16 +187,16 @@ void Plotter::Plotting(std::string OutPrefix_)
 
 
 	}//end of cycle over processes
-	//Systematics(variables.at(var_i), hist_summed);
+	//
 	//cosmetics
 	for(auto var = variables.begin(); var != variables.end() ; var++){
 		std::string vname = var -> VarName;
+		Systematics(*var, hist_summed[vname]);
 		c1=  new TCanvas("c1","canvas",1200,800);
 	    pad1 = new TPad("pad1","This is pad1",0.0,0.25,0.8,1.0);
 	    pad2 = new TPad("pad2","This is pad2",0.0,0.02,0.8,0.25);
 
 	    c1 -> cd();
-		std::cout << vname << std::endl;
 		leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
 		pad1 -> SetLogy();
 		pad1->Draw();
@@ -298,6 +300,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 
 void Plotter::Systematics(Var var, TH1D *& hist_nominal)
 {
+	//list of supported systematics
 	std::vector<std::string> ListOfSystematics;
 	ListOfSystematics.push_back("JEC");
 	ListOfSystematics.push_back("LeptonEn");
@@ -319,7 +322,7 @@ void Plotter::Systematics(Var var, TH1D *& hist_nominal)
 	VarsJEC.push_back("pfMETPhi");
 	VarsJEC.push_back("pfMET");
 	VarsJEC.push_back("jet_pt");
-	VarsJEC.push_back("jet_mass_pruned");
+	VarsJEC.push_back("Mjpruned");
 	VarsJEC.push_back("jet_mass_softdrop");
 	VarsJEC.push_back("jet_mass");
 	VarsJEC.push_back("m_lvj");
@@ -363,90 +366,93 @@ void Plotter::Systematics(Var var, TH1D *& hist_nominal)
 	VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("LeptonRes", VarsLeptonRes));
 	VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("UnclEn", VarsUnclEn));
 
+	bool isAffected = false;
+	
 
+	std::map<std::string,TH1D*> hist_SystUp;
+	std::map<std::string,TH1D*> hist_SystDown;
+
+	//create histograms for each of systematics and defined if the variable should be varied (is affected)
 	for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++)
     {
+    	if (std::find(VariablesAffected[ListOfSystematics.at(iSyst)].begin(), VariablesAffected[ListOfSystematics.at(iSyst)].end(), var.VarName) != VariablesAffected[ListOfSystematics.at(iSyst)].end()) isAffected = true;
+		hist_SystUp[ListOfSystematics.at(iSyst)] = new TH1D((var.VarName + "_" + ListOfSystematics.at(iSyst) + "Up").c_str(),(var.VarName + "_" +  ListOfSystematics.at(iSyst) + "Up" ).c_str(), Nbins, var.Range.low, var.Range.high);
+		hist_SystDown[ListOfSystematics.at(iSyst)] = new TH1D((var.VarName + "_" + ListOfSystematics.at(iSyst) + "Down").c_str(),(var.VarName + "_"+ ListOfSystematics.at(iSyst) + "Down" ).c_str(), Nbins, var.Range.low, var.Range.high);
+		hist_SystUp[ListOfSystematics.at(iSyst)] -> Sumw2();
+		hist_SystDown[ListOfSystematics.at(iSyst)] -> Sumw2();
+	}
 
-		bool isAffected = false;
-		//std::cout << "iSyst "  << iSyst << std::endl;
-		if (std::find(VariablesAffected[ListOfSystematics.at(iSyst)].begin(), VariablesAffected[ListOfSystematics.at(iSyst)].end(), var.VarName) != VariablesAffected[ListOfSystematics.at(iSyst)].end()) isAffected = true;
-
-		TH1D *hist_SystUp = new TH1D((var.VarName + "_" + ListOfSystematics.at(iSyst) + "Up").c_str(),(var.VarName + "_" +  ListOfSystematics.at(iSyst) + "Up" ).c_str(), Nbins, var.Range.low, var.Range.high);
-		TH1D *hist_SystDown = new TH1D((var.VarName + "_" + ListOfSystematics.at(iSyst) + "Down").c_str(),(var.VarName + "_"+ ListOfSystematics.at(iSyst) + "Down" ).c_str(), Nbins, var.Range.low, var.Range.high);
-		hist_SystUp -> Sumw2();
-		hist_SystDown -> Sumw2();
-
-		 for (uint process_i = 0; process_i < samples.size(); process_i++)
-		  {		
-		    
-		    std::string selection_Up = samples.at(process_i).selection;
-		    std::string selection_Down = samples.at(process_i).selection;
-
-	       //split the string of selection, this is needed because some of variables start with the same characters, thus we split the string to be sure we get correct variable
-	       std::vector<std::string> splittedSelectionUp;	
-	       boost::split(splittedSelectionUp,selection_Up,boost::is_any_of(" *+=-:/)(|&<>0123456789."));
-	       //erase duplicates from the string
-	       std::sort(splittedSelectionUp.begin(), splittedSelectionUp.end());
-	       splittedSelectionUp.erase(std::unique(splittedSelectionUp.begin(), splittedSelectionUp.end()), splittedSelectionUp.end());
-	       //std::cout << selection_Up << std::endl;
-	       //std::cout << selection_Down << std::endl;
-	       for (unsigned int iS = 0; iS < splittedSelectionUp.size(); iS ++){
+	//beginning of cycle over files corresponding to each process
+	for (uint process_i = 0; process_i < samples.size(); process_i++)
+	{		
+		//prepare string with selection for varied systematics 
+		std::map<std::string, std::string> selection_Up, selection_Down;
+		for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++)
+		{
+			selection_Up[ListOfSystematics.at(iSyst)] = samples.at(process_i).selection;
+	    	selection_Down[ListOfSystematics.at(iSyst)] = samples.at(process_i).selection;
+	    	//split the string of selection, this is needed because some of variables start with the same characters, thus we split the string to be sure we get correct variable
+       		std::vector<std::string> splittedSelectionUp;	
+       		boost::split(splittedSelectionUp,selection_Up[ListOfSystematics.at(iSyst)],boost::is_any_of(" *+=-:/)(|&<>0123456789."));
+        	//erase duplicates from the string
+        	std::sort(splittedSelectionUp.begin(), splittedSelectionUp.end());
+        	splittedSelectionUp.erase(std::unique(splittedSelectionUp.begin(), splittedSelectionUp.end()), splittedSelectionUp.end());
+   		    for (unsigned int iS = 0; iS < splittedSelectionUp.size(); iS ++)
+		    {
 	      		if (splittedSelectionUp[iS].empty()) continue;
 	      		bool found = false;
 	      		for (unsigned int iVarSyst = 0 ; iVarSyst < VariablesAffected[ListOfSystematics.at(iSyst)].size(); iVarSyst ++){
 	      		 	 found = ( VariablesAffected[ListOfSystematics.at(iSyst)].at(iVarSyst) == splittedSelectionUp[iS] );
 	      			if (found) {
-	      				boost::replace_all(selection_Up,    VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_" + ListOfSystematics.at(iSyst) + "Up");
-	      				boost::replace_all(selection_Down,  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_"+ ListOfSystematics.at(iSyst) + "Down");
+	      				boost::replace_all(selection_Up[ListOfSystematics.at(iSyst)],    VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_" + ListOfSystematics.at(iSyst) + "Up");
+	      				boost::replace_all(selection_Down[ListOfSystematics.at(iSyst)],  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst),  VariablesAffected.at(ListOfSystematics.at(iSyst)).at(iVarSyst) + "_"+ ListOfSystematics.at(iSyst) + "Down");
 	      				continue;
 	      			}
 	       		}
-	      	}
-		    //beginning of cycle over files corresponding to each process
-		    TChain chain("BasicTree");
-		    for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
+		    }
+
+		}    
+	    
+
+		for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
+		{
+	    	TFile file((samples.at(process_i).filenames.at(file_i)).c_str(), "READ");
+      		TTree * tree = (TTree*)file.Get("BasicTree;2");
+      		std::map<std::string, TTreeFormula*> selectionUpInFormula, selectionDownInFormula;
+      		Double_t totEventWeight;
+      		tree -> SetBranchAddress("totEventWeight", &totEventWeight);
+      		var.Initialize(tree);
+      		for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
+      		{
+      			selectionUpInFormula[ListOfSystematics[iSyst]] = new TTreeFormula(("selection_Up" + ListOfSystematics[iSyst]).c_str(), selection_Up[ListOfSystematics[iSyst]].c_str(), tree);
+      			selectionDownInFormula[ListOfSystematics[iSyst]] = new TTreeFormula(("selection_Down" + ListOfSystematics[iSyst]).c_str(), selection_Down[ListOfSystematics[iSyst]].c_str(), tree);
+      		}
+   		    for (unsigned int iEntry = 0; iEntry < tree->GetEntriesFast(); iEntry++)
 		    {
-		      chain.Add(((samples.at(process_i)).filenames.at(file_i)).c_str());
-		    } 
-		    TH1D *tempUp = new TH1D((((samples.at(process_i)).Processname)+ "_tempUp").c_str(),((samples.at(process_i)).Processname + "_tempUp").c_str(), Nbins,var.Range.low, var.Range.high);
-		    TH1D *tempDown = new TH1D((((samples.at(process_i)).Processname)+ "_tempDown").c_str(),((samples.at(process_i)).Processname + "_tempDown").c_str(), Nbins,var.Range.low, var.Range.high);	
-		    tempUp -> Sumw2();
-		    tempDown -> Sumw2();
+		    	tree -> GetEntry(iEntry);
+		    	for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
+		    	{
+		    		if(selectionUpInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance())hist_SystUp[ListOfSystematics.at(iSyst)] -> Fill(var.value(), totEventWeight);
+		    		if(selectionDownInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance())hist_SystDown[ListOfSystematics.at(iSyst)] -> Fill(var.value(), totEventWeight);
+		    	}	
+	    	}
+	    } 
 
-		    if (isAffected){
-		    	chain.Project(((samples.at(process_i)).Processname + "_tempUp").c_str(), ( var.VarName  + "_" + ListOfSystematics.at(iSyst) + "Up").c_str(), selection_Up.c_str() );
-		    	chain.Project(((samples.at(process_i)).Processname + "_tempDown").c_str(), ( var.VarName  + "_"  + ListOfSystematics.at(iSyst) + "Down").c_str(), selection_Down.c_str()	 );
-		  	  }
-		  	else {
-		  		chain.Project(((samples.at(process_i)).Processname + "_tempUp").c_str(), ( var.VarName ).c_str(),  selection_Up.c_str() );
-		      	chain.Project(((samples.at(process_i)).Processname + "_tempDown").c_str(), ( var.VarName ).c_str(),  selection_Down.c_str() );
-		  	}
-		      
-		    hist_SystUp -> Add(tempUp);	     
-		    hist_SystDown -> Add(tempDown);	       
-
-		    delete tempUp;
-		    delete tempDown;
-
-		  }//end of the cycle over processes
-
-		
-		  	    
-		  //now sum up the differences quadratically
-		 for (unsigned int iBin = 1; iBin <= hist_nominal -> GetNbinsX(); iBin ++){
-		 	double errorUpQuadratic = pow(std::abs((hist_SystUp -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
-		 	double errorDownQuadratic = pow(std::abs((hist_SystDown -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
+	}//end of the cycle over processes
+	  	    
+	//now sum up the differences quadratically
+	for (unsigned int iBin = 1; iBin <= hist_nominal -> GetNbinsX(); iBin ++){
+		for (uint iSyst = 0; iSyst < ListOfSystematics.size(); iSyst++)
+		{
+			double errorUpQuadratic = pow(std::abs((hist_SystUp[ListOfSystematics.at(iSyst)] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
+		 	double errorDownQuadratic = pow(std::abs((hist_SystDown[ListOfSystematics.at(iSyst)] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
 		 	double errorQuadratic = std::max(errorUpQuadratic, errorDownQuadratic);
 		 	totalErrorQuadraticErrors.at(iBin-1) += errorQuadratic;
-		 
-		 }
 
-	delete hist_SystDown;
-	delete hist_SystUp;	 
+		}
+	}
 
-  	}//end of loop over systematics	 
   	int iBin = 1; 
-    
     //now set the uncertainty  	
   	for (double & error : totalErrorQuadraticErrors) {
   		error = std::sqrt(error);
