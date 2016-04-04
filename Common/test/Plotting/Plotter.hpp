@@ -43,7 +43,8 @@ class Plotter
     int Nbins;
 	vector <Sample> samples;
 	CHANNEL channel;
-	
+	std::vector<std::string> ListOfSystematics;//supported systematics 
+	std::map <std::string, std::vector<std::string>> VariablesAffected;//variables that are affected by systematics (variations stored in the tree)
 	vector <Var> variables;
 
 	public:
@@ -58,7 +59,7 @@ class Plotter
 	void SetDataSample(Sample sample_);
 	void Plotting(std::string OutPrefix_);
 	void PlottingVar(std::string OutPrefix_, Var var);
-	void Systematics(Var var, TH1D *& hist_nominal);
+	//void Systematics(Var var, TH1D *& hist_nominal);
 	
 
 };

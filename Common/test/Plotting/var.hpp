@@ -25,6 +25,7 @@ struct Var
 	string VarName;
   string Title;
 	range Range;
+  bool logscale;
 
   Double_t value_d;
   Int_t    value_i;
