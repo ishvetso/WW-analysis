@@ -1,6 +1,6 @@
 #include "Plotter.hpp"
 
-void draw(std::string channel, std::string region)
+void draw(std::string channel, std::string region, std::string tag)
 {
 	if (channel != "mu" && channel != "ele") {
 		std::cerr << "Channel is not mu or ele. Stopped." << std::endl;
@@ -15,6 +15,11 @@ void draw(std::string channel, std::string region)
 	var.VarName = "Mjpruned";
 	var.Title = "m_{jet pruned}";
 	var.SetRange(40., 130.);
+	variables.push_back(var);
+
+	var.VarName = "jet_tau2tau1";
+	var.Title = "#tau_{21}";
+	var.SetRange(0., 1.1);
 	variables.push_back(var);
 
 	var.VarName = "MWW";
@@ -100,11 +105,6 @@ void draw(std::string channel, std::string region)
 	var.SetRange(0., 250.);
 	variables.push_back(var);
 
-	var.VarName = "jet_tau2tau1";
-	var.Title = "#tau_{21}";
-	var.SetRange(0., 1.1);
-	variables.push_back(var);
-
 	var.VarName = "njets";
 	var.Title = "n_{jets}";
 	var.SetRange(0., 6.);
@@ -161,9 +161,6 @@ void draw(std::string channel, std::string region)
 	var.SetRange(-3.2, 3.2);
 	variables.push_back(var);
 
-
-
-
 	Plotter p;
 
 	if (channel == "mu")p = Plotter(MUON);
@@ -188,12 +185,12 @@ void draw(std::string channel, std::string region)
 
 	if (region == "WJets"){
 		MCSelection =  addOnCutWjets ;
-		SignalSelection = "(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutWjets + " )";
+		SignalSelection = "(aTGCWeights[1]*2300.0/20.)*( " + addOnCutWjets + " )";
 		DataSelection = addOnCutWjets;
 	}
 	else if(region == "ttbar"){
 		MCSelection =  addOnCutTtbar;
-		SignalSelection = "(aTGCWeights[1]*2093.917403402/20.)*( " + addOnCutTtbar + " )";
+		SignalSelection = "(aTGCWeights[1]*2300.0/20.)*( " + addOnCutTtbar + " )";
 		DataSelection = addOnCutTtbar;
 	}
 	else std::cout << "This should not happen ..." << std::endl;
@@ -208,7 +205,7 @@ void draw(std::string channel, std::string region)
 	
 	Sample s, dataSample, signalSample;
 	
-	string prefix = "/afs/cern.ch/work/i/ishvetso/public/samples_76X_31March2016/";
+	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_31March2016_v3/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
  	s.SetFileNames( prefix + "WW_"+ channel + ".root");
@@ -255,7 +252,7 @@ void draw(std::string channel, std::string region)
 	p.DataSample = dataSample;
 	p.SignalSample = signalSample;
 	p.withData = true;
- 	p.Plotting(("plots_25ns_" + channel + "_9February2016_WJets_control_region/").c_str());
+ 	p.Plotting(("plots_25ns_" + channel + "_" + tag + "/").c_str());
 
 }
 
@@ -269,8 +266,8 @@ void draw(std::string channel, std::string region)
 
 int main(int argc, char* argv[]){
 
-	if (argc != 3) std::cerr << "You should use only 2 arguments ..." << std::endl; 
- 	draw(string(argv[1]), string(argv[2]));
+	if (argc != 4) std::cerr << "You should use only 2 arguments ..." << std::endl; 
+ 	draw(string(argv[1]), string(argv[2]), string(argv[3]));
 }
 
 
