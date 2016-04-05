@@ -33,7 +33,7 @@ public:
   void initTree(TTree* tree);
   void AddVar(Var* var, TH1D* refhist);
   void eval(Var* var, TH1D * hist_nominal);
-  void fill(Var* var, std::map<std::pair<std::string, std::string>, Var> SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var> SystematicsVarMapDown_, double weight);
+  void fill(Var* var, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight);
   bool isAffectedBySystematic(Var  var, std::string systematic);
 };
 

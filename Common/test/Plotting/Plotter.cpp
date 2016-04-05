@@ -150,6 +150,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       {
 	       var->Initialize(tree);
          std::pair<std::string,std::string> key(var->VarName,std::string(""));
+         std::cout << " Initialize systematics  " << std::endl;
          for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size(); iSyst ++)
          {  
             key.second=systematics.ListOfSystematics.at(iSyst);  
@@ -160,12 +161,12 @@ void Plotter::Plotting(std::string OutPrefix_)
               varDown->VarName = (var -> VarName )+ "_" + systematics.ListOfSystematics.at(iSyst) + "Down";
               varUp->Initialize(tree);
               varDown->Initialize(tree);
-              SystematicsVarMapUp[key] = *varUp;
-              SystematicsVarMapDown[key] = *varDown;
+              SystematicsVarMapUp[key] = varUp;
+              SystematicsVarMapDown[key] = varDown;
             }
             else {
-              SystematicsVarMapUp[key] = *var;
-              SystematicsVarMapDown[key] = *var;
+              SystematicsVarMapUp[key] = &(*var);
+              SystematicsVarMapDown[key] = &(*var);
             } 
          }
       }

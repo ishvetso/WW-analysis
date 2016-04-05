@@ -146,15 +146,15 @@ void SystHelper::eval(Var* var, TH1D * hist_nominal){
   }
 }
 
-void SystHelper::fill(Var* var,std::map<std::pair<std::string, std::string>, Var> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var> & SystematicsVarMapDown_, double weight){
+void SystHelper::fill(Var* var,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight){
   std::pair<std::string,std::string> key(var->VarName,std::string(""));
   for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++){
     key.second=ListOfSystematics.at(iSyst);
     if(selectionUpInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()) 
-      hist_SystUp[key] -> Fill(SystematicsVarMapUp_[key].value(), weight);
+      hist_SystUp[key] -> Fill(SystematicsVarMapUp_[key]->value(), weight);
     if(selectionDownInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()){
-      hist_SystDown[key] -> Fill(SystematicsVarMapDown_[key].value(), weight);
-      std::cout << var -> VarName << " nominal " << var -> value() << " read value: " <<  SystematicsVarMapDown_[key].value() << "   " << ListOfSystematics.at(iSyst) << " key " << key.first  << " " << key.second  << std::endl; 
+      hist_SystDown[key] -> Fill(SystematicsVarMapDown_[key]->value(), weight);
+     // std::cout << var -> VarName << " nominal " << var -> value() << " read value: " <<  SystematicsVarMapDown_[key].value() << "   " << ListOfSystematics.at(iSyst) << " key " << key.first  << " " << key.second  << std::endl; 
     }
      
   }	
