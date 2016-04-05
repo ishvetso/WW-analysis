@@ -43,9 +43,8 @@ class Plotter
     int Nbins;
 	vector <Sample> samples;
 	CHANNEL channel;
-	std::vector<std::string> ListOfSystematics;//supported systematics 
-	std::map <std::string, std::vector<std::string>> VariablesAffected;//variables that are affected by systematics (variations stored in the tree)
 	vector <Var> variables;
+	std::map<std::pair<std::string, std::string>, Var> SystematicsVarMapUp, SystematicsVarMapDown;
 
 	public:
 	Plotter();	

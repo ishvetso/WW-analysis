@@ -26,7 +26,7 @@ SystHelper::SystHelper(std::string selection){
   VarsJEC.push_back("Mjpruned");
   VarsJEC.push_back("jet_mass_softdrop");
   VarsJEC.push_back("jet_mass");
-  VarsJEC.push_back("m_lvj");
+  VarsJEC.push_back("MWW");
   VarsJEC.push_back("deltaPhi_LeptonMet");
   VarsJEC.push_back("deltaPhi_WJetMet");
   VarsJEC.push_back("deltaPhi_WJetWlep");
@@ -57,7 +57,7 @@ SystHelper::SystHelper(std::string selection){
   VarsUnclEn.push_back("deltaPhi_LeptonMet");
   VarsUnclEn.push_back("deltaPhi_WJetMet");
   VarsUnclEn.push_back("deltaPhi_WJetWlep");
-  VarsUnclEn.push_back("m_lvj");
+  VarsUnclEn.push_back("MWW");
 
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JEC", VarsJEC));
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("LeptonEn", VarsLeptonEn));
@@ -97,6 +97,7 @@ void SystHelper::initTree(TTree* tree){
       selectionUpInFormula[ListOfSystematics[iSyst]] = new TTreeFormula(("selection_Up" + ListOfSystematics[iSyst]).c_str(), selection_Up[ListOfSystematics[iSyst]].c_str(), tree);
       if (selectionDownInFormula[ListOfSystematics[iSyst]]!=0) delete selectionDownInFormula[ListOfSystematics[iSyst]];
       selectionDownInFormula[ListOfSystematics[iSyst]] = new TTreeFormula(("selection_Down" + ListOfSystematics[iSyst]).c_str(), selection_Down[ListOfSystematics[iSyst]].c_str(), tree);
+     
     }
 }
 
@@ -145,13 +146,21 @@ void SystHelper::eval(Var* var, TH1D * hist_nominal){
   }
 }
 
-void SystHelper::fill(Var* var, double weight){
+void SystHelper::fill(Var* var,std::map<std::pair<std::string, std::string>, Var> SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var> SystematicsVarMapDown_, double weight){
   std::pair<std::string,std::string> key(var->VarName,std::string(""));
   for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++){
     key.second=ListOfSystematics.at(iSyst);
     if(selectionUpInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()) 
-      hist_SystUp[key] -> Fill(var->value(), weight);
+      hist_SystUp[key] -> Fill(SystematicsVarMapUp_[key].value(), weight);
     if(selectionDownInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance())
-      hist_SystDown[key] -> Fill(var->value(), weight);
+      hist_SystDown[key] -> Fill(SystematicsVarMapDown_[key].value(), weight);
   }	
+}
+
+bool SystHelper::isAffectedBySystematic(Var var, std::string systematic) {
+  bool isAffected;
+  if (std::find(VariablesAffected[systematic].begin(), VariablesAffected[systematic].end(), var.VarName) != VariablesAffected[systematic].end()) isAffected = true;
+  else isAffected = false;
+  return isAffected;
+
 }

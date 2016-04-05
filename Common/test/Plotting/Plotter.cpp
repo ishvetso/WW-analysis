@@ -146,8 +146,28 @@ void Plotter::Plotting(std::string OutPrefix_)
       TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
 	  
       //initialize variables.
-      for(auto var = variables.begin(); var != variables.end() ; var++){
-	var->Initialize(tree);
+      for(auto var = variables.begin(); var != variables.end() ; var++)
+      {
+	       var->Initialize(tree);
+         std::pair<std::string,std::string> key(var->VarName,std::string(""));
+         for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size(); iSyst ++)
+         {  
+            key.second=systematics.ListOfSystematics.at(iSyst);  
+            if (systematics.isAffectedBySystematic(*var, systematics.ListOfSystematics.at(iSyst))){
+              Var *varUp = new Var();
+              Var *varDown = new Var();
+              varUp->VarName = (var -> VarName )+ "_" + systematics.ListOfSystematics.at(iSyst) + "Up";
+              varDown->VarName = (var -> VarName )+ "_" + systematics.ListOfSystematics.at(iSyst) + "Down";
+              varUp->Initialize(tree);
+              varDown->Initialize(tree);
+              SystematicsVarMapUp[key] = *varUp;
+              SystematicsVarMapDown[key] = *varDown;
+            }
+            else {
+              SystematicsVarMapUp[key] = *var;
+              SystematicsVarMapDown[key] = *var;
+            } 
+         }
       }
       systematics.initTree(tree);
 
@@ -163,7 +183,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	  std::string process = samples[process_i].Processname;
 	  std::pair<std::string,std::string> key(vname,process);
 	  if(MCSampleSelection -> EvalInstance())hist_per_process[key]->Fill(var->value(), totEventWeight);//check if the event passeds the selection, and if true fill the histogram
-	  systematics.fill(&(*var),totEventWeight);
+	  systematics.fill(&(*var), SystematicsVarMapUp, SystematicsVarMapDown,totEventWeight);
 	}
       }
     }// end of the loop for the given process      
