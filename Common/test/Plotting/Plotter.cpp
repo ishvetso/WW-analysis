@@ -139,7 +139,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i){
       TFile file((samples.at(process_i)).filenames.at(file_i).c_str(), "READ");
       std::cout << (samples.at(process_i)).filenames.at(file_i) << std::endl; 
-      TTree * tree = (TTree*)file.Get("BasicTree;2");
+      TTree * tree = (TTree*)file.Get("BasicTree");
       Double_t totEventWeight;
       double genWeight, lumiWeight,PUWeight;
       tree -> SetBranchAddress("totEventWeight2", &totEventWeight);
@@ -150,7 +150,6 @@ void Plotter::Plotting(std::string OutPrefix_)
       {
 	       var->Initialize(tree);
          std::pair<std::string,std::string> key(var->VarName,std::string(""));
-         std::cout << " Initialize systematics  " << std::endl;
          for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size(); iSyst ++)
          {  
             key.second=systematics.ListOfSystematics.at(iSyst);  
@@ -199,7 +198,8 @@ void Plotter::Plotting(std::string OutPrefix_)
     leg[vname]->AddEntry(data[vname], "Data","pad1");
     
     data[vname]->SetFillColor(78);
-    data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
+    if (var -> logscale) data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
+    else  data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*1.5);
     data[vname]->GetYaxis()->SetTitle("Number of events");
     data[vname]->SetMarkerColor(DataSample.color);
     data[vname]->SetMarkerStyle(21);
