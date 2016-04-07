@@ -53,7 +53,7 @@ public:
 			reader_down->load(calib, BTagEntry::FLAV_B, "mujets");
 			reader_down->load(calib, BTagEntry::FLAV_C, "mujets");
 			reader_down->load(calib, BTagEntry::FLAV_UDSG, "incl");
-			MaxBJetPt = 670.;
+			MaxBJetPt = 669.9;
 			//get measured efficiencies
 			TFile effFile(EfficiencyFile.fullPath().c_str());
 			eff_b = (TEfficiency*)effFile.Get("BtagAnalyzer/h2_BTaggingEff_b");
@@ -122,12 +122,13 @@ public:
 			{
 				if (jets->at(iBtag).bDiscriminator(DiscrName) > DiscrCut){
 					probabMC *= getEfficiency(jets->at(iBtag));
-					probabData *= getEfficiency(jets->at(iBtag)) * getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_);
+					probabData *= getEfficiency(jets->at(iBtag)) * (getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_));
 				}
 				else {
 					probabMC *= (1 - getEfficiency(jets->at(iBtag)));
 					probabData *= (1 - getEfficiency(jets->at(iBtag))*getScaleFactor(jets->at(iBtag),var, BTagUncertaintyType_));
 				}			
+
 			}
 			double weight = probabData/probabMC;
 			return weight;
