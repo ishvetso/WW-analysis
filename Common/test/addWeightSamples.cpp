@@ -25,18 +25,34 @@ void addWeight(string FileName, float xsection, float lumi, int Nevents)
 {
   TFile file(FileName.c_str(), "UPDATE");
   TTree * tree = (TTree*) file.Get("treeDumper/BasicTree");
-  double totWeight ;
+  double totWeight,totWeight_BTagUp,totWeight_BTagDown, totWeight_MistagUp, totWeight_MistagDown ;
   tree -> SetBranchAddress("totWeight", &totWeight);
+  tree -> SetBranchAddress("totWeight_BTagUp", &totWeight_BTagUp);
+  tree -> SetBranchAddress("totWeight_BTagDown", &totWeight_BTagDown);
+  tree -> SetBranchAddress("totWeight_MistagUp", &totWeight_MistagUp);
+  tree -> SetBranchAddress("totWeight_MistagDown", &totWeight_MistagDown);
   double weightLumi = (xsection*lumi)/Nevents;
-  double totWeightWithLumi;
-  TBranch * br = tree -> Branch("totEventWeight2", &totWeightWithLumi, "totEventWeight2/D"); 
+  double totWeightWithLumi, totWeightWithLumi_MistagUp, totWeightWithLumi_MistagDown, totWeightWithLumi_BTagUp, totWeightWithLumi_BTagDown;
+  TBranch * br = tree -> Branch("totEventWeight3", &totWeightWithLumi, "totEventWeight3/D"); 
+  TBranch * br_MistagUp = tree -> Branch("totEventWeight3_MistagUp", &totWeightWithLumi_MistagUp, "totEventWeight3_MistagUp/D"); 
+  TBranch * br_MistagDown = tree -> Branch("totEventWeight3_MistagDown", &totWeightWithLumi_MistagDown, "totEventWeight3_MistagDown/D"); 
+  TBranch * br_BTagUp = tree -> Branch("totEventWeight3_BTagUp", &totWeightWithLumi_BTagUp, "totEventWeight3_BTagUp/D"); 
+  TBranch * br_BTagDown = tree -> Branch("totEventWeight3_BTagDown", &totWeightWithLumi_BTagDown, "totEventWeight3_BTagDown/D"); 
   std::cout << FileName << std::endl;
   
   for (unsigned int iEntry = 0; iEntry < tree -> GetEntries(); iEntry ++)
   {
     tree -> GetEntry(iEntry); 
     totWeightWithLumi = totWeight*weightLumi;
+    totWeightWithLumi_BTagUp = totWeight_BTagUp*weightLumi;
+    totWeightWithLumi_BTagDown = totWeight_BTagDown*weightLumi;
+    totWeightWithLumi_MistagUp= totWeight_MistagUp*weightLumi;
+    totWeightWithLumi_MistagDown = totWeight_MistagDown*weightLumi;
     br -> Fill();
+    br_MistagUp -> Fill();
+    br_MistagDown -> Fill();
+    br_BTagUp -> Fill();
+    br_BTagDown -> Fill();
   }
   
   tree -> Write();
