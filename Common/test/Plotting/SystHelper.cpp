@@ -11,6 +11,9 @@
 //#include <pair>
 
 SystHelper::SystHelper(std::string selection){
+  NominalSelection = selection;
+
+  //list of supported systematics
   ListOfSystematics.push_back("JEC");
   ListOfSystematics.push_back("LeptonEn");
   ListOfSystematics.push_back("LeptonRes");
@@ -64,6 +67,11 @@ SystHelper::SystHelper(std::string selection){
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("LeptonRes", VarsLeptonRes));
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("UnclEn", VarsUnclEn));
 
+  //weighted systematics
+  WeightNameSystematics.push_back("Mistag");
+  WeightNameSystematics.push_back("BTag");
+  
+
   //set up systematically varied selections
   selstring=selection;
   for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++){
@@ -91,6 +99,7 @@ SystHelper::SystHelper(std::string selection){
 }
 
 void SystHelper::initTree(TTree* tree){
+  nominalSelection = new TTreeFormula("nominalSelection", NominalSelection.c_str(), tree);
   for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
     {
       if (selectionUpInFormula[ListOfSystematics[iSyst]]!=0) delete selectionUpInFormula[ListOfSystematics[iSyst]];
@@ -98,6 +107,21 @@ void SystHelper::initTree(TTree* tree){
       if (selectionDownInFormula[ListOfSystematics[iSyst]]!=0) delete selectionDownInFormula[ListOfSystematics[iSyst]];
       selectionDownInFormula[ListOfSystematics[iSyst]] = new TTreeFormula(("selection_Down" + ListOfSystematics[iSyst]).c_str(), selection_Down[ListOfSystematics[iSyst]].c_str(), tree);
      
+    }
+
+    //initialize weights for systematics
+    for (uint wSyst = 0; wSyst < WeightNameSystematics.size(); wSyst ++)
+    {
+      weightsUp[WeightNameSystematics.at(wSyst)] = new Var();
+      weightsDown[WeightNameSystematics.at(wSyst)] = new Var();
+
+      weightsUp[WeightNameSystematics.at(wSyst)] -> VarName = "totEventWeight3_" + WeightNameSystematics.at(wSyst) + "Up";
+      weightsDown[WeightNameSystematics.at(wSyst)]  -> VarName = "totEventWeight3_" + WeightNameSystematics.at(wSyst) + "Down";
+
+      weightsUp[WeightNameSystematics.at(wSyst)] -> Initialize(tree);
+      weightsDown[WeightNameSystematics.at(wSyst)]  -> Initialize(tree);
+
+      
     }
 }
 
@@ -110,6 +134,14 @@ void SystHelper::AddVar(Var* var, TH1D* refhist){
     std::pair<std::string,std::string> key(VarName,ListOfSystematics.at(iSyst));
     hist_SystUp[key] = new TH1D((VarName + "_" + ListOfSystematics.at(iSyst) + "Up").c_str(),(VarName + "_" +  ListOfSystematics.at(iSyst) + "Up" ).c_str(), Nbins, var->Range.low, var->Range.high);
     hist_SystDown[key] = new TH1D((VarName + "_" + ListOfSystematics.at(iSyst) + "Down").c_str(),(VarName + "_"+ ListOfSystematics.at(iSyst) + "Down" ).c_str(), Nbins, var->Range.low, var->Range.high);
+    hist_SystUp[key] -> Sumw2();
+    hist_SystDown[key] -> Sumw2();
+  }
+  //weighted systematics
+  for (unsigned int iSyst = 0; iSyst < WeightNameSystematics.size(); iSyst ++){      
+    std::pair<std::string,std::string> key(VarName,WeightNameSystematics.at(iSyst));
+    hist_SystUp[key] = new TH1D((VarName + "_" + WeightNameSystematics.at(iSyst) + "Up").c_str(),(VarName + "_" +  WeightNameSystematics.at(iSyst) + "Up" ).c_str(), Nbins, var->Range.low, var->Range.high);
+    hist_SystDown[key] = new TH1D((VarName + "_" + WeightNameSystematics.at(iSyst) + "Down").c_str(),(VarName + "_"+ WeightNameSystematics.at(iSyst) + "Down" ).c_str(), Nbins, var->Range.low, var->Range.high);
     hist_SystUp[key] -> Sumw2();
     hist_SystDown[key] -> Sumw2();
   }
@@ -135,6 +167,16 @@ void SystHelper::eval(Var* var, TH1D * hist_nominal){
       totalErrorQuadraticErrors.at(iBin-1) += errorQuadratic;
       
     }
+
+    for (uint wSyst = 0; wSyst < WeightNameSystematics.size(); wSyst++){
+      std::pair<std::string,std::string> key(VarName,WeightNameSystematics.at(wSyst));
+      double errorUpQuadratic = pow(std::abs((hist_SystUp[key] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
+      double errorDownQuadratic = pow(std::abs((hist_SystDown[key] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
+      double errorQuadratic = std::max(errorUpQuadratic, errorDownQuadratic);
+      std::cout << sqrt(errorQuadratic)  <<  "  " << WeightNameSystematics.at(wSyst) << std::endl;
+      totalErrorQuadraticErrors.at(iBin-1) += errorQuadratic;
+      
+    }
   }
   
   int iBin = 1; 
@@ -146,18 +188,37 @@ void SystHelper::eval(Var* var, TH1D * hist_nominal){
   }
 }
 
-void SystHelper::fill(Var* var,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight){
-  std::pair<std::string,std::string> key(var->VarName,std::string(""));
-  for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++){
-    key.second=ListOfSystematics.at(iSyst);
-    if(selectionUpInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()) 
-      hist_SystUp[key] -> Fill(SystematicsVarMapUp_[key]->value(), weight);
-    if(selectionDownInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()){
-      hist_SystDown[key] -> Fill(SystematicsVarMapDown_[key]->value(), weight);
-     // std::cout << var -> VarName << " nominal " << var -> value() << " read value: " <<  SystematicsVarMapDown_[key].value() << "   " << ListOfSystematics.at(iSyst) << " key " << key.first  << " " << key.second  << std::endl; 
+void SystHelper::fill(std::vector<Var>* variables,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight){
+  
+  for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
+  {
+    std::pair<std::string,std::string> key("",ListOfSystematics.at(iSyst));
+    if(selectionUpInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()){
+      for (auto var = variables->begin();var != variables->end(); var++){
+        key.first= var -> VarName;
+        hist_SystUp[key] -> Fill(SystematicsVarMapUp_[key]->value(), weight);
+      }
     }
-     
-  }	
+
+    if(selectionDownInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()){
+      for (auto var = variables->begin();var != variables->end(); var++){
+        key.first= var -> VarName;
+        hist_SystDown[key] -> Fill(SystematicsVarMapDown_[key]->value(), weight);
+      }
+    } 
+  }
+
+  for (unsigned int wSyst = 0; wSyst < WeightNameSystematics.size(); wSyst ++)
+  {  
+    std::pair<std::string,std::string> key("",WeightNameSystematics.at(wSyst));     
+    if (nominalSelection -> EvalInstance()){
+      for (auto var = variables->begin();var != variables->end(); var++){
+        key.first = var -> VarName;
+        hist_SystUp[key] -> Fill(var -> value(), (weightsUp[WeightNameSystematics.at(wSyst)] -> value()));
+        hist_SystDown[key] -> Fill(var -> value(), (weightsDown[WeightNameSystematics.at(wSyst)] -> value()));
+      }
+    }
+  }
 }
 
 bool SystHelper::isAffectedBySystematic(Var var, std::string systematic) {

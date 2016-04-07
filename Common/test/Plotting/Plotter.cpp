@@ -142,7 +142,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       TTree * tree = (TTree*)file.Get("BasicTree");
       Double_t totEventWeight;
       double genWeight, lumiWeight,PUWeight;
-      tree -> SetBranchAddress("totEventWeight2", &totEventWeight);
+      tree -> SetBranchAddress("totEventWeight3", &totEventWeight);
       TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
 	  
       //initialize variables.
@@ -173,18 +173,22 @@ void Plotter::Plotting(std::string OutPrefix_)
 
       //event loop
       Long64_t nentries = tree->GetEntriesFast();
-      for (Long64_t jentry=0; jentry<nentries;jentry++) {
-	Long64_t nb = tree->GetEntry(jentry);
-	if(nb<0) break; // reached the end of the ntuple
+      for (Long64_t jentry=0; jentry<nentries;jentry++) 
+      {
+	       Long64_t nb = tree->GetEntry(jentry);
+         if(nb<0) break; // reached the end of the ntuple
 	
-	// fill variables
-	for(auto var = variables.begin(); var != variables.end() ; var++){
-	  std::string vname = var->VarName;
-	  std::string process = samples[process_i].Processname;
-	  std::pair<std::string,std::string> key(vname,process);
-	  if(MCSampleSelection -> EvalInstance())hist_per_process[key]->Fill(var->value(), totEventWeight);//check if the event passeds the selection, and if true fill the histogram
-	  systematics.fill(&(*var), SystematicsVarMapUp, SystematicsVarMapDown,totEventWeight);
-	}
+	       // fill variables
+          std::string process = samples[process_i].Processname;
+          std::pair<std::string,std::string> key("",process);
+         if(MCSampleSelection -> EvalInstance()) {
+          for(auto var = variables.begin(); var != variables.end() ; var++)
+          {
+      	     key.first = var -> VarName;
+      	     hist_per_process[key]->Fill(var->value(), totEventWeight);//check if the event passeds the selection, and if true fill the histogram
+	         }
+	       }
+       systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,totEventWeight);
       }
     }// end of the loop for the given process      
   }//end of cycle over processes
