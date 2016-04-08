@@ -38,6 +38,8 @@ void Plotter::SetVar(vector <Var> variables_)
 void Plotter::Plotting(std::string OutPrefix_)
 {
   system(("mkdir -p " + OutPrefix_ ).c_str());
+  system(("mkdir -p " + OutPrefix_ + "/png").c_str());
+  system(("mkdir -p " + OutPrefix_ + "/pdf").c_str());
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
   setTDRStyle();
@@ -104,6 +106,10 @@ void Plotter::Plotting(std::string OutPrefix_)
     TFile file((SignalSample.filenames.at(file_i)).c_str(), "READ");
     TTree * tree = (TTree*)file.Get("treeDumper/BasicTree");
     TTreeFormula *signalSelection = new TTreeFormula("signalSelection",SignalSample.selection.c_str(),tree);//that should be without any weights!
+    double totWeight;
+    std::vector<double> * aTGCWeights = 0;
+    tree -> SetBranchAddress("totWeight", &totWeight);//for signal sample use weight without lumi weight
+    tree -> SetBranchAddress("aTGCWeights", &aTGCWeights);
     
     //initialize variables.
     for(auto var = variables.begin(); var != variables.end() ; var++){
@@ -118,7 +124,8 @@ void Plotter::Plotting(std::string OutPrefix_)
       // fill variables
       for(auto var = variables.begin(); var != variables.end() ; var++){
 	std::string vname = var->VarName;
-	if(signalSelection -> EvalInstance())signalHist[vname]->Fill(var->value());//check if the event passeds the selection, and if true fill the histogram
+ // std::cout << totWeight  << std::endl;
+	if(signalSelection -> EvalInstance())signalHist[vname]->Fill(var->value(),totWeight*(aTGCWeights->at(1))*2300./20.);//check if the event passeds the selection, and if true fill the histogram
       }
     }
   }// end loop over signal files
@@ -324,15 +331,9 @@ void Plotter::Plotting(std::string OutPrefix_)
     
     
     CMS_lumi( c1, 4, 0 );
-    c1 -> SaveAs((OutPrefix_ + var->VarName + ".png").c_str());
+    c1 -> SaveAs((OutPrefix_  + "png/"+ var->VarName + ".png").c_str());
+    c1 -> SaveAs((OutPrefix_  + "pdf/"+ var->VarName + ".pdf").c_str());
     c1 -> Clear();
     delete c1;
-    
-    /*delete data;
-      delete data_dif_MCerr;
-      delete data_dif;
-      delete hist_summed;
-      delete hs;
-      delete signalHist;*/
   }//end of cosmetics 
 }
