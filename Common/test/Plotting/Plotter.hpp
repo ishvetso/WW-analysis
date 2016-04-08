@@ -44,7 +44,7 @@ class Plotter
 	vector <Sample> samples;
 	CHANNEL channel;
 	vector <Var> variables;
-	std::map<std::pair<std::string, std::string>, Var> SystematicsVarMapUp, SystematicsVarMapDown;
+	std::map<std::pair<std::string, std::string>, Var*> SystematicsVarMapUp, SystematicsVarMapDown;
 
 	public:
 	Plotter();	
@@ -58,9 +58,6 @@ class Plotter
 	void SetDataSample(Sample sample_);
 	void Plotting(std::string OutPrefix_);
 	void PlottingVar(std::string OutPrefix_, Var var);
-	//void Systematics(Var var, TH1D *& hist_nominal);
-	
-
 };
 
 #endif
