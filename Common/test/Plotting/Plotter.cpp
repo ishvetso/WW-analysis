@@ -279,7 +279,8 @@ void Plotter::Plotting(std::string OutPrefix_)
     pad1 -> SetTopMargin(0.07);
     pad1 -> SetBottomMargin(0.03);
     pad2 -> SetTopMargin(0.05);
-    pad2 -> SetBottomMargin(0.32);
+    pad2 -> SetBottomMargin(0.42);
+    pad2 -> SetRightMargin(0.05);
     pad2 -> cd();
     
     TH1D *data_dif = new TH1D((vname + "_dif").c_str(),( vname + "_dif").c_str(), Nbins,var->Range.low, var->Range.high);
@@ -332,7 +333,8 @@ void Plotter::Plotting(std::string OutPrefix_)
     
     CMS_lumi( c1, 4, 0 );
     c1 -> SaveAs((OutPrefix_  + "png/"+ var->VarName + ".png").c_str());
-    c1 -> SaveAs((OutPrefix_  + "pdf/"+ var->VarName + ".pdf").c_str());
+    c1 -> Update();
+    c1 -> Print((OutPrefix_  + "pdf/"+ var->VarName + ".pdf").c_str());
     c1 -> Clear();
     delete c1;
   }//end of cosmetics 
