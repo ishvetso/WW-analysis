@@ -117,7 +117,7 @@ private:
   
   //Jets
   int NAK8jet, njets, nbtag;
-  double jet_pt, jet_eta, jet_phi, jet_mass, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1;
+  double jet_pt, jet_eta, jet_phi, jet_mass, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1, jet_tau3tau2;
 
   //JEC uncertainties
   double JECunc;
@@ -446,6 +446,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("Mjpruned", &jet_mass_pruned,	  "Mjpruned/D"   );
   outTree_->Branch("jet_mass_softdrop",&jet_mass_softdrop,"jet_mass_softdrop/D"   );
   outTree_->Branch("jet_tau2tau1",    &jet_tau2tau1,	  "jet_tau2tau1/D"   );
+  outTree_->Branch("jet_tau3tau2",    &jet_tau3tau2,    "jet_tau3tau2/D"   );
 
   if (isMC) {
      //JEC uncertainties
@@ -1030,6 +1031,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_phi = smearedJet.Phi();
     jet_mass = smearedJet.M();
     jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
+    jet_tau3tau2 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
 
     math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
     jecAK8_->setJetEta( uncorrJet.eta() );
