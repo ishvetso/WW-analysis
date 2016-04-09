@@ -1031,7 +1031,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_phi = smearedJet.Phi();
     jet_mass = smearedJet.M();
     jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
-    jet_tau3tau2 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
+    jet_tau3tau2 = ((jets -> at(0)).userFloat("NjettinessAK8:tau3"))/((jets -> at(0)).userFloat("NjettinessAK8:tau2"));
 
     math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
     jecAK8_->setJetEta( uncorrJet.eta() );
