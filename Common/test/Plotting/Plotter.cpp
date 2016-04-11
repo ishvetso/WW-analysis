@@ -149,14 +149,18 @@ void Plotter::Plotting(std::string OutPrefix_)
       TTree * tree = (TTree*)file.Get("BasicTree");
       Double_t totEventWeight;
       double genWeight, lumiWeight,PUWeight;
+      std::vector<double> *PDFWeights = 0;
       tree -> SetBranchAddress("totEventWeight3", &totEventWeight);
+      tree -> SetBranchAddress("PDFWeights", &PDFWeights);
       TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
+      std::map<std::string, vector<TH1D*> *> histsPDF;
 	  
       //initialize variables.
       for(auto var = variables.begin(); var != variables.end() ; var++)
       {
 	       var->Initialize(tree);
          std::pair<std::string,std::string> key(var->VarName,std::string(""));
+
          for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size(); iSyst ++)
          {  
             key.second=systematics.ListOfSystematics.at(iSyst);  
@@ -184,6 +188,16 @@ void Plotter::Plotting(std::string OutPrefix_)
       {
 	       Long64_t nb = tree->GetEntry(jentry);
          if(nb<0) break; // reached the end of the ntuple
+
+         if (jentry == 0){
+              for(auto var = variables.begin(); var!= variables.end(); var++)
+              {
+                for (uint iPDF =0; iPDF < PDFWeights -> size(); iPDF ++ )
+                {
+                  histsPDF[var->VarName]->at(iPDF) = new TH1D(("PDFhist" + var->VarName+ std::to_string(iPDF)).c_str(), ("PDFhist"+  var->VarName + std::to_string(iPDF)).c_str(), Nbins, var ->Range.low, var->Range.high);
+                }  
+              }
+          }
 	
 	       // fill variables
           std::string process = samples[process_i].Processname;
@@ -193,9 +207,14 @@ void Plotter::Plotting(std::string OutPrefix_)
           {
       	     key.first = var -> VarName;
       	     hist_per_process[key]->Fill(var->value(), totEventWeight);//check if the event passeds the selection, and if true fill the histogram
+              for (uint iPDF =0; iPDF < PDFWeights -> size(); iPDF ++ )
+              {
+                  histsPDF[var->VarName]->at(iPDF) -> Fill(var->value(), totEventWeight*PDFWeights->at(iPDF));
+              }  
 	         }
 	       }
        systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,totEventWeight);
+
       }
     }// end of the loop for the given process      
   }//end of cycle over processes
@@ -280,6 +299,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     pad1 -> SetBottomMargin(0.03);
     pad2 -> SetTopMargin(0.05);
     pad2 -> SetBottomMargin(0.42);
+    pad1 -> SetRightMargin(0.05);
     pad2 -> SetRightMargin(0.05);
     pad2 -> cd();
     
