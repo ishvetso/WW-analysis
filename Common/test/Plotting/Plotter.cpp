@@ -153,7 +153,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       tree -> SetBranchAddress("totEventWeight3", &totEventWeight);
       tree -> SetBranchAddress("PDFWeights", &PDFWeights);
       TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
-      std::map<std::string, vector<TH1D*> *> histsPDF;
+      std::map<std::string, vector<TH1D*>> histsPDF;
 	  
       //initialize variables.
       for(auto var = variables.begin(); var != variables.end() ; var++)
@@ -192,9 +192,11 @@ void Plotter::Plotting(std::string OutPrefix_)
          if (jentry == 0){
               for(auto var = variables.begin(); var!= variables.end(); var++)
               {
+                std::vector<TH1D*> *PDF_temp;
                 for (uint iPDF =0; iPDF < PDFWeights -> size(); iPDF ++ )
                 {
-                  histsPDF[var->VarName]->at(iPDF) = new TH1D(("PDFhist" + var->VarName+ std::to_string(iPDF)).c_str(), ("PDFhist"+  var->VarName + std::to_string(iPDF)).c_str(), Nbins, var ->Range.low, var->Range.high);
+                  TH1D *temp = new TH1D(("PDFhist" + var->VarName+ std::to_string(iPDF)).c_str(), ("PDFhist"+  var->VarName + std::to_string(iPDF)).c_str(), Nbins, var ->Range.low, var->Range.high);
+                  histsPDF[var->VarName].push_back(temp);
                 }  
               }
           }
@@ -209,7 +211,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       	     hist_per_process[key]->Fill(var->value(), totEventWeight);//check if the event passeds the selection, and if true fill the histogram
               for (uint iPDF =0; iPDF < PDFWeights -> size(); iPDF ++ )
               {
-                  histsPDF[var->VarName]->at(iPDF) -> Fill(var->value(), totEventWeight*PDFWeights->at(iPDF));
+                 histsPDF[var->VarName].at(iPDF) -> Fill(var->value(), totEventWeight*PDFWeights->at(iPDF));
               }  
 	         }
 	       }
