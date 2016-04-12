@@ -43,6 +43,7 @@
 #include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
+#include "DataFormats/BTauReco/interface/CATopJetTagInfo.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -58,10 +59,12 @@
 #include "getScaleFactor.h"
 #include "BTagHelper.h"
 #include "JetResolutionSmearer.h"
+#include "Ele27WPLooseTrigTurnOn.h"
 
 
 namespace reco {
   typedef edm::Ptr<reco::Muon> MuonPtr;
+  typedef edm::Ptr<reco::GsfElectron> ElectronPtr;
 }
 //
 // class declaration
@@ -107,6 +110,9 @@ private:
   
   int nLooseEle, nLooseMu, nLep;
 
+  //supercluster variables
+  double sc_et, sc_eta;
+
   double tau1, tau2, tau3, tau21;
   
   double deltaR_LeptonWJet, deltaPhi_LeptonMet, deltaPhi_WJetMet, deltaPhi_WJetWlep;
@@ -146,6 +152,7 @@ private:
   std::vector<double> PDFWeights;
   std::vector<double> ScaleWeights;
   bool bit_HLT_Ele_105, bit_HLT_Ele_27;
+  double triggerWeightHLTEle27NoER;
   
   
   //Defining Tokens
@@ -154,6 +161,7 @@ private:
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonicVToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> genParticlesToken_;
   edm::EDGetTokenT<edm::View<pat::Jet>> fatJetsToken_;
+  edm::EDGetTokenT<edm::View<pat::Jet>> subJetsToken_;
   edm::EDGetTokenT<edm::View<pat::Jet>> AK4JetsToken_;
   edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> looseMuToken_;
@@ -187,6 +195,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   leptonicVToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonicVSrc"))),
   genParticlesToken_(mayConsume<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("genSrc"))),
   fatJetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetSrc"))),
+  subJetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("subJetSrc"))),
   AK4JetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("AK4JetSrc"))),
   vertexToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("vertexSrc"))),
   looseMuToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("looseMuSrc"))),
@@ -264,6 +273,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("LeptonSF",       &LeptonSF,     "LeptonSF/D"          );
      outTree_->Branch("genweight",       &genWeight,     "genweight/D"          );
      outTree_->Branch("btagWeight",       &btagWeight,     "btagWeight/D"          );
+     if(channel == "el")outTree_->Branch("triggerWeightHLTEle27NoER",       &triggerWeightHLTEle27NoER,     "triggerWeightHLTEle27NoER/D"          );
      outTree_->Branch("btagWeight_BTagUp",       &btagWeight_BTagUp,     "btagWeight_BTagUp/D"          );
      outTree_->Branch("btagWeight_BTagDown",       &btagWeight_BTagDown,     "btagWeight_BTagDown/D"          );
      outTree_->Branch("btagWeight_MistagUp",       &btagWeight_MistagUp,     "btagWeight_MistagUp/D"          );
@@ -544,6 +554,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //Jets
    edm::Handle<edm::View<pat::Jet> > jets; 
    iEvent.getByToken(fatJetsToken_, jets);
+
+    edm::Handle<edm::View<pat::Jet> > subjets; 
+   iEvent.getByToken(subJetsToken_, subjets);
    
    //JAK4 ets (for Btag veto )
    edm::Handle<edm::View<pat::Jet> > AK4Jets;
@@ -675,7 +688,18 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   jecUnc->setJetEta((jets -> at(0)).eta());
   jecUnc->setJetPt((jets -> at(0)).pt()); // here you must use the CORRECTED jet pt
- 
+  /*reco::CATopJetTagInfo *info = (reco::CATopJetTagInfo*) (jets -> at(0).tagInfo("caTop"));
+  std::cout << info->properties().nSubJets << std::endl;
+  int ntagged =0;
+  if( subjets->size() > 0 ){
+    
+    for (unsigned int iSubJet = 0; iSubJet < subjets -> size(); iSubJet ++ )
+    {
+      if( subjets -> at(iSubJet).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.935) ntagged ++;
+    }
+    
+  } 
+  std::cout << " ntagged : " << ntagged << std::endl;*/
   JECunc = jecUnc->getUncertainty(true);
 
       
@@ -700,6 +724,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    auto leptonPtr = leptons -> ptrAt(0);
    reco::MuonPtr asmuonPtr(leptonPtr);
+   reco::ElectronPtr aselectronPtr(leptonPtr);
    //electron channel
    if ( ( leptons -> size() ) > 0)
    {
@@ -712,6 +737,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Lepton.pt = (leptons -> at(0)).pt();
       Lepton.eta = (leptons -> at(0)).eta();
       Lepton.phi = (leptons -> at(0)).phi();
+      triggerWeightHLTEle27NoER  =  trigEle27NoER::turnOn((leptons -> at(0)).et(), (leptons -> at(0)).eta());
     }
     else {
       std::cerr << "Invalid channel used, use el or mu." << std::endl;
@@ -1210,6 +1236,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     totWeight_BTagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_BTagDown*VTagSF;  
     totWeight_MistagUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_MistagUp*VTagSF; 
     totWeight_MistagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_MistagDown*VTagSF; 
+  }
+  if (isMC&&channel=="el"){
+    totWeight *=  triggerWeightHLTEle27NoER;
+    totWeight_BTagUp *= triggerWeightHLTEle27NoER;
+    totWeight_BTagDown *= triggerWeightHLTEle27NoER;
+    totWeight_MistagUp *= triggerWeightHLTEle27NoER; 
+    totWeight_MistagDown *= triggerWeightHLTEle27NoER;
   }
  // uncomment the line used in the synchronization exercise!
  //if (deltaR_LeptonWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
