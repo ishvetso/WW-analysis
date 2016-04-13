@@ -1,5 +1,5 @@
 #include "Plotter.hpp"
-
+#include "makeEnvelope.hpp"
 #include "SystHelper.hpp"
 
 Plotter::Plotter()
@@ -208,7 +208,7 @@ void Plotter::Plotting(std::string OutPrefix_)
           for(auto var = variables.begin(); var != variables.end() ; var++)
           {
       	     key.first = var -> VarName;
-      	     hist_per_process[key]->Fill(var->value(), totEventWeight);//check if the event passeds the selection, and if true fill the histogram
+      	     hist_per_process[key]->Fill(var->value(), totEventWeight*samples.at(process_i).weight);//check if the event passeds the selection, and if true fill the histogram
               for (uint iPDF =0; iPDF < PDFWeights -> size(); iPDF ++ )
               {
                  histsPDF[var->VarName].at(iPDF) -> Fill(var->value(), totEventWeight*PDFWeights->at(iPDF));

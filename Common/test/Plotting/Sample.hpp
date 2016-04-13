@@ -18,6 +18,7 @@ struct Sample
 	Color_t color;
 	vector <string> filenames;
 	string Processname; // name of the process
+	double weight;
 	
 	Sample();
 	void SetParameters(string Processname_, string selection_, Color_t color_);

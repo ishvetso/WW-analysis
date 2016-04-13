@@ -1,6 +1,8 @@
 #include <Sample.hpp>
 Sample::Sample()
-{}
+{
+	weight  = 1.;
+}
 
 void Sample::SetParameters( string Processname_, string selection_, Color_t color_)
 {
@@ -18,4 +20,5 @@ void Sample::SetFileNames(string filename_)
 void Sample::ReSet()
 {
     filenames.clear();
+    weight = 1.;
 }
