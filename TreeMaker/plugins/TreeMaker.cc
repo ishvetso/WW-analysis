@@ -308,6 +308,10 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("l_phi",	      &Lepton.phi,     "l_phi/D"        	);
   //lepton uncertainties
   if (isMC) {
+    if(channel == "el"){
+        outTree_->Branch("sc_eta",       &sc_eta,     "sc_eta/D"          );  
+        outTree_->Branch("sc_et",       &sc_et,     "sc_et/D"          );  
+    }
     outTree_->Branch("l_pt_LeptonEnUp",       &Lepton.pt_LeptonEnUp,     "l_pt_LeptonEnUp/D"          );
     outTree_->Branch("l_pt_LeptonEnDown",     &Lepton.pt_LeptonEnDown,   "l_pt_LeptonEnDown/D"          );
     outTree_->Branch("l_pt_LeptonResUp",      &Lepton.pt_LeptonResUp,    "l_pt_LeptonResUp/D"          );
@@ -737,7 +741,11 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       Lepton.pt = (leptons -> at(0)).pt();
       Lepton.eta = (leptons -> at(0)).eta();
       Lepton.phi = (leptons -> at(0)).phi();
-      triggerWeightHLTEle27NoER  =  trigEle27NoER::turnOn((leptons -> at(0)).et(), (leptons -> at(0)).eta());
+      reco::SuperClusterRef  superCluster = aselectronPtr->superCluster();
+      sc_eta = superCluster->eta();
+      sc_et = (superCluster -> energy())* sin((aselectronPtr->superClusterPosition()).theta());
+      triggerWeightHLTEle27NoER  =  trigEle27NoER::turnOn(sc_et, sc_eta);
+
     }
     else {
       std::cerr << "Invalid channel used, use el or mu." << std::endl;
