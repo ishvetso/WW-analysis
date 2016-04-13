@@ -52,6 +52,8 @@ void Plotter::Plotting(std::string OutPrefix_)
   std::map<std::string,TH1D*> signalHist;
   std::map<std::string,THStack*> hs;
   std::map<std::string,TH1D*> hist_summed;
+  std::map<std::string, TH1D*> hist_PDFUp;
+  std::map<std::string, TH1D*> hist_PDFDown;
   std::map<std::pair<std::string,std::string>, TH1D*> hist_per_process;
   
   SystHelper systematics(samples[0].selection);
@@ -72,7 +74,13 @@ void Plotter::Plotting(std::string OutPrefix_)
     // sum of all processes for a given variable
     hist_summed[vname] = new TH1D((vname + "summed").c_str(),( vname+ "summed").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
     hist_summed[vname] -> Sumw2();
-
+    //PDF Up
+    hist_PDFUp[vname] = new TH1D((vname + "summed_PDFUp").c_str(),( vname+ "summed_PDFUp").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+    hist_PDFUp[vname] -> Sumw2();
+    //PDF Down
+    hist_PDFDown[vname] = new TH1D((vname + "summed_PDFDown").c_str(),( vname+ "summed_PDFDown").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+    hist_PDFDown[vname] -> Sumw2();
+    //systematics
     systematics.AddVar( &(variables.at(var_i)) ,  hist_summed[vname]);
   }
 
@@ -153,7 +161,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       tree -> SetBranchAddress("totEventWeight3", &totEventWeight);
       tree -> SetBranchAddress("PDFWeights", &PDFWeights);
       TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
-      std::map<std::string, vector<TH1D*>> histsPDF;
+      std::map<std::string, vector<TH1D*>> histsPDFPerFile;
 	  
       //initialize variables.
       for(auto var = variables.begin(); var != variables.end() ; var++)
@@ -196,7 +204,7 @@ void Plotter::Plotting(std::string OutPrefix_)
                 for (uint iPDF =0; iPDF < PDFWeights -> size(); iPDF ++ )
                 {
                   TH1D *temp = new TH1D(("PDFhist" + var->VarName+ std::to_string(iPDF)).c_str(), ("PDFhist"+  var->VarName + std::to_string(iPDF)).c_str(), Nbins, var ->Range.low, var->Range.high);
-                  histsPDF[var->VarName].push_back(temp);
+                  histsPDFPerFile[var->VarName].push_back(temp);
                 }  
               }
           }
@@ -211,12 +219,19 @@ void Plotter::Plotting(std::string OutPrefix_)
       	     hist_per_process[key]->Fill(var->value(), totEventWeight*samples.at(process_i).weight);//check if the event passeds the selection, and if true fill the histogram
               for (uint iPDF =0; iPDF < PDFWeights -> size(); iPDF ++ )
               {
-                 histsPDF[var->VarName].at(iPDF) -> Fill(var->value(), totEventWeight*PDFWeights->at(iPDF));
+                 histsPDFPerFile[var->VarName].at(iPDF) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*PDFWeights->at(iPDF));
               }  
 	         }
 	       }
-       systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,totEventWeight);
+       systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,(samples.at(process_i).weight)*totEventWeight);
 
+      }
+      for(auto var = variables.begin(); var != variables.end() ; var++)
+      {
+        TH1D *histPDFEnvelopeUp = makeEnvelope(histsPDFPerFile[var ->VarName], "up");
+        TH1D *histPDFEnvelopeDown = makeEnvelope(histsPDFPerFile[var ->VarName], "down");
+        hist_PDFUp[var->VarName] -> Add(histPDFEnvelopeUp);
+        hist_PDFDown[var->VarName] -> Add(histPDFEnvelopeDown);
       }
     }// end of the loop for the given process      
   }//end of cycle over processes
