@@ -110,7 +110,7 @@ process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 process.metSequenceSystematics = CreateWLepWithSystematicsSequence(process, "el")
 
 # PATH
-process.analysis = cms.Path(process.GenWeights + process.NoiseFilters  + process.TriggerElectron + process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.metSequenceSystematics  + process.treeDumper)
+process.analysis = cms.Path(process.GenWeights + process.NoiseFilters  +  process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.metSequenceSystematics  + process.treeDumper)
 
 
 process.source = cms.Source("PoolSource",

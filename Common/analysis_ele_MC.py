@@ -89,6 +89,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     metSrc = cms.InputTag("METele"),
                                     genSrc = cms.InputTag("prunedGenParticles"),
                                     fatJetSrc = cms.InputTag("goodJets"),
+                                    subJetSrc = cms.InputTag("slimmedJetsCMSTopTagCHSPacked","SubJets"),
                                     AK4JetSrc  = cms.InputTag("goodAK4Jets"),
                                     vertexSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                     looseEleSrc = cms.InputTag("looseElectrons"),
@@ -98,7 +99,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     LHEEventProductSrcExternal = cms.InputTag("externalLHEProducer"),
                                     isMC = cms.bool(True),
                                     BtagEffFile = cms.string(""),
-		                    isSignal = cms.bool(False),
+		                            isSignal = cms.bool(False),
                                     channel = cms.string("el")
                                     )
 
@@ -109,7 +110,7 @@ process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 process.metSequenceSystematics = CreateWLepWithSystematicsSequence(process, "el")
 
 # PATH
-process.analysis = cms.Path(process.GenWeights + process.NoiseFilters  + process.TriggerElectron + process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.metSequenceSystematics  + process.treeDumper)
+process.analysis = cms.Path(process.GenWeights + process.NoiseFilters + process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.metSequenceSystematics  + process.treeDumper)
 
 
 #process.maxEvents.input = 1000
