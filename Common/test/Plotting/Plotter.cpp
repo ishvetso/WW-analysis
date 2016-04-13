@@ -266,23 +266,22 @@ void Plotter::Plotting(std::string OutPrefix_)
     
     c1 -> cd();
     leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
-    if(var->logscale)
-      pad1 -> SetLogy();
+    if(var->logscale) pad1 -> SetLogy();
     pad1->Draw();
     pad2->Draw();
     pad1 -> cd();
     
     if(withData)
-      {	
-	data[vname] -> Draw("E1");
-	hs[vname]->Draw("hist SAME s(0,0)");
-	hist_summed[vname] -> SetFillColor(kBlack);
-	hist_summed[vname] -> SetFillStyle(3018);
-	hist_summed[vname] -> Draw("E2 SAME");
-	signalHist[vname] -> Draw("hist SAME");
-	data[vname] -> Draw("E1 SAME");
-	data[vname] -> GetXaxis() -> Draw("SAME");
-      } 
+    {	
+    	 data[vname] -> Draw("E1");
+	     hs[vname]->Draw("hist SAME s(0,0)");
+	     hist_summed[vname] -> SetFillColor(kBlack);
+	     hist_summed[vname] -> SetFillStyle(3018);
+	     hist_summed[vname] -> Draw("E2 SAME");
+	     signalHist[vname] -> Draw("hist SAME");
+	     data[vname] -> Draw("E1 SAME");
+	     data[vname] -> GetXaxis() -> Draw("SAME");
+    } 
     else { 
       hs[vname]->Draw("hist");
       signalHist[vname] -> Draw("HISTSAME");

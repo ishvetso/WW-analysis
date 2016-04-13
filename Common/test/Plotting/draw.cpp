@@ -6,7 +6,7 @@ void draw(std::string channel, std::string region, std::string tag)
 		std::cerr << "Channel is not mu or ele. Stopped." << std::endl;
 		exit(0);
 	}
-	if (region != "ttbar" && region != "WJets") {
+	if (region != "ttbar" && region != "WJets" && region != "TTBarEnrichedInclusive"  &&  region != "TTBarEnrichedBTagVeto") {
 		std::cerr << "Control region should be ttbar or WJets.Stopped." << std::endl;
 		exit(0);
 	}
@@ -15,7 +15,7 @@ void draw(std::string channel, std::string region, std::string tag)
 	var.logscale = false;
 	var.VarName = "Mjpruned";
 	var.Title = "m_{jet pruned}";
-	var.SetRange(40., 130.);
+	var.SetRange(30., 250.);
 	variables.push_back(var);
 
 	var.VarName = "jet_tau2tau1";
@@ -169,10 +169,10 @@ void draw(std::string channel, std::string region, std::string tag)
 	else exit(0);
 	vector <Sample> samples;
 	p.SetVar(variables);
-	p.SetNbins(36);
+	p.SetNbins(30);
 
 	
-	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 130. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2.";
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900.";
 	if (channel == "ele") defaulCuts += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -182,17 +182,43 @@ void draw(std::string channel, std::string region, std::string tag)
 	string addOnCutWjets = defaulCuts +  " * ( (Mjpruned < 65. || Mjpruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
 
+	string TTBarEnrichedInclusive = "jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. ";
+	if (channel == "ele") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 80. )"; 
+	else if (channel == "mu") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 40. )"; 
+	else {
+		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
+		exit(0);
+	}
+
+	string TTBarEnrichedBTagVeto = "jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0 ";
+	if (channel == "ele") TTBarEnrichedBTagVeto += " && l_pt > 50. && pfMET > 80. )"; 
+	else if (channel == "mu") TTBarEnrichedBTagVeto += " && l_pt > 50. && pfMET > 40. )"; 
+	else {
+		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
+		exit(0);
+	}
+
 	std::string MCSelection,SignalSelection,DataSelection;
 
 	if (region == "WJets"){
 		MCSelection =  addOnCutWjets ;
-		SignalSelection = "(aTGCWeights[1]*2300.0/20.)*( " + addOnCutWjets + " )";
+		SignalSelection = "( " + addOnCutWjets + " )";
 		DataSelection = addOnCutWjets;
 	}
 	else if(region == "ttbar"){
 		MCSelection =  addOnCutTtbar;
-		SignalSelection = "(aTGCWeights[1]*2300.0/20.)*( " + addOnCutTtbar + " )";
+		SignalSelection = "( " + addOnCutTtbar + " )";
 		DataSelection = addOnCutTtbar;
+	}
+	else if(region == "TTBarEnrichedInclusive"){
+		MCSelection =  TTBarEnrichedInclusive;
+		SignalSelection = "( " + TTBarEnrichedInclusive + " )";
+		DataSelection = TTBarEnrichedInclusive;
+	}
+	else if(region == "TTBarEnrichedBTagVeto"){
+		MCSelection =  TTBarEnrichedBTagVeto;
+		SignalSelection = "( " + TTBarEnrichedBTagVeto + " )";
+		DataSelection = TTBarEnrichedBTagVeto;
 	}
 	else std::cout << "This should not happen ..." << std::endl;
 
@@ -226,6 +252,7 @@ void draw(std::string channel, std::string region, std::string tag)
  	s.SetFileNames(prefix + "WJets_Ht800To1200_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_Ht1200To2500_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_Ht2500ToInf_" + channel + ".root");
+ 	s.weight = 1.16;
 	samples.push_back(s);
 	s.ReSet();
 
