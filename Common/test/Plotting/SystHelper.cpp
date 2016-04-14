@@ -146,6 +146,10 @@ void SystHelper::AddVar(Var* var, TH1D* refhist){
     hist_SystDown[key] -> Sumw2();
   }
 }
+void SystHelper::AddSyst(std::map<std::string, TH1D * > & Up, std::map<std::string, TH1D * > & Down){
+  histsAdd_Up.push_back(Up);
+  histsAdd_Down.push_back(Down);
+}
 
 void SystHelper::eval(Var* var, TH1D * hist_nominal){
   int Nbins = hist_nominal->GetNbinsX();
@@ -172,6 +176,19 @@ void SystHelper::eval(Var* var, TH1D * hist_nominal){
       std::pair<std::string,std::string> key(VarName,WeightNameSystematics.at(wSyst));
       double errorUpQuadratic = pow(std::abs((hist_SystUp[key] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
       double errorDownQuadratic = pow(std::abs((hist_SystDown[key] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
+      double errorQuadratic = std::max(errorUpQuadratic, errorDownQuadratic);
+      totalErrorQuadraticErrors.at(iBin-1) += errorQuadratic;
+      
+    }
+    //additional systematics 
+    if (histsAdd_Up.size() != histsAdd_Down.size()) {
+      std::cerr << "Are you kidding ? the size of up and down vectors isn't the same ..." << std::endl;
+      exit(0);
+    }
+    for (uint iAdd = 0; iAdd < histsAdd_Up.size(); iAdd ++)
+    {
+      double errorUpQuadratic = pow(std::abs((histsAdd_Up.at(iAdd)[VarName] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
+      double errorDownQuadratic = pow(std::abs((histsAdd_Down.at(iAdd)[VarName] -> GetBinContent(iBin))  - (hist_nominal -> GetBinContent(iBin))), 2);
       double errorQuadratic = std::max(errorUpQuadratic, errorDownQuadratic);
       totalErrorQuadraticErrors.at(iBin-1) += errorQuadratic;
       

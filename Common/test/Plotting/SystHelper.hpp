@@ -20,6 +20,10 @@ private:
   // histograms for varname, syst
   std::map< std::pair<std::string,std::string>, TH1D* >  hist_SystUp;
   std::map< std::pair<std::string,std::string>, TH1D* >  hist_SystDown;
+
+  // additional histograms
+  std::vector<std::map<std::string, TH1D * > >histsAdd_Up;
+  std::vector<std::map<std::string, TH1D * > > histsAdd_Down;
   
   //selection strings
   std::map<std::string, std::string> selection_Up, selection_Down;
@@ -38,6 +42,7 @@ public:
   SystHelper(std::string selection);
   void initTree(TTree* tree);
   void AddVar(Var* var, TH1D* refhist);
+  void AddSyst(std::map<std::string, TH1D * > & Up, std::map<std::string, TH1D * > & Down);
   void eval(Var* var, TH1D * hist_nominal);
   void fill(vector <Var>* var, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight);
   bool isAffectedBySystematic(Var  var, std::string systematic);

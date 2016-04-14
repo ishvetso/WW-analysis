@@ -83,7 +83,7 @@ void draw(std::string channel, std::string region, std::string tag)
 
 	var.VarName = "W_mass";
 	var.Title = "m_{W lep}";
-	var.SetRange(30., 800.);
+	var.SetRange(75., 200.);
 	variables.push_back(var);
 
 	var.VarName = "W_mt";
@@ -252,7 +252,13 @@ void draw(std::string channel, std::string region, std::string tag)
  	s.SetFileNames(prefix + "WJets_Ht800To1200_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_Ht1200To2500_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_Ht2500ToInf_" + channel + ".root");
- 	s.weight = 1.16;
+ 	//rescale W+jets to the normalization from the fit in the pruned jet mass side
+ 	if (channel == "ele")s.weight = 1.07;
+ 	else if (channel == "mu")s.weight = 1.23;
+ 	else {
+ 		std::cerr << "Wrong channel, use ele or mu" << std::endl;
+ 		exit(0);
+ 	}
 	samples.push_back(s);
 	s.ReSet();
 
