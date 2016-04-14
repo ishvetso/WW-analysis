@@ -123,7 +123,7 @@ private:
   
   //Jets
   int NAK8jet, njets, nbtag;
-  double jet_pt, jet_eta, jet_phi, jet_mass, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1, jet_tau3tau2;
+  double jet_pt, jet_eta, jet_phi, jet_mass, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1, jet_tau3tau2, jet_tau1, jet_tau2, jet_tau3;
 
   //JEC uncertainties
   double JECunc;
@@ -161,7 +161,6 @@ private:
   edm::EDGetTokenT<edm::View<reco::Candidate>> leptonicVToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> genParticlesToken_;
   edm::EDGetTokenT<edm::View<pat::Jet>> fatJetsToken_;
-  edm::EDGetTokenT<edm::View<pat::Jet>> subJetsToken_;
   edm::EDGetTokenT<edm::View<pat::Jet>> AK4JetsToken_;
   edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate>> looseMuToken_;
@@ -195,7 +194,6 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   leptonicVToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("leptonicVSrc"))),
   genParticlesToken_(mayConsume<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("genSrc"))),
   fatJetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("fatJetSrc"))),
-  subJetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("subJetSrc"))),
   AK4JetsToken_(consumes<edm::View<pat::Jet>>(iConfig.getParameter<edm::InputTag>("AK4JetSrc"))),
   vertexToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("vertexSrc"))),
   looseMuToken_(consumes<edm::View<reco::Candidate>>(iConfig.getParameter<edm::InputTag>("looseMuSrc"))),
@@ -461,7 +459,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet_mass_softdrop",&jet_mass_softdrop,"jet_mass_softdrop/D"   );
   outTree_->Branch("jet_tau2tau1",    &jet_tau2tau1,	  "jet_tau2tau1/D"   );
   outTree_->Branch("jet_tau3tau2",    &jet_tau3tau2,    "jet_tau3tau2/D"   );
-
+  outTree_->Branch("jet_tau1",    &jet_tau1,    "jet_tau1/D"   );
+  outTree_->Branch("jet_tau2",    &jet_tau2,    "jet_tau2/D"   );
+  outTree_->Branch("jet_tau3",    &jet_tau3,    "jet_tau3/D"   );
   if (isMC) {
      //JEC uncertainties
     outTree_->Branch("JECunc",    &JECunc,    "JECunc/D"   ); 
@@ -558,9 +558,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //Jets
    edm::Handle<edm::View<pat::Jet> > jets; 
    iEvent.getByToken(fatJetsToken_, jets);
-
-    edm::Handle<edm::View<pat::Jet> > subjets; 
-   iEvent.getByToken(subJetsToken_, subjets);
    
    //JAK4 ets (for Btag veto )
    edm::Handle<edm::View<pat::Jet> > AK4Jets;
@@ -692,18 +689,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   jecUnc->setJetEta((jets -> at(0)).eta());
   jecUnc->setJetPt((jets -> at(0)).pt()); // here you must use the CORRECTED jet pt
-  /*reco::CATopJetTagInfo *info = (reco::CATopJetTagInfo*) (jets -> at(0).tagInfo("caTop"));
-  std::cout << info->properties().nSubJets << std::endl;
-  int ntagged =0;
-  if( subjets->size() > 0 ){
-    
-    for (unsigned int iSubJet = 0; iSubJet < subjets -> size(); iSubJet ++ )
-    {
-      if( subjets -> at(iSubJet).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.935) ntagged ++;
-    }
-    
-  } 
-  std::cout << " ntagged : " << ntagged << std::endl;*/
+
   JECunc = jecUnc->getUncertainty(true);
 
       
@@ -1066,6 +1052,9 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_mass = smearedJet.M();
     jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
     jet_tau3tau2 = ((jets -> at(0)).userFloat("NjettinessAK8:tau3"))/((jets -> at(0)).userFloat("NjettinessAK8:tau2"));
+    jet_tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
+    jet_tau2 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"));
+    jet_tau3 = ((jets -> at(0)).userFloat("NjettinessAK8:tau3"));
 
     math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
     jecAK8_->setJetEta( uncorrJet.eta() );
