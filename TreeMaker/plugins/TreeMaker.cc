@@ -95,7 +95,7 @@ private:
   double PUweight;
   double btagWeight, btagWeight_BTagUp, btagWeight_BTagDown, btagWeight_MistagUp, btagWeight_MistagDown;
   double genWeight;
-  double LeptonSF;
+  double LeptonSF_trigger, LeptonSF_ID;
   double rho_;
   double totWeight, totWeight_BTagUp, totWeight_BTagDown, totWeight_MistagUp, totWeight_MistagDown;
   double VTagSF;
@@ -268,7 +268,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   //PUweight
   if (isMC) {
      outTree_->Branch("puweight",       &PUweight,     "puweight/D"          );
-     outTree_->Branch("LeptonSF",       &LeptonSF,     "LeptonSF/D"          );
+     outTree_->Branch("LeptonSF_ID",       &LeptonSF_ID,     "LeptonSF_ID/D"          );
+     outTree_->Branch("LeptonSF_trigger",       &LeptonSF_trigger,     "LeptonSF_trigger/D"          );
      outTree_->Branch("genweight",       &genWeight,     "genweight/D"          );
      outTree_->Branch("btagWeight",       &btagWeight,     "btagWeight/D"          );
      if(channel == "el")outTree_->Branch("triggerWeightHLTEle27NoER",       &triggerWeightHLTEle27NoER,     "triggerWeightHLTEle27NoER/D"          );
@@ -755,8 +756,15 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Lepton.pt_LeptonResDown = -99.;
    }
    
-   if (channel == "mu")LeptonSF = getScaleFactor(Lepton.pt, std::abs(Lepton.eta));
-   else if (channel == "el") LeptonSF = 1.;
+   if (channel == "mu"){
+      LeptonSF_ID = sf::getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID");
+      LeptonSF_trigger = sf::getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "trigger");
+    }
+   else if (channel == "el") {
+      LeptonSF_ID = 1.;
+      LeptonSF_trigger = 1.;
+
+    }
    else  throw cms::Exception("InvalidValue") << "Invalid channel, should be mu or el." << std::endl; 
    //leptonically decaying W
    if (leptonicVs -> size() > 0)
@@ -1228,12 +1236,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
 
   if (isMC) {
-    totWeight = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight*VTagSF; 
-    totWeight_BTagUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_BTagUp*VTagSF;  
-    totWeight_BTagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_BTagDown*VTagSF;  
-    totWeight_MistagUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_MistagUp*VTagSF; 
-    totWeight_MistagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF*btagWeight_MistagDown*VTagSF; 
+    totWeight = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID*LeptonSF_trigger*btagWeight*VTagSF; 
+    totWeight_BTagUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID*LeptonSF_trigger*btagWeight_BTagUp*VTagSF;  
+    totWeight_BTagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID*LeptonSF_trigger*btagWeight_BTagDown*VTagSF;  
+    totWeight_MistagUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID*LeptonSF_trigger*btagWeight_MistagUp*VTagSF; 
+    totWeight_MistagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID*LeptonSF_trigger*btagWeight_MistagDown*VTagSF; 
   }
+  //probably would leave it like that if we keep reweighting to data trigger efficiency in electron channel. In this case lepton ID & trigger scale factors are set to unity in the electron channel.
   if (isMC&&channel=="el"){
     totWeight *=  triggerWeightHLTEle27NoER;
     totWeight_BTagUp *= triggerWeightHLTEle27NoER;
