@@ -36,7 +36,7 @@ dataFormat = DataFormat.MiniAOD
 switchOnVIDElectronIdProducer(process, dataFormat)
 
 # define which IDs we want to produce
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV61_cff']
 
 #add them to the VID producer
 for idmod in my_id_modules:

@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 electronIDs = cms.EDFilter("ElectronID",
-			   ValueMap_src = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
+			   ValueMap_src = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV61"),
                            electron_src = cms.InputTag("slimmedElectrons"),
 			    #False -> runs as producer 
 			    #True -> filters events
