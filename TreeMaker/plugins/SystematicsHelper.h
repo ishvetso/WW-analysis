@@ -57,6 +57,7 @@ public:
 	ListOfSystematics.push_back("JetEn");
   ListOfSystematics.push_back("LeptonEn");
   ListOfSystematics.push_back("LeptonRes");
+  ListOfSystematics.push_back("JetRes");
 	tokens.resize(2 * ListOfSystematics.size());
   int iSystUp, iSystDown;
   
