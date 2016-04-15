@@ -758,7 +758,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if (channel == "mu"){
       LeptonSF_ID = sf::getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID");
       LeptonSF_trigger = sf::getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "trigger");
-      std::cout << "SF : " << LeptonSF_trigger << " eta: " << Lepton.eta << " pt " << Lepton.pt << std::endl;
     }
    else if (channel == "el") {
       LeptonSF_ID = 1.;
