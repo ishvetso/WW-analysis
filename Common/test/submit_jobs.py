@@ -22,7 +22,7 @@ def DefineNJobs(sample):
 	else :
 		# let's roughly assume that number of files is ~1000 in the worst case
 		NFilesPerJob = int(N/100)
-	print "N of files : " , sample , " " , NFilesPerJob	
+	print "N of files per job : " , sample , " " , NFilesPerJob	
 	return NFilesPerJob
 
 
@@ -30,11 +30,12 @@ def createConfigFile(processName, channel, isMC, isSignal):
 	if not os.path.exists("analysisConfigs"):
 		os.makedirs("analysisConfigs")
 	BTagEfficiencyPattern = "BtagEffFile = cms.string(\"\"),\n"
+	VTagSFPattern = "VTagSF = cms.double(0.915)"
 	ConfigFileName = ""
    	if isSignal and isMC :
    		shutil.copy("../analysis_" + channel + "_signal.py", "analysisConfigs")
    		ConfigFileName = "analysisConfigs/analysis_" + channel + "_signal.py"
-   	elif processName == "ttbar" or processName == "WZ":
+   	elif processName == "ttbar-amATNLO" or processName == "ttbar-powheg" or processName == "WZ":
    		shutil.copy("../analysis_" + channel + "_MC.py", "analysisConfigs/analysis_" + channel + "_" + processName + ".py")
    		ConfigFileName = "analysisConfigs/analysis_" + channel + "_" + processName + ".py"
    		configFile = open("../analysis_" + channel + "_MC.py")
@@ -45,6 +46,19 @@ def createConfigFile(processName, channel, isMC, isSignal):
    				outFile.write(line.replace(BTagEfficiencyPattern, replaceWith ))
    			else :
    				outFile.write(line)
+   	# don't apply V-tagging scale factor for W+jets or single top t-channel and s-channel
+   	elif processName == "WJets_HT-100To200" or processName == "WJets_HT-200To400" or processName == "WJets_HT-400To600" or processName == "WJets_HT-600To800" or processName == "WJets_HT-800To1200" or processName == "WJets_HT-1200To2500" or processName == "WJets_HT-2500ToInf" or processName == "SingleTop-s-channel" or processName == "SingleTop-t-channel":
+   		shutil.copy("../analysis_" + channel + "_MC.py", "analysisConfigs/analysis_" + channel + "_" + processName + ".py")
+   		ConfigFileName = "analysisConfigs/analysis_" + channel + "_" + processName + ".py"
+   		configFile = open("../analysis_" + channel + "_MC.py")
+   		outFile = open("analysisConfigs/analysis_" + channel + "_" + processName + ".py", "w+")
+   		for line in configFile:
+   			if VTagSFPattern in line :
+   				replaceWith = "VTagSF = cms.double(1.0)"
+   				outFile.write(line.replace(VTagSFPattern, replaceWith ))
+   			else :
+   				outFile.write(line)
+
    	elif isMC :
    		shutil.copy("../analysis_" + channel + "_MC.py", "analysisConfigs")
    		ConfigFileName = "analysisConfigs/analysis_" + channel + "_MC.py"
@@ -114,6 +128,7 @@ parser.add_option('-p', '--Feature', dest="Feature", default='my_feature')
 def submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDictionaryElectronChannel, DataDictionaryMuonChannel, JSONFile, YourRunRange,wantToSubmit=False):
 	for key in MCBackgroundsSampleDictionary:
 		ConfigFileName = createConfigFile(key, "mu", True, False)
+		print key, " ", ConfigFileName
 		createFileForJob(key, "mu", MCBackgroundsSampleDictionary[key], options.Feature, ConfigFileName,  "crabConfigs",  JSONFile, YourRunRange, True, False, wantToSubmit)
 		ConfigFileName = createConfigFile(key, "ele", True, False)
 		createFileForJob(key, "ele", MCBackgroundsSampleDictionary[key], options.Feature, ConfigFileName,  "crabConfigs",  JSONFile, YourRunRange, True, False, wantToSubmit)
@@ -130,7 +145,8 @@ def submitJobs(MCBackgroundsSampleDictionary, SignalMCSampleDictionary, DataDict
 		createFileForJob(key, "mu", DataDictionaryMuonChannel[key], options.Feature, ConfigFileName,  "crabConfigs",  JSONFile, YourRunRange, False, True, wantToSubmit)
 
 
-MCBackgroundsSampleDictionary =    {'ttbar':'/TTJets_13TeV-amcatnloFXFX-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/MINIAODSIM',
+MCBackgroundsSampleDictionary =    {'ttbar-amATNLO':'/TTJets_13TeV-amcatnloFXFX-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/MINIAODSIM',
+									'ttbar-powheg':'/TT_TuneCUETP8M1_13TeV-powheg-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext4-v1/MINIAODSIM',
 									'WJets_HT-100To200':'/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM',
 									'WJets_HT-200To400':'/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM',
 									'WJets_HT-400To600':'/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM',
