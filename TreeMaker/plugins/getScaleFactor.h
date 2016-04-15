@@ -1,5 +1,6 @@
 #include "TH2F.h"
 #include <iostream>
+#include "Mu50.h"
 
 /*
 * This macro supports application of scale factors in the analysis
@@ -23,7 +24,7 @@ namespace sf
 				else SF = hist_mu_ID -> GetBinContent(hist_mu_ID -> GetXaxis() -> GetNbins(), hist_mu_ID -> GetYaxis() -> FindBin(eta));
 			}
 			else if (type == "trigger"){
-				SF = 1.;
+				SF = Mu50::scaleFactor( pt, eta);
 			}
 			else {
 				throw cms::Exception("InvalidValue") <<  " not supported type of scale factor is used !!! " << std::endl;	
