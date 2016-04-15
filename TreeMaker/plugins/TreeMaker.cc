@@ -248,6 +248,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     LHEEventProductTokenExternal = mayConsume<LHEEventProduct> (iConfig.getParameter<edm::InputTag>( "LHEEventProductSrcExternal" ) );
     if(!isSignal)lheProducerToken = consumes< LHERunInfoProduct, edm::InRun >(edm::InputTag("externalLHEProducer"));
     else lheProducerToken = consumes< LHERunInfoProduct, edm::InRun >(edm::InputTag("source"));
+    VTagSF = iConfig.getParameter<double>("VTagSF");
     
    }
 
@@ -623,8 +624,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     btagWeight_MistagUp = 1.;
     btagWeight_MistagDown = 1.;
    }
-
-   VTagSF = 1.031;//from AN2015_196_v8.pdf, Table 12: The pure W scale factor for the combination of muon and electron channel.
 
    //PDF uncertainties
    edm::Handle<LHEEventProduct> LHEevtProductExternal;

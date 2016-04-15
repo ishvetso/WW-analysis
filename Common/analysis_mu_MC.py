@@ -98,9 +98,10 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     leptonSrc = cms.InputTag("tightMuons"),
                                     LHEEventProductSrcExternal = cms.InputTag("externalLHEProducer"),
                                     isMC = cms.bool(True),
-                                    BtagEffFile = cms.string(""),
-				    isSignal = cms.bool(False),
-                                    channel = cms.string("mu")
+                                    BtagEffFile = cms.string("aTGCsAnalysis/TreeMaker/data/eff_ttbar_mu.root"),
+				                    isSignal = cms.bool(False),
+                                    channel = cms.string("mu"),
+                                    VTagSF = cms.double(0.915),
                                     )
 
 
@@ -114,7 +115,7 @@ process.analysis = cms.Path(process.GenWeights + process.NoiseFilters + process.
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/mc/RunIIFall15MiniAODv2/TTJets_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/40000/624CCA85-D5D0-E511-9858-0CC47A4D76AC.root'),
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/mc/RunIIFall15MiniAODv2/TTJets_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/00000/0098C21A-E1D0-E511-86A0-0026189438BC.root'),
 )
 
 

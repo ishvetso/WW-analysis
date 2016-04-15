@@ -99,7 +99,8 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     isMC = cms.bool(True),
                                     BtagEffFile = cms.string(""),
 		                            isSignal = cms.bool(False),
-                                    channel = cms.string("el")
+                                    channel = cms.string("el"),
+                                    VTagSF = cms.double(0.915),
                                     )
 
 
