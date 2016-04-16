@@ -35,7 +35,7 @@ def createConfigFile(processName, channel, isMC, isSignal):
    	if isSignal and isMC :
    		shutil.copy("../analysis_" + channel + "_signal.py", "analysisConfigs")
    		ConfigFileName = "analysisConfigs/analysis_" + channel + "_signal.py"
-   	elif processName == "ttbar-amATNLO" or processName == "ttbar-powheg" or processName == "WZ":
+   	elif  processName == "WZ":
    		shutil.copy("../analysis_" + channel + "_MC.py", "analysisConfigs/analysis_" + channel + "_" + processName + ".py")
    		ConfigFileName = "analysisConfigs/analysis_" + channel + "_" + processName + ".py"
    		configFile = open("../analysis_" + channel + "_MC.py")
@@ -43,6 +43,17 @@ def createConfigFile(processName, channel, isMC, isSignal):
    		for line in configFile:
    			if BTagEfficiencyPattern in line :
    				replaceWith = "BtagEffFile = cms.string(\"aTGCsAnalysis/TreeMaker/data/eff_" + processName + "_" + channel + ".root\"),\n"
+   				outFile.write(line.replace(BTagEfficiencyPattern, replaceWith ))
+   			else :
+   				outFile.write(line)
+   	elif processName == "ttbar-amATNLO" or processName == "ttbar-powheg" :
+   		shutil.copy("../analysis_" + channel + "_MC.py", "analysisConfigs/analysis_" + channel + "_" + processName + ".py")
+   		ConfigFileName = "analysisConfigs/analysis_" + channel + "_" + processName + ".py"
+   		configFile = open("../analysis_" + channel + "_MC.py")
+   		outFile = open("analysisConfigs/analysis_" + channel + "_" + processName + ".py", "w+")
+   		for line in configFile:
+   			if BTagEfficiencyPattern in line :
+   				replaceWith = "BtagEffFile = cms.string(\"aTGCsAnalysis/TreeMaker/data/eff_ttbar_" + channel + ".root\"),\n"
    				outFile.write(line.replace(BTagEfficiencyPattern, replaceWith ))
    			else :
    				outFile.write(line)
@@ -160,6 +171,7 @@ MCBackgroundsSampleDictionary =    {'ttbar-amATNLO':'/TTJets_13TeV-amcatnloFXFX-
 									'SingleTop-t-channel':'/ST_t-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM',
 									'SingleTop-tW-channel-antitop':'/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM',
 									'SingleTop-tW-channel-top':'/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM'}
+
 
 SignalMCSampleDictionary = {'WW-signal':'/WWToLNuQQ_aTGC_13TeV-madgraph-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM',
 							'WZ-signal': '/WZToLNu2QorQQ2L_aTGC_13TeV-madgraph-pythia8/RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/MINIAODSIM'}
