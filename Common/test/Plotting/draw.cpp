@@ -182,7 +182,7 @@ void draw(std::string channel, std::string region, std::string tag)
 	string addOnCutWjets = defaulCuts +  " * ( (Mjpruned < 65. || Mjpruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
 
-	string TTBarEnrichedInclusive = "jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. ";
+	string TTBarEnrichedInclusive = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. ";
 	if (channel == "ele") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -190,7 +190,7 @@ void draw(std::string channel, std::string region, std::string tag)
 		exit(0);
 	}
 
-	string TTBarEnrichedBTagVeto = "jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0 ";
+	string TTBarEnrichedBTagVeto = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0 ";
 	if (channel == "ele") TTBarEnrichedBTagVeto += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") TTBarEnrichedBTagVeto += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -232,7 +232,7 @@ void draw(std::string channel, std::string region, std::string tag)
 	
 	Sample s, dataSample, signalSample;
 	
-	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_31March2016_v3/";
+	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_18April2016/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
  	s.SetFileNames( prefix + "WW_"+ channel + ".root");
@@ -263,7 +263,7 @@ void draw(std::string channel, std::string region, std::string tag)
 	s.ReSet();
 
 	s.SetParameters("ttbar", MCSelection, kOrange);
- 	s.SetFileNames(prefix + "ttbar_" + channel + ".root");
+ 	s.SetFileNames(prefix + "ttbar-amATNLO_" + channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
 
