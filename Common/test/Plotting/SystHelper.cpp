@@ -18,6 +18,7 @@ SystHelper::SystHelper(std::string selection){
   ListOfSystematics.push_back("LeptonEn");
   ListOfSystematics.push_back("LeptonRes");
   ListOfSystematics.push_back("UnclEn");
+  ListOfSystematics.push_back("JER");
 
   //JEC
   VarsJEC.push_back("W_pt");
@@ -62,10 +63,25 @@ SystHelper::SystHelper(std::string selection){
   VarsUnclEn.push_back("deltaPhi_WJetWlep");
   VarsUnclEn.push_back("MWW");
 
+  //JER
+  VarsJER.push_back("pfMET");
+  VarsJER.push_back("pfMETPhi");
+  VarsJER.push_back("deltaPhi_LeptonMet");
+  VarsJER.push_back("deltaPhi_WJetMet");
+  VarsJER.push_back("jet_pt");
+  VarsJER.push_back("jet_mass");
+  VarsJER.push_back("Mjpruned");
+  VarsJER.push_back("jet_mass_softdrop");
+
+  //JetRes, please merge JER and JetRes!
+  VarsJetRes.push_back("MWW");
+
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JEC", VarsJEC));
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("LeptonEn", VarsLeptonEn));
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("LeptonRes", VarsLeptonRes));
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("UnclEn", VarsUnclEn));
+  VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JER", VarsJER));
+  VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JetRes", VarsJetRes));
 
   //weighted systematics
   WeightNameSystematics.push_back("Mistag");
@@ -115,8 +131,8 @@ void SystHelper::initTree(TTree* tree){
       weightsUp[WeightNameSystematics.at(wSyst)] = new Var();
       weightsDown[WeightNameSystematics.at(wSyst)] = new Var();
 
-      weightsUp[WeightNameSystematics.at(wSyst)] -> VarName = "totEventWeight3_" + WeightNameSystematics.at(wSyst) + "Up";
-      weightsDown[WeightNameSystematics.at(wSyst)]  -> VarName = "totEventWeight3_" + WeightNameSystematics.at(wSyst) + "Down";
+      weightsUp[WeightNameSystematics.at(wSyst)] -> VarName = "totEventWeight_" + WeightNameSystematics.at(wSyst) + "Up";
+      weightsDown[WeightNameSystematics.at(wSyst)]  -> VarName = "totEventWeight_" + WeightNameSystematics.at(wSyst) + "Down";
 
       weightsUp[WeightNameSystematics.at(wSyst)] -> Initialize(tree);
       weightsDown[WeightNameSystematics.at(wSyst)]  -> Initialize(tree);
@@ -172,14 +188,15 @@ void SystHelper::eval(Var* var, TH1D * hist_nominal){
       
     }
 
-    for (uint wSyst = 0; wSyst < WeightNameSystematics.size(); wSyst++){
+    /*for (uint wSyst = 0; wSyst < WeightNameSystematics.size(); wSyst++){
       std::pair<std::string,std::string> key(VarName,WeightNameSystematics.at(wSyst));
       double errorUpQuadratic = pow(std::abs((hist_SystUp[key] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
       double errorDownQuadratic = pow(std::abs((hist_SystDown[key] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
       double errorQuadratic = std::max(errorUpQuadratic, errorDownQuadratic);
       totalErrorQuadraticErrors.at(iBin-1) += errorQuadratic;
+      std::cout << iBin << "  " << WeightNameSystematics.at(wSyst) <<  " " << sqrt(errorQuadratic) << std::endl;
       
-    }
+    }*/
     //additional systematics 
     if (histsAdd_Up.size() != histsAdd_Down.size()) {
       std::cerr << "Are you kidding ? the size of up and down vectors isn't the same ..." << std::endl;

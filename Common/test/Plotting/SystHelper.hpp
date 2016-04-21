@@ -15,6 +15,8 @@ private:
   std::vector<std::string> VarsLeptonEn;
   std::vector<std::string> VarsLeptonRes;
   std::vector<std::string> VarsUnclEn;
+  std::vector<std::string> VarsJER;
+  std::vector<std::string> VarsJetRes;
   std::string NominalSelection;
  
   // histograms for varname, syst
