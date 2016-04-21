@@ -172,7 +172,7 @@ void draw(std::string channel, std::string region, std::string tag)
 	p.SetNbins(30);
 
 	
-	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900.";
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && abs(l_eta)<2.1";
 	if (channel == "ele") defaulCuts += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -253,8 +253,8 @@ void draw(std::string channel, std::string region, std::string tag)
  	s.SetFileNames(prefix + "WJets_Ht1200To2500_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_Ht2500ToInf_" + channel + ".root");
  	//rescale W+jets to the normalization from the fit in the pruned jet mass side
- 	if (channel == "ele")s.weight = 1.07;
- 	else if (channel == "mu")s.weight = 1.23;
+ 	if (channel == "ele")s.weight = 0.79;
+ 	else if (channel == "mu")s.weight = 0.9;
  	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
  		exit(0);
