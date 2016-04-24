@@ -51,6 +51,7 @@
 #include "TLorentzVector.h"
 
 #include "DecayChannel.h"
+#include "isMatchedToGenW.h"
 #include "DecayClass.h"
 #include "Particle.h"
 #include "SystematicsHelper.h"
@@ -125,6 +126,8 @@ private:
   int NAK8jet, njets, nbtag;
   double jet_pt, jet_eta, jet_phi, jet_mass, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1, jet_tau3tau2, jet_tau1, jet_tau2, jet_tau3;
 
+  //gen info
+  bool isMatched_;
   //JEC uncertainties
   double JECunc;
   double jet_pt_JECUp, jet_pt_JECDown, jet_mass_JECUp, jet_mass_JECDown, jet_mass_pruned_JECUp, jet_mass_pruned_JECDown, jet_mass_softdrop_JECUp, jet_mass_softdrop_JECDown;
@@ -486,6 +489,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     outTree_->Branch("Mjpruned_JERDown",    &jet_mass_pruned_JERDown,    "Mjpruned_JERDown/D"   );  
     outTree_->Branch("jet_mass_softdrop_JERUp",    &jet_mass_softdrop_JERUp,    "jet_mass_softdrop_JERUp/D"   ); 
     outTree_->Branch("jet_mass_softdrop_JERDown",    &jet_mass_softdrop_JERDown,    "jet_mass_softdrop_JERDown/D"   );  
+    outTree_->Branch("isMatched",    &isMatched_,    "isMatched/B"   );  
   }
   outTree_->Branch("njets",  	      &njets,	          "njets/I"   );
   outTree_->Branch("nbtag",  	      &nbtag,	          "nbtag/I"   );
@@ -1052,6 +1056,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    if (jets -> size() > 0)
   {
+    isMatched_ = isMatchedToGenW(genParticles, jets->at(0));
+
     smearedJet = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0));
     jet_pt = smearedJet.Pt();
     jet_eta = smearedJet.Eta();
