@@ -51,7 +51,7 @@
 #include "TLorentzVector.h"
 
 #include "DecayChannel.h"
-#include "isMatchedToGenW.h"
+#include "GenWUtils.h"
 #include "DecayClass.h"
 #include "Particle.h"
 #include "SystematicsHelper.h"
@@ -105,6 +105,10 @@ private:
 
   //Decay Info (gen level)
   DecayClass WDecayClass;
+  //gen info
+
+  double Wplus_gen_pt, Wplus_gen_eta, Wplus_gen_phi, Wplus_gen_mass;
+  double Wminus_gen_pt, Wminus_gen_eta, Wminus_gen_phi, Wminus_gen_mass;
   
   int N_had_W, N_lep_W;
   int N_had_Wgen, N_lep_Wgen;
@@ -292,6 +296,16 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
      //generator info about the decay of WW
      outTree_->Branch("WDecayClass",     &WDecayClass,    "WDecayClass/I"      );
+     //generator W info
+     outTree_->Branch("Wplus_gen_pt",     &Wplus_gen_pt,    "Wplus_gen_pt/D"      );
+     outTree_->Branch("Wplus_gen_eta",     &Wplus_gen_eta,    "Wplus_gen_eta/D"      );
+     outTree_->Branch("Wplus_gen_phi",     &Wplus_gen_phi,    "Wplus_gen_phi/D"      );
+     outTree_->Branch("Wplus_gen_mass",     &Wplus_gen_mass,    "Wplus_gen_mass/D"      );
+
+     outTree_->Branch("Wminus_gen_pt",     &Wminus_gen_pt,    "Wminus_gen_pt/D"      );
+     outTree_->Branch("Wminus_gen_eta",     &Wminus_gen_eta,    "Wminus_gen_eta/D"      );
+     outTree_->Branch("Wminus_gen_phi",     &Wminus_gen_phi,    "Wminus_gen_phi/D"      );
+     outTree_->Branch("Wminus_gen_mass",     &Wminus_gen_mass,    "Wminus_gen_mass/D"      );
    };
   if (channel == "el") {
     outTree_->Branch("bit_HLT_Ele_105",       &bit_HLT_Ele_105,     "bit_HLT_Ele_105/B"          );
@@ -684,6 +698,17 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
    }
 
+   ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > Wplus_p4 = genWLorentzVector(genParticles, 1);
+   ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > Wminus_p4 = genWLorentzVector(genParticles, -1);
+   Wplus_gen_pt = Wplus_p4.Pt();
+   Wplus_gen_eta = Wplus_p4.Eta();
+   Wplus_gen_phi = Wplus_p4.Phi();
+   Wplus_gen_mass = Wplus_p4.M();
+   
+   Wminus_gen_pt = Wminus_p4.Pt();
+   Wminus_gen_eta = Wminus_p4.Eta();
+   Wminus_gen_phi = Wminus_p4.Phi();
+   Wminus_gen_mass = Wminus_p4.M();
   }
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
   iSetup.get<JetCorrectionsRecord>().get("AK8PFchs",JetCorParCollAK8);
