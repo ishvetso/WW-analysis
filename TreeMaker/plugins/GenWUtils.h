@@ -1,14 +1,10 @@
 
 /*
  * 
- * Function to define the candidate is matched to the generator level W. 
- * 
+ * a couple of functions to get information for generator W
  */
 #ifndef isMatchedToGenW_h
 #define isMatchedToGenW_h
-
- #include "DataFormats/Candidate/interface/Candidate.h"
- #include "DataFormats/Math/interface/deltaR.h"
 
 template<class T > bool isMatchedToGenW ( edm::Handle<edm::View<reco::Candidate> > genParticles_, T cand)
 {
@@ -46,7 +42,7 @@ template<class T > bool isMatchedToGenW ( edm::Handle<edm::View<reco::Candidate>
     //status 22 in pythia8 corresponds to intermediate particle
     if (charge == 1 && (genParticles_ -> at(iGen)).pdgId() == 24 && (genParticles_ -> at(iGen)).status()==22) p4_ = genParticles_ -> at(iGen).p4();
     else if (charge == -1 && (genParticles_ -> at(iGen)).pdgId() == -24 && (genParticles_ -> at(iGen)).status()==22) p4_ = genParticles_ -> at(iGen).p4();
-    else throw cms::Exception("InvalidValue") <<  "the value of the charge is not supported, please use only +1 or -1" << std::endl;
+    else if (charge != 1 && charge != -1)throw cms::Exception("InvalidValue") <<  "the value of the charge is not supported, please use only +1 or -1" << std::endl;
 
   }
   
