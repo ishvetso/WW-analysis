@@ -1096,28 +1096,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       jet_eta = smearedJet.Eta();
       jet_phi = smearedJet.Phi();
       jet_mass = smearedJet.M();
-    }
-    else{
-      jet_pt =  jets->at(0).pt();
-      jet_eta =  jets->at(0).eta();
-      jet_phi =  jets->at(0).phi();
-      jet_mass =  jets->at(0).mass();
-
-    }
-
-    math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
-    jecAK8_->setJetEta( uncorrJet.eta() );
-    jecAK8_->setJetPt ( uncorrJet.pt() );
-    jecAK8_->setJetE  ( uncorrJet.energy() );
-    jecAK8_->setJetA  ( (jets -> at(0)).jetArea() );
-    jecAK8_->setRho   ( rho_ );
-    jecAK8_->setNPV   (  vertices->size());
-    double corr = jecAK8_->getCorrection();
-    jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
-    jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
-
-    if(isMC)
-    {
       //JEC uncertainty
       jet_pt_JECDown = (1 - JECunc)*jet_pt;
       jet_pt_JECUp   = (1 + JECunc)*jet_pt;
@@ -1144,6 +1122,24 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       jet_mass_softdrop_JERUp = JERUpCorrection*jet_mass_softdrop;
       jet_mass_softdrop_JERDown = JERDownCorrection*jet_mass_softdrop;
     }
+    else{
+      jet_pt =  jets->at(0).pt();
+      jet_eta =  jets->at(0).eta();
+      jet_phi =  jets->at(0).phi();
+      jet_mass =  jets->at(0).mass();
+
+    }
+
+    math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
+    jecAK8_->setJetEta( uncorrJet.eta() );
+    jecAK8_->setJetPt ( uncorrJet.pt() );
+    jecAK8_->setJetE  ( uncorrJet.energy() );
+    jecAK8_->setJetA  ( (jets -> at(0)).jetArea() );
+    jecAK8_->setRho   ( rho_ );
+    jecAK8_->setNPV   (  vertices->size());
+    double corr = jecAK8_->getCorrection();
+    jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
+    jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
   }
   
   else throw cms::Exception("InvalidValue") << "This shouldn't happen, we require at least 1 jet, but the size of the jet collection for this event is zero!" << std::endl; 
