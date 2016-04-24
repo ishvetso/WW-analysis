@@ -1081,18 +1081,29 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    if (jets -> size() > 0)
   {
-    isMatched_ = isMatchedToGenW(genParticles, jets->at(0));
-
-    smearedJet = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0));
-    jet_pt = smearedJet.Pt();
-    jet_eta = smearedJet.Eta();
-    jet_phi = smearedJet.Phi();
-    jet_mass = smearedJet.M();
+   
     jet_tau2tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"))/((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
     jet_tau3tau2 = ((jets -> at(0)).userFloat("NjettinessAK8:tau3"))/((jets -> at(0)).userFloat("NjettinessAK8:tau2"));
     jet_tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
     jet_tau2 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"));
     jet_tau3 = ((jets -> at(0)).userFloat("NjettinessAK8:tau3"));
+
+    if(isMC)
+    {
+      isMatched_ = isMatchedToGenW(genParticles, jets->at(0));
+      smearedJet = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0));
+      jet_pt = smearedJet.Pt();
+      jet_eta = smearedJet.Eta();
+      jet_phi = smearedJet.Phi();
+      jet_mass = smearedJet.M();
+    }
+    else{
+      jet_pt =  jets->at(0).pt();
+      jet_eta =  jets->at(0).eta();
+      jet_phi =  jets->at(0).phi();
+      jet_mass =  jets->at(0).mass();
+
+    }
 
     math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
     jecAK8_->setJetEta( uncorrJet.eta() );
@@ -1105,33 +1116,34 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
     jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
 
+    if(isMC)
+    {
+      //JEC uncertainty
+      jet_pt_JECDown = (1 - JECunc)*jet_pt;
+      jet_pt_JECUp   = (1 + JECunc)*jet_pt;
+      jet_mass_JECDown = (1 - JECunc)*jet_mass;
+      jet_mass_JECUp   = (1 + JECunc)*jet_mass;
+      jet_mass_pruned_JECDown = (1 - JECunc)*jet_mass_pruned; 
+      jet_mass_pruned_JECUp = (1 + JECunc)*jet_mass_pruned; 
+      jet_mass_softdrop_JECDown = (1 - JECunc)*jet_mass_softdrop; 
+      jet_mass_softdrop_JECUp = (1 + JECunc)*jet_mass_softdrop; 
 
-    //JEC uncertainty
-    jet_pt_JECDown = (1 - JECunc)*jet_pt;
-    jet_pt_JECUp   = (1 + JECunc)*jet_pt;
-    jet_mass_JECDown = (1 - JECunc)*jet_mass;
-    jet_mass_JECUp   = (1 + JECunc)*jet_mass;
-    jet_mass_pruned_JECDown = (1 - JECunc)*jet_mass_pruned; 
-    jet_mass_pruned_JECUp = (1 + JECunc)*jet_mass_pruned; 
-    jet_mass_softdrop_JECDown = (1 - JECunc)*jet_mass_softdrop; 
-    jet_mass_softdrop_JECUp = (1 + JECunc)*jet_mass_softdrop; 
-
-    //JER uncertainty
-    smearedJetUp = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0),Variation::UP);  
-    smearedJetDown = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0),Variation::DOWN);  
-    double JERUpCorrection = smearedJetUp.Pt()/smearedJet.Pt();
-    double JERDownCorrection = smearedJetDown.Pt()/smearedJet.Pt();
-    jet_pt_JERUp = smearedJetUp.Pt();
-    jet_pt_JERDown = smearedJetDown.Pt();
-    jet_mass_JERUp = smearedJetUp.M();
-    jet_mass_JERDown = smearedJetDown.M();
-    
-    jet_mass_pruned_JERUp = JERUpCorrection*jet_mass_pruned;
-    jet_mass_pruned_JERDown = JERDownCorrection*jet_mass_pruned;
-    
-    jet_mass_softdrop_JERUp = JERUpCorrection*jet_mass_softdrop;
-    jet_mass_softdrop_JERDown = JERDownCorrection*jet_mass_softdrop;
-
+      //JER uncertainty
+      smearedJetUp = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0),Variation::UP);  
+      smearedJetDown = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0),Variation::DOWN);  
+      double JERUpCorrection = smearedJetUp.Pt()/smearedJet.Pt();
+      double JERDownCorrection = smearedJetDown.Pt()/smearedJet.Pt();
+      jet_pt_JERUp = smearedJetUp.Pt();
+      jet_pt_JERDown = smearedJetDown.Pt();
+      jet_mass_JERUp = smearedJetUp.M();
+      jet_mass_JERDown = smearedJetDown.M();
+      
+      jet_mass_pruned_JERUp = JERUpCorrection*jet_mass_pruned;
+      jet_mass_pruned_JERDown = JERDownCorrection*jet_mass_pruned;
+      
+      jet_mass_softdrop_JERUp = JERUpCorrection*jet_mass_softdrop;
+      jet_mass_softdrop_JERDown = JERDownCorrection*jet_mass_softdrop;
+    }
   }
   
   else throw cms::Exception("InvalidValue") << "This shouldn't happen, we require at least 1 jet, but the size of the jet collection for this event is zero!" << std::endl; 
