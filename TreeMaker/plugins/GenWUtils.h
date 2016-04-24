@@ -33,4 +33,25 @@ template<class T > bool isMatchedToGenW ( edm::Handle<edm::View<reco::Candidate>
   
 }
 
+ ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > genWLorentzVector ( edm::Handle<edm::View<reco::Candidate> > genParticles_, int charge)
+{
+  ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > p4_;
+  p4_.SetPt(-100.);
+  p4_.SetEta(-100.);
+  p4_.SetPhi(-100.);
+  p4_.SetM(-100.);
+  
+  for (unsigned int iGen = 0; iGen < genParticles_ -> size(); ++iGen)
+  {
+    //status 22 in pythia8 corresponds to intermediate particle
+    if (charge == 1 && (genParticles_ -> at(iGen)).pdgId() == 24 && (genParticles_ -> at(iGen)).status()==22) p4_ = genParticles_ -> at(iGen).p4();
+    else if (charge == -1 && (genParticles_ -> at(iGen)).pdgId() == -24 && (genParticles_ -> at(iGen)).status()==22) p4_ = genParticles_ -> at(iGen).p4();
+    else throw cms::Exception("InvalidValue") <<  "the value of the charge is not supported, please use only +1 or -1" << std::endl;
+
+  }
+  
+  return p4_;
+  
+}
+
 #endif
