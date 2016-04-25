@@ -10,6 +10,7 @@
 
 //#include <pair>
 
+SystHelper::SystHelper(){}
 SystHelper::SystHelper(std::string selection){
   NominalSelection = selection;
 

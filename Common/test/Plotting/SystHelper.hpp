@@ -41,6 +41,7 @@ private:
   
 public:
   std::vector<std::string> ListOfSystematics;
+  SystHelper();
   SystHelper(std::string selection);
   void initTree(TTree* tree);
   void AddVar(Var* var, TH1D* refhist);
