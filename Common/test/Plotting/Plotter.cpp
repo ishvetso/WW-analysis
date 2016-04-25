@@ -161,7 +161,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       Double_t totEventWeight;
       double genWeight, lumiWeight,PUWeight;
       std::vector<double> *PDFWeights = 0;
-      tree -> SetBranchAddress("totEventWeight3", &totEventWeight);
+      tree -> SetBranchAddress("totEventWeight", &totEventWeight);
       tree -> SetBranchAddress("PDFWeights", &PDFWeights);
       TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
       std::map<std::string, vector<TH1D*>> histsPDFPerFile;
@@ -245,7 +245,7 @@ void Plotter::Plotting(std::string OutPrefix_)
   for(auto var = variables.begin(); var != variables.end() ; var++){
     std::string vname = var -> VarName;
 
-    leg[vname]->AddEntry(data[vname], "Data","pad1");
+    if(withData)leg[vname]->AddEntry(data[vname], "Data","pad1");
     
     data[vname]->SetFillColor(78);
     if (var -> logscale) data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
@@ -278,13 +278,13 @@ void Plotter::Plotting(std::string OutPrefix_)
   for(auto var = variables.begin(); var != variables.end() ; var++)
   {
     std::string vname = var -> VarName;
-    systematics.eval(&(*var), hist_summed[vname]);
+    if(withSystematics)systematics.eval(&(*var), hist_summed[vname]);
     c1=  new TCanvas("c1","canvas",1200,800);
     pad1 = new TPad("pad1","This is pad1",0.0,0.25,0.8,1.0);
     pad2 = new TPad("pad2","This is pad2",0.0,0.02,0.8,0.25);
     
     c1 -> cd();
-    leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
+    if(withSignal)leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
     if(var->logscale) pad1 -> SetLogy();
     pad1->Draw();
     pad2->Draw();
@@ -292,18 +292,22 @@ void Plotter::Plotting(std::string OutPrefix_)
     
     if(withData)
     {	
-    	 data[vname] -> Draw("E1");
+    	 
+       data[vname] -> Draw("E1");
 	     hs[vname]->Draw("hist SAME s(0,0)");
 	     hist_summed[vname] -> SetFillColor(kBlack);
 	     hist_summed[vname] -> SetFillStyle(3018);
 	     hist_summed[vname] -> Draw("E2 SAME");
-	     signalHist[vname] -> Draw("hist SAME");
+	     if(withSignal)signalHist[vname] -> Draw("hist SAME");
 	     data[vname] -> Draw("E1 SAME");
 	     data[vname] -> GetXaxis() -> Draw("SAME");
     } 
     else { 
       hs[vname]->Draw("hist");
-      signalHist[vname] -> Draw("HISTSAME");
+      hist_summed[vname] -> SetFillColor(kBlack);
+      hist_summed[vname] -> SetFillStyle(3018);
+      hist_summed[vname] -> Draw("E2 SAME");
+      if(withSignal)signalHist[vname] -> Draw("HISTSAME");
     }
     c1 -> cd();
     
@@ -366,7 +370,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     data_dif -> Draw("E1 SAME");
     line -> Draw("SAME");
     
-    leg[vname] -> AddEntry(data_dif_MCerr, "Syst. unc", "f");
+    if(withSystematics)leg[vname] -> AddEntry(data_dif_MCerr, "Syst. unc", "f");
     c1 -> cd();
     leg[vname]->Draw("SAME");
     

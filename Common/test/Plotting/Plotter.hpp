@@ -52,6 +52,8 @@ class Plotter
 	Sample DataSample;
 	Sample SignalSample;
 	bool withData = true;
+	bool withSystematics = true;
+	bool withSignal = true;
 	void SetNbins(int Nbins_);
 	void SetVar(vector <Var> variables_);
 	void SetSamples(vector <Sample> samples_);	
