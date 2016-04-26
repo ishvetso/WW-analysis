@@ -350,30 +350,28 @@ void Plotter::Plotting(std::string OutPrefix_)
     data_dif_MCerr -> Sumw2();
     data_dif_MCerr -> SetFillColor(kGray);
     
-    if(withData && withMC)
+    for (int iBin = 1; iBin <= hist_summed[vname] -> GetNbinsX() && withData && withMC; ++iBin)
+      {
+	        if (hist_summed[vname] -> GetBinContent(iBin) == 0.) data_dif -> SetBinContent(iBin,10000000.);
+        	else {
+        	  data_dif -> SetBinContent(iBin, ((data[vname] -> GetBinContent(iBin)) - (hist_summed[vname] -> GetBinContent(iBin)))/(hist_summed[vname] -> GetBinContent(iBin)));
+        	  data_dif -> SetBinError(iBin, (data[vname]-> GetBinError(iBin))/(hist_summed[vname] -> GetBinContent(iBin)));
+        	}
+      }
+    
+    
+    for (int iBin = 1; iBin <= Nbins && withMC ; ++iBin)
     {
-      for (int iBin = 1; iBin <= hist_summed[vname] -> GetNbinsX(); ++iBin)
-        {
-  	        if (hist_summed[vname] -> GetBinContent(iBin) == 0.) data_dif -> SetBinContent(iBin,10000000.);
-          	else {
-          	  data_dif -> SetBinContent(iBin, ((data[vname] -> GetBinContent(iBin)) - (hist_summed[vname] -> GetBinContent(iBin)))/(hist_summed[vname] -> GetBinContent(iBin)));
-          	  data_dif -> SetBinError(iBin, (data[vname]-> GetBinError(iBin))/(hist_summed[vname] -> GetBinContent(iBin)));
-          	}
-        }
-      
-      
-      for (int iBin = 1; iBin <= Nbins ; ++iBin)
-        {
-  	       if (hist_summed[vname] -> GetBinContent(iBin) == 0.) {
-  	           data_dif_MCerr -> SetBinContent(iBin, 0.);
-  	           data_dif_MCerr -> SetBinError(iBin, 0.);
-  	       }
-          else {
-          	  data_dif_MCerr -> SetBinContent(iBin, 0.);
-          	  data_dif_MCerr -> SetBinError(iBin, (hist_summed[vname] -> GetBinError(iBin))/hist_summed[vname] -> GetBinContent(iBin) );
-          	}
-        }
-      TLine *line = new TLine(var->Range.low,0.,var->Range.high,0.);
+	       if (hist_summed[vname] -> GetBinContent(iBin) == 0.) {
+	           data_dif_MCerr -> SetBinContent(iBin, 0.);
+	           data_dif_MCerr -> SetBinError(iBin, 0.);
+	       }
+        else {
+        	  data_dif_MCerr -> SetBinContent(iBin, 0.);
+        	  data_dif_MCerr -> SetBinError(iBin, (hist_summed[vname] -> GetBinError(iBin))/hist_summed[vname] -> GetBinContent(iBin) );
+        	}
+    }
+    if(withMC){
       data_dif_MCerr -> SetMaximum(2.);
       data_dif_MCerr ->  SetMinimum(-2.);
       data_dif_MCerr -> GetYaxis() -> SetNdivisions(5);
@@ -384,11 +382,15 @@ void Plotter::Plotting(std::string OutPrefix_)
       data_dif_MCerr -> GetXaxis()->SetTitleSize(0.2);
       data_dif_MCerr -> GetYaxis()->SetTitleOffset(0.3);
       data_dif_MCerr -> GetYaxis()->SetTitleSize(0.2);
-      data_dif ->SetMarkerStyle(21);
       data_dif_MCerr -> Draw("E2");
+    } 
+    
+    if(withData){
+      data_dif ->SetMarkerStyle(21);
       data_dif -> Draw("E1 SAME");
-      line -> Draw("SAME");
     }
+    TLine *line = new TLine(var->Range.low,0.,var->Range.high,0.);
+    line -> Draw("SAME");
 
     
     if(withSystematics)leg[vname] -> AddEntry(data_dif_MCerr, "Syst. unc", "f");
