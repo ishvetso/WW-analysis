@@ -1117,6 +1117,16 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_tau1 = ((jets -> at(0)).userFloat("NjettinessAK8:tau1"));
     jet_tau2 = ((jets -> at(0)).userFloat("NjettinessAK8:tau2"));
     jet_tau3 = ((jets -> at(0)).userFloat("NjettinessAK8:tau3"));
+    math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
+    jecAK8_->setJetEta( uncorrJet.eta() );
+    jecAK8_->setJetPt ( uncorrJet.pt() );
+    jecAK8_->setJetE  ( uncorrJet.energy() );
+    jecAK8_->setJetA  ( (jets -> at(0)).jetArea() );
+    jecAK8_->setRho   ( rho_ );
+    jecAK8_->setNPV   (  vertices->size());
+    double corr = jecAK8_->getCorrection();
+    jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
+    jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
 
     if(isMC)
     {
@@ -1159,17 +1169,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       jet_mass =  jets->at(0).mass();
 
     }
-
-    math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
-    jecAK8_->setJetEta( uncorrJet.eta() );
-    jecAK8_->setJetPt ( uncorrJet.pt() );
-    jecAK8_->setJetE  ( uncorrJet.energy() );
-    jecAK8_->setJetA  ( (jets -> at(0)).jetArea() );
-    jecAK8_->setRho   ( rho_ );
-    jecAK8_->setNPV   (  vertices->size());
-    double corr = jecAK8_->getCorrection();
-    jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
-    jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
   }
   
   else throw cms::Exception("InvalidValue") << "This shouldn't happen, we require at least 1 jet, but the size of the jet collection for this event is zero!" << std::endl; 
