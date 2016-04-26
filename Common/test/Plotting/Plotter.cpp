@@ -244,7 +244,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 
       }//end of event loop
       //create envelopes for PDF variation
-      for(auto var = variables.begin(); var != variables.end() ; var++)
+      for(auto var = variables.begin(); var != variables.end() && withSystematics ; var++)
       {
         TH1D *histPDFEnvelopeUp = makeEnvelope(histsPDFPerFile[var ->VarName], "up");
         TH1D *histPDFEnvelopeDown = makeEnvelope(histsPDFPerFile[var ->VarName], "down");
@@ -263,7 +263,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       leg[vname]->AddEntry(data[vname], "Data","pad1");
       data[vname]->SetFillColor(78);
       if (var -> logscale) data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
-      else  data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*1.5);
+      else  data[vname]-> GetYaxis() -> SetRangeUser(0., (data[vname] -> GetMaximum())*1.5);
       data[vname]->GetYaxis()->SetTitle("Number of events");
       data[vname]->SetMarkerColor(DataSample.color);
       data[vname]->SetMarkerStyle(21);
@@ -304,7 +304,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     if(withSignal)leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
     if(var->logscale) pad1 -> SetLogy();
     pad1->Draw();
-    if(withSystematics)pad2->Draw();
+    pad2->Draw();
     pad1 -> cd();
     
     if(withData)
@@ -318,6 +318,8 @@ void Plotter::Plotting(std::string OutPrefix_)
 	     if(withSignal)signalHist[vname] -> Draw("hist SAME");
 	     data[vname] -> Draw("E1 SAME");
 	     data[vname] -> GetXaxis() -> Draw("SAME");
+       if(!withSystematics && withMC)hist_summed[vname] -> GetXaxis() -> SetLabelSize(0.2);
+       if(!withSystematics && withMC)hist_summed[vname] -> GetXaxis() -> Draw("SAME");
     } 
     else { 
       if(withMC)hs[vname]->Draw("hist");
@@ -325,6 +327,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       if(withMC)hist_summed[vname] -> SetFillStyle(3018);
       if(withMC)hist_summed[vname] -> Draw("E2 SAME");
       if(withSignal)signalHist[vname] -> Draw("HISTSAME");
+
     }
     c1 -> cd();
     
@@ -338,11 +341,12 @@ void Plotter::Plotting(std::string OutPrefix_)
     
     pad1 -> SetTopMargin(0.07);
     pad1 -> SetBottomMargin(0.03);
-    pad2 -> SetTopMargin(0.05);
-    pad2 -> SetBottomMargin(0.42);
     pad1 -> SetRightMargin(0.05);
     pad2 -> SetRightMargin(0.05);
+    pad2 -> SetTopMargin(0.05);
+    pad2 -> SetBottomMargin(0.42);
     pad2 -> cd();
+
     
     TH1D *data_dif = new TH1D((vname + "_dif").c_str(),( vname + "_dif").c_str(), Nbins,var->Range.low, var->Range.high);
     data_dif -> Sumw2();
