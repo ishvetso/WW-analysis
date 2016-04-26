@@ -1197,27 +1197,27 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     //WP for 8 TeV and preliminary. Should be updated at some point
     if(((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.935){
      nbtag ++;
-     jetFlavours.push_back((AK4Jets -> at(iBtag)).partonFlavour());
-     for (unsigned int iGen = 0; iGen < genParticles-> size(); ++iGen)
-      {
-        if (std::abs((genParticles -> at(iGen)).pdgId()) == 5 ){
-        if ((genParticles -> at(iGen)).status() == 21){
-          BgenjetStatus21_pt.push_back((genParticles -> at(iGen)).pt());
-          BgenjetStatus21_eta.push_back((genParticles -> at(iGen)).eta());
-          BgenjetStatus21_phi.push_back((genParticles -> at(iGen)).phi());
-          BgenjetStatus21_mass.push_back((genParticles -> at(iGen)).mass());
-          BgenjetStatus21_motherPDGID.push_back((genParticles -> at(iGen)).mother()->pdgId());
-        }
-        if ((genParticles -> at(iGen)).status() == 43){
-          BgenjetStatus43_pt.push_back((genParticles -> at(iGen)).pt());
-          BgenjetStatus43_eta.push_back((genParticles -> at(iGen)).eta());
-          BgenjetStatus43_phi.push_back((genParticles -> at(iGen)).phi());
-          BgenjetStatus43_mass.push_back((genParticles -> at(iGen)).mass());
-          BgenjetStatus43_motherPDGID.push_back((genParticles -> at(iGen)).mother()->pdgId());
-        }
-       }
+    }
+   jetFlavours.push_back((AK4Jets -> at(iBtag)).partonFlavour());
+   for (unsigned int iGen = 0; iGen < genParticles-> size(); ++iGen)
+    {
+      if (std::abs((genParticles -> at(iGen)).pdgId()) == 5 ){
+      if ((genParticles -> at(iGen)).status() == 21){
+        BgenjetStatus21_pt.push_back((genParticles -> at(iGen)).pt());
+        BgenjetStatus21_eta.push_back((genParticles -> at(iGen)).eta());
+        BgenjetStatus21_phi.push_back((genParticles -> at(iGen)).phi());
+        BgenjetStatus21_mass.push_back((genParticles -> at(iGen)).mass());
+        BgenjetStatus21_motherPDGID.push_back((genParticles -> at(iGen)).mother()->pdgId());
       }
-   }
+      if ((genParticles -> at(iGen)).status() == 43){
+        BgenjetStatus43_pt.push_back((genParticles -> at(iGen)).pt());
+        BgenjetStatus43_eta.push_back((genParticles -> at(iGen)).eta());
+        BgenjetStatus43_phi.push_back((genParticles -> at(iGen)).phi());
+        BgenjetStatus43_mass.push_back((genParticles -> at(iGen)).mass());
+        BgenjetStatus43_motherPDGID.push_back((genParticles -> at(iGen)).mother()->pdgId());
+      }
+     }
+    }
   }
  
   if (AK4Jets -> size() > 0)
