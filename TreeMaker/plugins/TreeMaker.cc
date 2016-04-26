@@ -139,6 +139,22 @@ private:
   double jet_pt_JERUp, jet_pt_JERDown, jet_mass_JERUp, jet_mass_JERDown, jet_mass_softdrop_JERUp, jet_mass_softdrop_JERDown, jet_mass_pruned_JERUp, jet_mass_pruned_JERDown;
   //AK4 jets
   double jet2_pt, jet2_btag, jet3_pt, jet3_btag;
+  double jet2_eta,jet2_phi, jet3_eta, jet3_phi;
+
+  //additional info for AK4 jets
+  std::vector<double> jetFlavours;
+
+  std::vector<double> BgenjetStatus43_pt;
+  std::vector<double> BgenjetStatus43_eta;
+  std::vector<double> BgenjetStatus43_phi;
+  std::vector<double> BgenjetStatus43_mass;
+  std::vector<double> BgenjetStatus43_motherPDGID;
+
+  std::vector<double> BgenjetStatus21_pt;
+  std::vector<double> BgenjetStatus21_eta;
+  std::vector<double> BgenjetStatus21_phi;
+  std::vector<double> BgenjetStatus21_mass;
+  std::vector<double> BgenjetStatus21_motherPDGID;
 
   //MET uncertainties
   double MET_UnclEnUp, MET_UnclEnDown, MET_JECUp, MET_JECDown, MET_JERUp, MET_JERDown,  MET_LeptonEnUp, MET_LeptonEnDown;
@@ -503,7 +519,21 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     outTree_->Branch("Mjpruned_JERDown",    &jet_mass_pruned_JERDown,    "Mjpruned_JERDown/D"   );  
     outTree_->Branch("jet_mass_softdrop_JERUp",    &jet_mass_softdrop_JERUp,    "jet_mass_softdrop_JERUp/D"   ); 
     outTree_->Branch("jet_mass_softdrop_JERDown",    &jet_mass_softdrop_JERDown,    "jet_mass_softdrop_JERDown/D"   );  
-    outTree_->Branch("isMatched",    &isMatched_,    "isMatched/B"   );  
+    outTree_->Branch("isMatched",    &isMatched_,    "isMatched/B"   ); 
+    //add info for AK4 jets
+    outTree_ -> Branch("jetFlavours",  &jetFlavours); 
+    
+    outTree_ -> Branch("BgenjetStatus21_pt",  &BgenjetStatus21_pt); 
+    outTree_ -> Branch("BgenjetStatus21_eta",  &BgenjetStatus21_eta); 
+    outTree_ -> Branch("BgenjetStatus21_phi",  &BgenjetStatus21_phi); 
+    outTree_ -> Branch("BgenjetStatus21_mass",  &BgenjetStatus21_mass); 
+    outTree_ -> Branch("BgenjetStatus21_motherPDGID",  &BgenjetStatus21_motherPDGID); 
+
+    outTree_ -> Branch("BgenjetStatus43_pt",  &BgenjetStatus43_pt); 
+    outTree_ -> Branch("BgenjetStatus43_eta",  &BgenjetStatus43_eta); 
+    outTree_ -> Branch("BgenjetStatus43_phi",  &BgenjetStatus43_phi); 
+    outTree_ -> Branch("BgenjetStatus43_mass",  &BgenjetStatus43_mass); 
+    outTree_ -> Branch("BgenjetStatus43_motherPDGID",  &BgenjetStatus43_motherPDGID); 
   }
   outTree_->Branch("njets",  	      &njets,	          "njets/I"   );
   outTree_->Branch("nbtag",  	      &nbtag,	          "nbtag/I"   );
@@ -1147,33 +1177,77 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //Loop over the collection of the AK4 jets which contain b-tagging information (to veto b-jets)
   njets = AK4Jets -> size(); 
   nbtag = 0;
+  jetFlavours.clear();
+
+  BgenjetStatus43_pt.clear();
+  BgenjetStatus43_eta.clear();
+  BgenjetStatus43_phi.clear();
+  BgenjetStatus43_mass.clear();
+  BgenjetStatus43_motherPDGID.clear();
+
+
+  BgenjetStatus21_pt.clear();
+  BgenjetStatus21_eta.clear();
+  BgenjetStatus21_phi.clear();
+  BgenjetStatus21_mass.clear();
+  BgenjetStatus21_motherPDGID.clear();
     
   for (unsigned int iBtag = 0; iBtag < AK4Jets -> size(); iBtag ++)
   {
     //WP for 8 TeV and preliminary. Should be updated at some point
-    if(((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.935) nbtag ++;
+    if(((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.935){
+     nbtag ++;
+     jetFlavours.push_back((AK4Jets -> at(iBtag)).partonFlavour());
+     for (unsigned int iGen = 0; iGen < genParticles-> size(); ++iGen)
+      {
+        if (std::abs((genParticles -> at(iGen)).pdgId()) == 5 ){
+        if ((genParticles -> at(iGen)).status() == 21){
+          BgenjetStatus21_pt.push_back((genParticles -> at(iGen)).pt());
+          BgenjetStatus21_eta.push_back((genParticles -> at(iGen)).eta());
+          BgenjetStatus21_phi.push_back((genParticles -> at(iGen)).phi());
+          BgenjetStatus21_mass.push_back((genParticles -> at(iGen)).mass());
+          BgenjetStatus21_motherPDGID.push_back((genParticles -> at(iGen)).mother()->pdgId());
+        }
+        if ((genParticles -> at(iGen)).status() == 43){
+          BgenjetStatus43_pt.push_back((genParticles -> at(iGen)).pt());
+          BgenjetStatus43_eta.push_back((genParticles -> at(iGen)).eta());
+          BgenjetStatus43_phi.push_back((genParticles -> at(iGen)).phi());
+          BgenjetStatus43_mass.push_back((genParticles -> at(iGen)).mass());
+          BgenjetStatus43_motherPDGID.push_back((genParticles -> at(iGen)).mother()->pdgId());
+        }
+       }
+      }
+   }
   }
  
   if (AK4Jets -> size() > 0)
   {
     jet2_pt = (AK4Jets -> at(0)).pt();
+    jet2_eta = (AK4Jets -> at(0)).phi();
+    jet2_phi = (AK4Jets -> at(0)).eta();
     jet2_btag = (AK4Jets -> at(0)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   }
   
   else 
   {
     jet2_pt = -99.;
+    jet2_eta = -99.;
+    jet2_phi = -99.;
     jet2_btag = -99.;
   }
   
   if (AK4Jets -> size() > 1)
   {
     jet3_pt = (AK4Jets -> at(1)).pt();
+    jet3_eta = (AK4Jets -> at(1)).eta();
+    jet3_phi = (AK4Jets -> at(1)).phi();
     jet3_btag = (AK4Jets -> at(1)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   } 
   else 
   {
     jet3_pt = -99.;
+    jet3_eta = -99.;
+    jet3_phi = -99.;
     jet3_btag = -99.;
   }
   
@@ -1288,8 +1362,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     totWeight_MistagUp *= triggerWeightHLTEle27NoER; 
     totWeight_MistagDown *= triggerWeightHLTEle27NoER;
   }
- // uncomment the line used in the synchronization exercise!
- //if (deltaR_LeptonWJet > (TMath::Pi()/2.0) && fabs(deltaPhi_WJetMet) > 2. && fabs(deltaPhi_WJetWlep) > 2. && Wboson_lep.pt > 200.  && jet_tau2tau1 < 0.5) outTree_->Fill();
+ 
   outTree_->Fill();
 
 
