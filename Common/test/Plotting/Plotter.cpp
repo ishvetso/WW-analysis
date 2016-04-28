@@ -270,6 +270,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       data[vname]->GetXaxis() -> SetLabelSize(0.);
       data[vname]->GetXaxis() -> SetLabelOffset(100000.);
     }
+
     
     if(withSignal){
       signalHist[vname] -> SetLineColor(SignalSample.color);
@@ -323,9 +324,13 @@ void Plotter::Plotting(std::string OutPrefix_)
     } 
     else { 
       if(withMC)hs[vname]->Draw("hist");
+      if(withMC)hs[vname] -> GetHistogram()-> GetXaxis() -> SetLabelSize(0.0);
+      if(withMC)hs[vname] -> GetHistogram() ->  GetXaxis() -> SetLabelOffset(100000.);
       if(withMC)hist_summed[vname] -> SetFillColor(kBlack);
       if(withMC)hist_summed[vname] -> SetFillStyle(3018);
       if(withMC)hist_summed[vname] -> Draw("E2 SAME");
+      //if(withMC)hist_summed[vname] ->  GetXaxis() -> Draw("SAME");
+      
       if(withSignal)signalHist[vname] -> Draw("HISTSAME");
 
     }
