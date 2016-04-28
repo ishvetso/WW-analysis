@@ -316,10 +316,6 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	p.withSignal = withSignal_;
 	p.withData = withData_;
 	p.withMC = withMC_;
-	if(region == "signal" && p.withData){
-		std::cerr << "You are blinded, man." << std::endl;
-		exit(0);
-	}
  	p.Plotting(("plots_25ns_" + channel + "_" + tag + "/").c_str());
 
 }
@@ -353,8 +349,8 @@ int main(int argc, char* argv[]){
 	po::notify(vm);    
 
 	if (vm.count("help")) {
-    cout << desc << "\n";
-    return 1;
+    	cout << desc << "\n";
+    	return 1;
 	}
 	
 	//channel
@@ -363,7 +359,6 @@ int main(int argc, char* argv[]){
 	  	std::cerr << "Not supported channel" << std::endl;
 	  	exit(0);
 	  }
-      std::cout << vm["channel"].as<std::string>() << std::endl;
     }
     else {
     	std::cerr << "Channel wasn't specified" << std::endl;
@@ -377,8 +372,7 @@ int main(int argc, char* argv[]){
 	  	vm["CR"].as<std::string>() != "signal" ) {
 	  	std::cerr << "Not supported region" << std::endl;
 	  	exit(0);
-	  }
-	   std::cout << vm["CR"].as<std::string>() << std::endl;
+	  }	   
     }
 	else {
     	std::cerr << "Control region wasn't specified" << std::endl;
@@ -389,14 +383,12 @@ int main(int argc, char* argv[]){
     	std::cerr << "output tag wasn't specified" << std::endl;
     	return 0;
     }
-    else std::cout << vm["output"].as<std::string>() << std::endl;
 
     //input directory
     if(!vm.count("input")) {
     	std::cerr << "input directory wasn't specified" << std::endl;
     	return 0;
     }
-    else std::cout << vm["input"].as<std::string>() << std::endl;
 
     if(vm.count("withMC"))withMC = true;
     else withMC = false;
@@ -410,7 +402,10 @@ int main(int argc, char* argv[]){
     if(vm.count("withSignal")) withSignal = true;
     else withSignal = false;
 
-    std::cout << withMC << " " << withData << " " << withSystematics << " " << withSignal << std::endl;
+    if(withData && vm["CR"].as<std::string>() == "signal"){
+    	std::cerr << "You are blinded, dude" << std::endl;
+    	return 0;
+    }
 
 
    	draw(vm["channel"].as<std::string>(), vm["CR"].as<std::string>(), vm["output"].as<std::string>(), vm["input"].as<std::string>(), withData, withMC, withSystematics, withSignal);
