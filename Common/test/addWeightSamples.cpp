@@ -77,7 +77,7 @@ void addWeight(string FileName, float xsection, float lumi)
 void addWeightSamples()
 {
   double lumi = 2300.;
-  std::string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_24April2016/";
+  std::string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_26April2016/";
 
   //electron channel
   addWeight(prefix + "WW_ele.root", 49.997, lumi);
@@ -92,7 +92,7 @@ void addWeightSamples()
   addWeight(prefix + "WJets_Ht600To800_ele.root", 12.05*1.21, lumi); 
   addWeight(prefix + "WJets_Ht800To1200_ele.root", 5.501*1.21, lumi);
   addWeight(prefix + "WJets_Ht1200To2500_ele.root", 1.329*1.21, lumi); 
-  addWeight(prefix + "WJets_Ht2500ToInf_ele.root", 0.03216*1.21, lumi); */
+  addWeight(prefix + "WJets_Ht2500ToInf_ele.root", 0.03216*1.21, lumi); 
   addWeight(prefix + "ttbar-powheg_ele.root", 831.76, lumi); 
   //muon channel
 
