@@ -11,7 +11,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	var.logscale = false;
 	var.VarName = "Mjpruned";
 	var.Title = "m_{jet pruned}";
-	var.SetRange(40., 200.);
+	var.SetRange(40., 150.);
 	variables.push_back(var);
 
 	var.VarName = "jet_tau2tau1";
@@ -60,7 +60,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	variables.push_back(var);
 
 	var.VarName = "jet2_btag";
-	var.Title = "p_{T, jet}";
+	var.Title = "btag_{jet}";
 	var.SetRange(0., 1.);
 	variables.push_back(var);
 
@@ -193,7 +193,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	string addOnCutWjets = defaulCuts +  " * ( (Mjpruned < 65. || Mjpruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
 
-	string signalRegion  ="(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 105. && Mjpruned > 65. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0";
+	string signalRegion  ="(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0";
 	if (channel == "ele") signalRegion += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") signalRegion += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -285,12 +285,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	samples.push_back(s);
 	s.ReSet();
 
-	s.SetParameters("ttbar true W", MCSelection+ " * (isMatched == 1) "  , kOrange);
- 	s.SetFileNames(prefix + "ttbar-powheg_" + channel + ".root");
-	samples.push_back(s);
-	s.ReSet();
-
-	s.SetParameters("ttbar unmatched", MCSelection + " * (isMatched == 0) ", kOrange+2);
+	s.SetParameters("ttbar", MCSelection , kOrange);
  	s.SetFileNames(prefix + "ttbar-powheg_" + channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
@@ -319,14 +314,6 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
  	p.Plotting(("plots_25ns_" + channel + "_" + tag + "/").c_str());
 
 }
-
-/*
-* to compile:
-* g++ -o draw  draw.cpp --std=c++11 `root-config --cflags --libs` -O2 -I./ -lASImage
-* and then you run like this:
-* ./draw ele ttbar
-* enjoy it!
-*/
 
 int main(int argc, char* argv[]){
 
