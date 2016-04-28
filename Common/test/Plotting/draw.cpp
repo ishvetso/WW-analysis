@@ -1,31 +1,32 @@
 #include "Plotter.hpp"
+#include <boost/program_options.hpp>
+#include <iostream>
 
-void draw(std::string channel, std::string region, std::string tag)
+namespace po = boost::program_options;
+
+void draw(std::string channel, std::string region, std::string tag, string prefix, bool withData_, bool withMC_, bool withSystematics_, bool withSignal_)
 {
-	if (channel != "mu" && channel != "ele") {
-		std::cerr << "Channel is not mu or ele. Stopped." << std::endl;
-		exit(0);
-	}
-	if (region != "ttbar" && region != "WJets" && region != "TTBarEnrichedInclusive"  &&  region != "TTBarEnrichedBTagVeto") {
-		std::cerr << "Control region should be ttbar or WJets.Stopped." << std::endl;
-		exit(0);
-	}
 	vector <Var> variables;
 	Var var;
 	var.logscale = false;
 	var.VarName = "Mjpruned";
 	var.Title = "m_{jet pruned}";
-	var.SetRange(30., 250.);
+	var.SetRange(40., 200.);
 	variables.push_back(var);
 
 	var.VarName = "jet_tau2tau1";
 	var.Title = "#tau_{21}";
-	var.SetRange(0., 1.1);
+	var.SetRange(0., 0.7);
+	variables.push_back(var);
+
+	var.VarName = "jet_tau3tau2";
+	var.Title = "#tau_{32}";
+	var.SetRange(0., 1.);
 	variables.push_back(var);
 
 	var.VarName = "MWW";
 	var.Title = "m_{WV}";
-	var.SetRange(400., 2500.);
+	var.SetRange(800., 2500.);
 	variables.push_back(var);
 
 	var.VarName = "nPV";
@@ -51,6 +52,16 @@ void draw(std::string channel, std::string region, std::string tag)
 	var.VarName = "jet_pt";
 	var.Title = "p_{T, jet}";
 	var.SetRange(200., 1000.);
+	variables.push_back(var);
+
+	var.VarName = "jet2_pt";
+	var.Title = "p_{T, jet}";
+	var.SetRange(30., 100.);
+	variables.push_back(var);
+
+	var.VarName = "jet2_btag";
+	var.Title = "p_{T, jet}";
+	var.SetRange(0., 1.);
 	variables.push_back(var);
 
 	var.VarName = "jet_eta";
@@ -172,7 +183,7 @@ void draw(std::string channel, std::string region, std::string tag)
 	p.SetNbins(30);
 
 	
-	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && abs(l_eta)<2.1";
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900.";
 	if (channel == "ele") defaulCuts += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -181,6 +192,14 @@ void draw(std::string channel, std::string region, std::string tag)
 	}
 	string addOnCutWjets = defaulCuts +  " * ( (Mjpruned < 65. || Mjpruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
+
+	string signalRegion  ="(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 105. && Mjpruned > 65. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0";
+	if (channel == "ele") signalRegion += " && l_pt > 50. && pfMET > 80. )"; 
+	else if (channel == "mu") signalRegion += " && l_pt > 50. && pfMET > 40. )"; 
+	else {
+		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
+		exit(0);
+	}
 
 	string TTBarEnrichedInclusive = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. ";
 	if (channel == "ele") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 80. )"; 
@@ -220,6 +239,11 @@ void draw(std::string channel, std::string region, std::string tag)
 		SignalSelection = "( " + TTBarEnrichedBTagVeto + " )";
 		DataSelection = TTBarEnrichedBTagVeto;
 	}
+	else if(region == "signal"){
+		MCSelection =  signalRegion;
+		SignalSelection = "( " + signalRegion + " )";
+		DataSelection = signalRegion;
+	}
 	else std::cout << "This should not happen ..." << std::endl;
 
 		
@@ -232,7 +256,6 @@ void draw(std::string channel, std::string region, std::string tag)
 	
 	Sample s, dataSample, signalSample;
 	
-	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_18April2016/";
 	
 	s.SetParameters("WW", MCSelection, kRed);
  	s.SetFileNames( prefix + "WW_"+ channel + ".root");
@@ -262,8 +285,13 @@ void draw(std::string channel, std::string region, std::string tag)
 	samples.push_back(s);
 	s.ReSet();
 
-	s.SetParameters("ttbar", MCSelection, kOrange);
- 	s.SetFileNames(prefix + "ttbar-amATNLO_" + channel + ".root");
+	s.SetParameters("ttbar true W", MCSelection+ " * (isMatched == 1) "  , kOrange);
+ 	s.SetFileNames(prefix + "ttbar-powheg_" + channel + ".root");
+	samples.push_back(s);
+	s.ReSet();
+
+	s.SetParameters("ttbar unmatched", MCSelection + " * (isMatched == 0) ", kOrange+2);
+ 	s.SetFileNames(prefix + "ttbar-powheg_" + channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
 
@@ -280,12 +308,18 @@ void draw(std::string channel, std::string region, std::string tag)
 
  	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = 12 TeV^{-2}}", SignalSelection, kRed);
  	signalSample.SetFileNames(prefix + "WW-aTGC_"+ channel + ".root");
-	
-	
+
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
 	p.SignalSample = signalSample;
-	p.withData = true;
+	p.withSystematics = withSystematics_;
+	p.withSignal = withSignal_;
+	p.withData = withData_;
+	p.withMC = withMC_;
+	if(region == "signal" && p.withData){
+		std::cerr << "You are blinded, man." << std::endl;
+		exit(0);
+	}
  	p.Plotting(("plots_25ns_" + channel + "_" + tag + "/").c_str());
 
 }
@@ -300,8 +334,86 @@ void draw(std::string channel, std::string region, std::string tag)
 
 int main(int argc, char* argv[]){
 
-	if (argc != 4) std::cerr << "You should use only 2 arguments ..." << std::endl; 
- 	draw(string(argv[1]), string(argv[2]), string(argv[3]));
+	bool withMC, withData, withSystematics, withSignal;
+	po::options_description desc("Allowed options");
+	desc.add_options()
+	    ("help", "produce help message")
+	    ("channel", po::value<std::string>(), "channel to be used: ele or mu")
+	    ("CR", po::value<std::string>(), "control region to make plots with")
+	    ("output", po::value<std::string>(), "tag for the output directory")
+	    ("input", po::value<std::string>(), "name of input directory")
+	    ("withMC",  "use Monte Carlo or not")
+	    ("withData",  "use data or not")
+	    ("withSignal",  "draw signal or not")
+	    ("withSystematics", "calculate systematics or not. If not statistical uncertainties are calculated and drawn.")
+	;
+
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, desc), vm);
+	po::notify(vm);    
+
+	if (vm.count("help")) {
+    cout << desc << "\n";
+    return 1;
+	}
+	
+	//channel
+	if(vm.count("channel")) {
+	  if (vm["channel"].as<std::string>() != "ele" && vm["channel"].as<std::string>() != "mu") {
+	  	std::cerr << "Not supported channel" << std::endl;
+	  	exit(0);
+	  }
+      std::cout << vm["channel"].as<std::string>() << std::endl;
+    }
+    else {
+    	std::cerr << "Channel wasn't specified" << std::endl;
+    	return 0;
+    }
+
+    //control region
+    if(vm.count("CR")) {
+	  if (vm["CR"].as<std::string>() != "ttbar" && vm["CR"].as<std::string>() != "WJets" && \
+	  	vm["CR"].as<std::string>() != "TTBarEnrichedInclusive" && vm["CR"].as<std::string>() != "TTBarEnrichedBTagVeto" &&  \
+	  	vm["CR"].as<std::string>() != "signal" ) {
+	  	std::cerr << "Not supported region" << std::endl;
+	  	exit(0);
+	  }
+	   std::cout << vm["CR"].as<std::string>() << std::endl;
+    }
+	else {
+    	std::cerr << "Control region wasn't specified" << std::endl;
+    	return 0;
+    }
+    //tag for the output directory
+    if(!vm.count("output")) {
+    	std::cerr << "output tag wasn't specified" << std::endl;
+    	return 0;
+    }
+    else std::cout << vm["output"].as<std::string>() << std::endl;
+
+    //input directory
+    if(!vm.count("input")) {
+    	std::cerr << "input directory wasn't specified" << std::endl;
+    	return 0;
+    }
+    else std::cout << vm["input"].as<std::string>() << std::endl;
+
+    if(vm.count("withMC"))withMC = true;
+    else withMC = false;
+
+    if(vm.count("withData")) withData = true;
+    else withData = false;
+
+    if(vm.count("withSystematics")) withSystematics = true;
+    else withSystematics = false;
+
+    if(vm.count("withSignal")) withSignal = true;
+    else withSignal = false;
+
+    std::cout << withMC << " " << withData << " " << withSystematics << " " << withSignal << std::endl;
+
+
+   	draw(vm["channel"].as<std::string>(), vm["CR"].as<std::string>(), vm["output"].as<std::string>(), vm["input"].as<std::string>(), withData, withMC, withSystematics, withSignal);
 }
 
 

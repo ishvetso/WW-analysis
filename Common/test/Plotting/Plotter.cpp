@@ -270,7 +270,6 @@ void Plotter::Plotting(std::string OutPrefix_)
       data[vname]->GetXaxis() -> SetLabelSize(0.);
       data[vname]->GetXaxis() -> SetLabelOffset(100000.);
     }
-
     
     if(withSignal){
       signalHist[vname] -> SetLineColor(SignalSample.color);
@@ -285,7 +284,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       hist_summed[vname] -> Add(hist_per_process[key]);
       hist_per_process[key] -> SetFillColor(samples.at(process_i).color);
       hist_per_process[key] -> SetLineColor(samples.at(process_i).color);
-      hist_per_process[key] -> GetYaxis() -> SetRangeUser(0.1, (hist_per_process[key] -> GetMaximum())*1.5);
+      //hist_per_process[key] -> GetYaxis() -> SetRangeUser(0.1, (hist_per_process[key] -> GetMaximum())*1.5);
       hist_per_process[key] -> SetLineColor(kBlack);
       hist_per_process[key] -> SetLineWidth(1.);
       leg[vname]->AddEntry(hist_per_process[key], (samples.at(process_i).Processname).c_str(),"f");
@@ -305,7 +304,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     if(withSignal)leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
     if(var->logscale) pad1 -> SetLogy();
     pad1->Draw();
-    pad2->Draw();
+    if(withSystematics || (withSignal && withMC))pad2->Draw();
     pad1 -> cd();
     
     if(withData)
@@ -323,13 +322,13 @@ void Plotter::Plotting(std::string OutPrefix_)
        if(!withSystematics && withMC)hist_summed[vname] -> GetXaxis() -> Draw("SAME");
     } 
     else { 
-      if(withMC)hs[vname]->Draw("hist");
-      if(withMC)hs[vname] -> GetHistogram()-> GetXaxis() -> SetLabelSize(0.0);
-      if(withMC)hs[vname] -> GetHistogram() ->  GetXaxis() -> SetLabelOffset(100000.);
+      if(withMC)hist_summed[vname]->Draw("hist");
+      if(withMC)hist_summed[vname] -> GetXaxis() -> SetLabelSize(0.0);
+      if(withMC)hist_summed[vname]-> GetYaxis() -> SetRangeUser(0., (hist_summed[vname] -> GetMaximum())*1.5); 
+      if(withMC)hs[vname]->Draw("histSAME");
       if(withMC)hist_summed[vname] -> SetFillColor(kBlack);
       if(withMC)hist_summed[vname] -> SetFillStyle(3018);
       if(withMC)hist_summed[vname] -> Draw("E2 SAME");
-      //if(withMC)hist_summed[vname] ->  GetXaxis() -> Draw("SAME");
       
       if(withSignal)signalHist[vname] -> Draw("HISTSAME");
 
@@ -347,10 +346,12 @@ void Plotter::Plotting(std::string OutPrefix_)
     pad1 -> SetTopMargin(0.07);
     pad1 -> SetBottomMargin(0.03);
     pad1 -> SetRightMargin(0.05);
-    pad2 -> SetRightMargin(0.05);
-    pad2 -> SetTopMargin(0.05);
-    pad2 -> SetBottomMargin(0.42);
-    pad2 -> cd();
+    if(withMC){
+      pad2 -> SetRightMargin(0.05);
+      pad2 -> SetTopMargin(0.05);
+      pad2 -> SetBottomMargin(0.42);
+      pad2 -> cd();
+    }
 
     
     TH1D *data_dif = new TH1D((vname + "_dif").c_str(),( vname + "_dif").c_str(), Nbins,var->Range.low, var->Range.high);
@@ -359,14 +360,17 @@ void Plotter::Plotting(std::string OutPrefix_)
     data_dif_MCerr -> Sumw2();
     data_dif_MCerr -> SetFillColor(kGray);
     
-    for (int iBin = 1; iBin <= hist_summed[vname] -> GetNbinsX() && withData && withMC; ++iBin)
+    std::cout << withData  << " " << withMC << std::endl;
+    if(withMC && withData){
+      for (int iBin = 1; iBin <= hist_summed[vname] -> GetNbinsX(); ++iBin)
       {
 	        if (hist_summed[vname] -> GetBinContent(iBin) == 0.) data_dif -> SetBinContent(iBin,10000000.);
         	else {
         	  data_dif -> SetBinContent(iBin, ((data[vname] -> GetBinContent(iBin)) - (hist_summed[vname] -> GetBinContent(iBin)))/(hist_summed[vname] -> GetBinContent(iBin)));
         	  data_dif -> SetBinError(iBin, (data[vname]-> GetBinError(iBin))/(hist_summed[vname] -> GetBinContent(iBin)));
         	}
-      }
+     }
+    }
     
     
     for (int iBin = 1; iBin <= Nbins && withMC ; ++iBin)
@@ -413,5 +417,5 @@ void Plotter::Plotting(std::string OutPrefix_)
     c1 -> Print((OutPrefix_  + "pdf/"+ var->VarName + ".pdf").c_str());
     c1 -> Clear();
     delete c1;
-  }//end of cosmetics 
+  }///end of cosmetics 
 }
