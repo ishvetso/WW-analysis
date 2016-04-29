@@ -1,4 +1,5 @@
 #include "Plotter.hpp"
+#include "makeEnvelope.cpp"
 
 Plotter::Plotter()
 {
