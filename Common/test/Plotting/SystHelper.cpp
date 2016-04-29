@@ -185,7 +185,6 @@ void SystHelper::eval(Var* var, TH1D * hist_nominal){
       double errorUpQuadratic = pow(std::abs((hist_SystUp[key] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
       double errorDownQuadratic = pow(std::abs((hist_SystDown[key] -> GetBinContent(iBin)) - (hist_nominal -> GetBinContent(iBin))), 2);
       double errorQuadratic = std::max(errorUpQuadratic, errorDownQuadratic);
-      std::cout << " syst: " << ListOfSystematics.at(iSyst) << " " << iBin << "  " << sqrt(errorQuadratic) << std::endl;
       totalErrorQuadraticErrors.at(iBin-1) += errorQuadratic;
       
     }

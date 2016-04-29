@@ -27,6 +27,10 @@
 #include <CMS_lumi.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include "boost/algorithm/string.hpp"
+#include <boost/progress.hpp>
+#include "makeEnvelope.hpp"
+#include "SystHelper.hpp"
+
 
 /*
  * Class to make data-MC comparison plots

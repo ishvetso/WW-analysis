@@ -1,6 +1,4 @@
 #include "Plotter.hpp"
-#include "makeEnvelope.hpp"
-#include "SystHelper.hpp"
 
 Plotter::Plotter()
 {
@@ -153,6 +151,7 @@ void Plotter::Plotting(std::string OutPrefix_)
   
   //Monte carlo samples
   //beginning of cycle over processes
+  boost::progress_display show_progress(samples.size());
   for (uint process_i = 0; process_i < samples.size() && withMC; process_i++)
   {
     //create a buffer for the process		  	
@@ -168,7 +167,6 @@ void Plotter::Plotting(std::string OutPrefix_)
     for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
     {
       TFile file((samples.at(process_i)).filenames.at(file_i).c_str(), "READ");
-      std::cout << (samples.at(process_i)).filenames.at(file_i) << std::endl; 
       TTree * tree = (TTree*)file.Get("BasicTree");
       Double_t totEventWeight;
       double genWeight, lumiWeight,PUWeight;
@@ -241,7 +239,6 @@ void Plotter::Plotting(std::string OutPrefix_)
 	         }
 	       }
        if(withSystematics)systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,(samples.at(process_i).weight)*totEventWeight);
-
       }//end of event loop
       //create envelopes for PDF variation
       for(auto var = variables.begin(); var != variables.end() && withSystematics ; var++)
@@ -252,6 +249,7 @@ void Plotter::Plotting(std::string OutPrefix_)
         hist_PDFDown[var->VarName] -> Add(histPDFEnvelopeDown);
       }//end of creating envelopes
     }// end of the loop for the given process      
+    ++show_progress; 
   }//end of cycle over processes
   
   
@@ -304,7 +302,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     if(withSignal)leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
     if(var->logscale) pad1 -> SetLogy();
     pad1->Draw();
-    if(withSystematics || (withSignal && withMC))pad2->Draw();
+    if(withMC)pad2->Draw();
     pad1 -> cd();
     
     if(withData)
@@ -360,7 +358,6 @@ void Plotter::Plotting(std::string OutPrefix_)
     data_dif_MCerr -> Sumw2();
     data_dif_MCerr -> SetFillColor(kGray);
     
-    std::cout << withData  << " " << withMC << std::endl;
     if(withMC && withData){
       for (int iBin = 1; iBin <= hist_summed[vname] -> GetNbinsX(); ++iBin)
       {
