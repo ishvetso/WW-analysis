@@ -262,6 +262,13 @@ void SystHelper::fillHist(Var * var,std::map<std::pair<std::string, std::string>
     if(selectionUpInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()) histSystUp_[ListOfSystematics.at(iSyst)] -> Fill(SystematicsVarMapUp_[key]->value(), weight);
     if(selectionDownInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()) histSystDown_[ListOfSystematics.at(iSyst)] -> Fill(SystematicsVarMapDown_[key]->value(), weight);     
   }
+
+  for (uint wSyst =0; wSyst < WeightNameSystematics.size(); wSyst++)
+  {
+    std::pair<std::string,std::string> key(var -> VarName,WeightNameSystematics.at(wSyst));
+    if(nominalSelection -> EvalInstance()) histSystUp_[WeightNameSystematics.at(wSyst)] -> Fill(var->value(), (weightsUp[WeightNameSystematics.at(wSyst)] -> value()));
+    if(nominalSelection -> EvalInstance()) histSystDown_[WeightNameSystematics.at(wSyst)] -> Fill(var->value(), (weightsDown[WeightNameSystematics.at(wSyst)] -> value()));     
+  }
 }
 
 bool SystHelper::isAffectedBySystematic(Var var, std::string systematic) {

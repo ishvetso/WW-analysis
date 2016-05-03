@@ -35,12 +35,12 @@ private:
   std::map<std::string, TTreeFormula*> selectionUpInFormula, selectionDownInFormula;
   TTreeFormula *nominalSelection;
   //weights for systematics
-  std::vector<std::string> WeightNameSystematics;
   std::map<std::string, Var*> weightsUp;
   std::map<std::string, Var*> weightsDown;
   
 public:
   std::vector<std::string> ListOfSystematics;
+  std::vector<std::string> WeightNameSystematics;
   SystHelper();
   SystHelper(std::string selection);
   void initTree(TTree* tree);

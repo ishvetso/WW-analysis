@@ -177,9 +177,17 @@ void Plotter::Plotting(std::string OutPrefix_)
       hist_per_process[key] -> Sumw2();
     }
     //create histograms for systematics per process
-    for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size() && withSystematics; iSyst ++)
+    for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size() && withSystematics && wantToWriteHists; iSyst ++)
     {
        std::string theSyst = systematics.ListOfSystematics.at(iSyst);
+       hist_per_process_SystUp[theSyst] = new TH1D((process + "_" + theSyst + "Up").c_str(),(process + "_" + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+       hist_per_process_SystDown[theSyst] = new TH1D((process + "_" + theSyst + "Down").c_str(),(process + "_" + theSyst+ "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+
+    }
+
+    for (uint iSyst = 0;iSyst < systematics.WeightNameSystematics.size() && withSystematics && wantToWriteHists; iSyst ++)
+    {
+       std::string theSyst = systematics.WeightNameSystematics.at(iSyst);
        hist_per_process_SystUp[theSyst] = new TH1D((process + "_" + theSyst + "Up").c_str(),(process + "_" + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
        hist_per_process_SystDown[theSyst] = new TH1D((process + "_" + theSyst + "Down").c_str(),(process + "_" + theSyst+ "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
 
@@ -261,7 +269,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	         }
 	       }
        if(withSystematics)systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,(samples.at(process_i).weight)*totEventWeight);
-       if(withSystematics)systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, hist_per_process_SystUp, hist_per_process_SystDown, (samples.at(process_i).weight)*totEventWeight);
+       if(withSystematics && wantToWriteHists)systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, hist_per_process_SystUp, hist_per_process_SystDown, (samples.at(process_i).weight)*totEventWeight);
       }//end of event loop
       //create envelopes for PDF variation
       for(auto var = variables.begin(); var != variables.end() && withSystematics ; var++)
@@ -281,6 +289,12 @@ void Plotter::Plotting(std::string OutPrefix_)
       for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size() && withSystematics; iSyst ++)
       {
        std::string theSyst = systematics.ListOfSystematics.at(iSyst);
+       hist_per_process_SystUp[theSyst] -> Write();
+       hist_per_process_SystDown[theSyst] -> Write();
+      }
+      for (uint iSyst = 0;iSyst < systematics.WeightNameSystematics.size() && withSystematics; iSyst ++)
+      {
+       std::string theSyst = systematics.WeightNameSystematics.at(iSyst);
        hist_per_process_SystUp[theSyst] -> Write();
        hist_per_process_SystDown[theSyst] -> Write();
       }
