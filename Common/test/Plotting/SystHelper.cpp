@@ -253,6 +253,17 @@ void SystHelper::fill(std::vector<Var>* variables,std::map<std::pair<std::string
   }
 }
 
+void SystHelper::fillHist(Var * var,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_,  std::map<std::string, TH1D*> & histSystUp_,  std::map<std::string, TH1D*> & histSystDown_, double weight)
+{
+  
+  for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
+  {
+    std::pair<std::string,std::string> key(var -> VarName,ListOfSystematics.at(iSyst));
+    if(selectionUpInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()) histSystUp_[ListOfSystematics.at(iSyst)] -> Fill(SystematicsVarMapUp_[key]->value(), weight);
+    if(selectionDownInFormula[ListOfSystematics.at(iSyst)] -> EvalInstance()) histSystDown_[ListOfSystematics.at(iSyst)] -> Fill(SystematicsVarMapDown_[key]->value(), weight);     
+  }
+}
+
 bool SystHelper::isAffectedBySystematic(Var var, std::string systematic) {
   bool isAffected;
   if (std::find(VariablesAffected[systematic].begin(), VariablesAffected[systematic].end(), var.VarName) != VariablesAffected[systematic].end()) isAffected = true;

@@ -4,14 +4,14 @@
 
 namespace po = boost::program_options;
 
-void draw(std::string channel, std::string region, std::string tag, string prefix, bool withData_, bool withMC_, bool withSystematics_, bool withSignal_)
+void draw(std::string channel, std::string region, std::string tag, string prefix, bool withData_, bool withMC_, bool withSystematics_, bool withSignal_, bool wantToWriteHists_)
 {
 	vector <Var> variables;
 	Var var;
 	var.logscale = false;
 	var.VarName = "Mjpruned";
 	var.Title = "m_{jet pruned}";
-	var.SetRange(40., 150.);
+	var.SetRange(40., 200.);
 	variables.push_back(var);
 
 	var.VarName = "jet_tau2tau1";
@@ -179,11 +179,12 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	else if (channel == "ele" )  p = Plotter(ELECTRON);
 	else exit(0);
 	vector <Sample> samples;
+	p.varToWrite = "MWW";
 	p.SetVar(variables);
 	p.SetNbins(30);
 
 	
-	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900.";
+	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900.";
 	if (channel == "ele") defaulCuts += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -193,7 +194,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	string addOnCutWjets = defaulCuts +  " * ( (Mjpruned < 65. || Mjpruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
 
-	string signalRegion  ="(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0";
+	string signalRegion  ="(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0";
 	if (channel == "ele") signalRegion += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") signalRegion += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -201,7 +202,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		exit(0);
 	}
 
-	string TTBarEnrichedInclusive = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. ";
+	string TTBarEnrichedInclusive = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. ";
 	if (channel == "ele") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -209,7 +210,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		exit(0);
 	}
 
-	string TTBarEnrichedBTagVeto = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0 ";
+	string TTBarEnrichedBTagVeto = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0 ";
 	if (channel == "ele") TTBarEnrichedBTagVeto += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") TTBarEnrichedBTagVeto += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -285,7 +286,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	samples.push_back(s);
 	s.ReSet();
 
-	s.SetParameters("ttbar", MCSelection , kOrange);
+	s.SetParameters("ttbar", MCSelection, kOrange);
  	s.SetFileNames(prefix + "ttbar-powheg_" + channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
@@ -311,13 +312,14 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	p.withSignal = withSignal_;
 	p.withData = withData_;
 	p.withMC = withMC_;
+	p.wantToWriteHists = wantToWriteHists_;
  	p.Plotting(("plots_25ns_" + channel + "_" + tag + "/").c_str());
 
 }
 
 int main(int argc, char* argv[]){
 
-	bool withMC, withData, withSystematics, withSignal;
+	bool withMC, withData, withSystematics, withSignal, wantToWriteHists;
 	po::options_description desc("Allowed options");
 	desc.add_options()
 	    ("help", "produce help message")
@@ -329,6 +331,7 @@ int main(int argc, char* argv[]){
 	    ("withData",  "use data or not")
 	    ("withSignal",  "draw signal or not")
 	    ("withSystematics", "calculate systematics or not. If not statistical uncertainties are calculated and drawn.")
+	    ("wantToWriteHists", "to write histograms to the local file")
 	;
 
 	po::variables_map vm;
@@ -389,13 +392,15 @@ int main(int argc, char* argv[]){
     if(vm.count("withSignal")) withSignal = true;
     else withSignal = false;
 
+    if(vm.count("wantToWriteHists")) wantToWriteHists = true;
+    else wantToWriteHists = false;
+
     if(withData && vm["CR"].as<std::string>() == "signal"){
     	std::cerr << "You are blinded, dude" << std::endl;
     	return 0;
     }
 
-
-   	draw(vm["channel"].as<std::string>(), vm["CR"].as<std::string>(), vm["output"].as<std::string>(), vm["input"].as<std::string>(), withData, withMC, withSystematics, withSignal);
+   	draw(vm["channel"].as<std::string>(), vm["CR"].as<std::string>(), vm["output"].as<std::string>(), vm["input"].as<std::string>(), withData, withMC, withSystematics, withSignal, wantToWriteHists);
 }
 
 

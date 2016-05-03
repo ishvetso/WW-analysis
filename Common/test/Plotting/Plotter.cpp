@@ -10,6 +10,7 @@ Plotter::Plotter()
 Plotter::Plotter(CHANNEL channel_)
 {
 	channel = channel_;
+  
 }
 
 
@@ -32,6 +33,12 @@ void Plotter::SetVar(vector <Var> variables_)
 {
   
   variables = variables_;
+  //make the object var to write histograms with systematics
+  for (uint iVar = 0; iVar < variables.size(); iVar++){
+    if(variables.at(iVar).VarName == varToWrite) varToWriteObj = &variables.at(iVar);
+  }
+
+  //std::cout << varToWriteObj -> VarName<< std::endl;
 }
 
 void Plotter::Plotting(std::string OutPrefix_)
@@ -39,6 +46,9 @@ void Plotter::Plotting(std::string OutPrefix_)
   system(("mkdir -p " + OutPrefix_ ).c_str());
   system(("mkdir -p " + OutPrefix_ + "/png").c_str());
   system(("mkdir -p " + OutPrefix_ + "/pdf").c_str());
+
+  if (wantToWriteHists) fileToWriteHists = new TFile("hists.root", "RECREATE");
+
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
   setTDRStyle();
@@ -54,6 +64,8 @@ void Plotter::Plotting(std::string OutPrefix_)
   std::map<std::string, TH1D*> hist_PDFUp;
   std::map<std::string, TH1D*> hist_PDFDown;
   std::map<std::pair<std::string,std::string>, TH1D*> hist_per_process;
+  std::map<std::string, TH1D*> hist_per_process_SystUp;
+  std::map<std::string, TH1D*> hist_per_process_SystDown;
   
   SystHelper systematics;
   if(withMC && withSystematics) systematics = SystHelper(samples[0].selection);
@@ -155,14 +167,22 @@ void Plotter::Plotting(std::string OutPrefix_)
   boost::progress_display show_progress(samples.size());
   for (uint process_i = 0; process_i < samples.size() && withMC; process_i++)
   {
+    std::string process = samples[process_i].Processname;
     //create a buffer for the process		  	
     for(auto var = variables.begin(); var != variables.end() ; var++)
     {
-      std::string vname = var-> VarName;
-      std::string process = samples[process_i].Processname;
+      std::string vname = var-> VarName;      
       std::pair<std::string,std::string> key(vname,process);
       hist_per_process[key] = new TH1D((process + "_" + vname).c_str(),(process + "_" + vname).c_str(), Nbins,var->Range.low, var->Range.high);
       hist_per_process[key] -> Sumw2();
+    }
+    //create histograms for systematics per process
+    for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size() && withSystematics; iSyst ++)
+    {
+       std::string theSyst = systematics.ListOfSystematics.at(iSyst);
+       hist_per_process_SystUp[theSyst] = new TH1D((process + "_" + theSyst + "Up").c_str(),(process + "_" + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+       hist_per_process_SystDown[theSyst] = new TH1D((process + "_" + theSyst + "Down").c_str(),(process + "_" + theSyst+ "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+
     }
     //loop over files for the given process
     for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
@@ -182,6 +202,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       {
 	       var->Initialize(tree);
          std::pair<std::string,std::string> key(var->VarName,std::string(""));
+
 
          if(withSystematics){
           for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size(); iSyst ++)
@@ -240,6 +261,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	         }
 	       }
        if(withSystematics)systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,(samples.at(process_i).weight)*totEventWeight);
+       if(withSystematics)systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, hist_per_process_SystUp, hist_per_process_SystDown, (samples.at(process_i).weight)*totEventWeight);
       }//end of event loop
       //create envelopes for PDF variation
       for(auto var = variables.begin(); var != variables.end() && withSystematics ; var++)
@@ -251,6 +273,18 @@ void Plotter::Plotting(std::string OutPrefix_)
       }//end of creating envelopes
     }// end of the loop for the given process      
     ++show_progress; 
+
+    if(wantToWriteHists){
+      std::pair<std::string,std::string> keyToWrite(varToWrite,process);
+      fileToWriteHists->cd();
+      hist_per_process[keyToWrite] -> Write();
+      for (uint iSyst = 0;iSyst < systematics.ListOfSystematics.size() && withSystematics; iSyst ++)
+      {
+       std::string theSyst = systematics.ListOfSystematics.at(iSyst);
+       hist_per_process_SystUp[theSyst] -> Write();
+       hist_per_process_SystDown[theSyst] -> Write();
+      }
+    }
   }//end of cycle over processes
   
   

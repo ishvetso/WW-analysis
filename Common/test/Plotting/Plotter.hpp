@@ -50,6 +50,9 @@ class Plotter
 	std::map<std::pair<std::string, std::string>, Var*> SystematicsVarMapUp, SystematicsVarMapDown;
 
 	public:
+	TFile *fileToWriteHists;
+	std::string varToWrite;
+	Var *varToWriteObj;
 	Plotter();	
 	Plotter(CHANNEL channel_);
 	Sample DataSample;
@@ -58,6 +61,7 @@ class Plotter
 	bool withSystematics = true;
 	bool withSignal = true;
 	bool withMC = true;
+	bool wantToWriteHists = false;
 	void SetNbins(int Nbins_);
 	void SetVar(vector <Var> variables_);
 	void SetSamples(vector <Sample> samples_);	
