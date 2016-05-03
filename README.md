@@ -25,5 +25,6 @@ Allowed options:
   --withSignal          draw signal or not
   --withSystematics     calculate systematics or not. If not statistical 
                         uncertainties are calculated and drawn.
+  --wantToWriteHists    to write histograms to the local file
 An example below makes plots in the ttbar control region in the electron channel with data, Monte-Carlo, signal and no systematics :
 ./draw --CR ttbar --channel ele --output ttbar_CR --input /afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_24April2016/ --withSignal --withMC --withData
