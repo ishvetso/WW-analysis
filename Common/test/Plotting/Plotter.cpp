@@ -66,6 +66,8 @@ void Plotter::Plotting(std::string OutPrefix_)
   std::map<std::pair<std::string,std::string>, TH1D*> hist_per_process;
   std::map<std::string, TH1D*> hist_per_process_SystUp;
   std::map<std::string, TH1D*> hist_per_process_SystDown;
+  TH1D* hist_per_process_PDFUp;
+  TH1D* hist_per_process_PDFDown;
   
   SystHelper systematics;
   if(withMC && withSystematics) systematics = SystHelper(samples[0].selection);
@@ -196,6 +198,11 @@ void Plotter::Plotting(std::string OutPrefix_)
        hist_per_process_SystDown[theSyst] -> Sumw2();
 
     }
+     hist_per_process_PDFUp = new TH1D((process + "_PDFUp").c_str(),(process + "_PDFUp").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+     hist_per_process_PDFDown = new TH1D((process + "_PDFDown").c_str(),(process + "_PDFDown").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+     hist_per_process_PDFUp -> Sumw2();
+     hist_per_process_PDFDown -> Sumw2();
+
     //loop over files for the given process
     for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
     {
@@ -282,6 +289,8 @@ void Plotter::Plotting(std::string OutPrefix_)
         TH1D *histPDFEnvelopeDown = makeEnvelope(histsPDFPerFile[var ->VarName], "down");
         hist_PDFUp[var->VarName] -> Add(histPDFEnvelopeUp);
         hist_PDFDown[var->VarName] -> Add(histPDFEnvelopeDown);
+        if(var->VarName == varToWrite)hist_per_process_PDFUp -> Add(histPDFEnvelopeUp);
+        if(var->VarName == varToWrite)hist_per_process_PDFDown -> Add(histPDFEnvelopeDown);
       }//end of creating envelopes
     }// end of the loop for the given process      
     ++show_progress; 
@@ -302,6 +311,8 @@ void Plotter::Plotting(std::string OutPrefix_)
        hist_per_process_SystUp[theSyst] -> Write();
        hist_per_process_SystDown[theSyst] -> Write();
       }
+      hist_per_process_PDFUp -> Write();
+      hist_per_process_PDFDown -> Write();
     }
   }//end of cycle over processes
   
