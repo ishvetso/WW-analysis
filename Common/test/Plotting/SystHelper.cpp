@@ -220,7 +220,7 @@ void SystHelper::eval(Var* var, TH1D * hist_nominal){
   }
 }
 
-void SystHelper::fill(std::vector<Var>* variables,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight){
+void SystHelper::fill(std::vector<Var>* variables,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight, double addWeightForWeightedSyst){
   
   for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
   {
@@ -246,14 +246,14 @@ void SystHelper::fill(std::vector<Var>* variables,std::map<std::pair<std::string
     if (nominalSelection -> EvalInstance()){
       for (auto var = variables->begin();var != variables->end(); var++){
         key.first = var -> VarName;
-        hist_SystUp[key] -> Fill(var -> value(), (weightsUp[WeightNameSystematics.at(wSyst)] -> value()));
-        hist_SystDown[key] -> Fill(var -> value(), (weightsDown[WeightNameSystematics.at(wSyst)] -> value()));
+        hist_SystUp[key] -> Fill(var -> value(), addWeightForWeightedSyst*(weightsUp[WeightNameSystematics.at(wSyst)] -> value()));
+        hist_SystDown[key] -> Fill(var -> value(), addWeightForWeightedSyst*(weightsDown[WeightNameSystematics.at(wSyst)] -> value()));
       }
     }
   }
 }
 
-void SystHelper::fillHist(Var * var,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_,  std::map<std::string, TH1D*> & histSystUp_,  std::map<std::string, TH1D*> & histSystDown_, double weight)
+void SystHelper::fillHist(Var * var,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_,  std::map<std::string, TH1D*> & histSystUp_,  std::map<std::string, TH1D*> & histSystDown_, double weight, double addWeightForWeightedSyst)
 {
   
   for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
@@ -266,8 +266,8 @@ void SystHelper::fillHist(Var * var,std::map<std::pair<std::string, std::string>
   for (uint wSyst =0; wSyst < WeightNameSystematics.size(); wSyst++)
   {
     std::pair<std::string,std::string> key(var -> VarName,WeightNameSystematics.at(wSyst));
-    if(nominalSelection -> EvalInstance()) histSystUp_[WeightNameSystematics.at(wSyst)] -> Fill(var->value(), (weightsUp[WeightNameSystematics.at(wSyst)] -> value()));
-    if(nominalSelection -> EvalInstance()) histSystDown_[WeightNameSystematics.at(wSyst)] -> Fill(var->value(), (weightsDown[WeightNameSystematics.at(wSyst)] -> value()));     
+    if(nominalSelection -> EvalInstance()) histSystUp_[WeightNameSystematics.at(wSyst)] -> Fill(var->value(), addWeightForWeightedSyst*(weightsUp[WeightNameSystematics.at(wSyst)] -> value()));
+    if(nominalSelection -> EvalInstance()) histSystDown_[WeightNameSystematics.at(wSyst)] -> Fill(var->value(), addWeightForWeightedSyst*(weightsDown[WeightNameSystematics.at(wSyst)] -> value()));     
   }
 }
 

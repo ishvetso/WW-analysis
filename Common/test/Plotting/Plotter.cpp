@@ -182,6 +182,8 @@ void Plotter::Plotting(std::string OutPrefix_)
        std::string theSyst = systematics.ListOfSystematics.at(iSyst);
        hist_per_process_SystUp[theSyst] = new TH1D((process + "_" + theSyst + "Up").c_str(),(process + "_" + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
        hist_per_process_SystDown[theSyst] = new TH1D((process + "_" + theSyst + "Down").c_str(),(process + "_" + theSyst+ "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+       hist_per_process_SystUp[theSyst] -> Sumw2();
+       hist_per_process_SystDown[theSyst] -> Sumw2();
 
     }
 
@@ -190,6 +192,8 @@ void Plotter::Plotting(std::string OutPrefix_)
        std::string theSyst = systematics.WeightNameSystematics.at(iSyst);
        hist_per_process_SystUp[theSyst] = new TH1D((process + "_" + theSyst + "Up").c_str(),(process + "_" + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
        hist_per_process_SystDown[theSyst] = new TH1D((process + "_" + theSyst + "Down").c_str(),(process + "_" + theSyst+ "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+       hist_per_process_SystUp[theSyst] -> Sumw2();
+       hist_per_process_SystDown[theSyst] -> Sumw2();
 
     }
     //loop over files for the given process
@@ -268,8 +272,8 @@ void Plotter::Plotting(std::string OutPrefix_)
               }  
 	         }
 	       }
-       if(withSystematics)systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,(samples.at(process_i).weight)*totEventWeight);
-       if(withSystematics && wantToWriteHists)systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, hist_per_process_SystUp, hist_per_process_SystDown, (samples.at(process_i).weight)*totEventWeight);
+       if(withSystematics)systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,(samples.at(process_i).weight)*totEventWeight, (samples.at(process_i).weight));
+       if(withSystematics && wantToWriteHists)systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, hist_per_process_SystUp, hist_per_process_SystDown, (samples.at(process_i).weight)*totEventWeight, (samples.at(process_i).weight));
       }//end of event loop
       //create envelopes for PDF variation
       for(auto var = variables.begin(); var != variables.end() && withSystematics ; var++)

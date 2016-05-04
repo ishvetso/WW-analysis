@@ -47,8 +47,8 @@ public:
   void AddVar(Var* var, TH1D* refhist);
   void AddSyst(std::map<std::string, TH1D * > & Up, std::map<std::string, TH1D * > & Down);
   void eval(Var* var, TH1D * hist_nominal);
-  void fill(vector <Var>* var, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight);
-  void fillHist(Var * var,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_,  std::map<std::string, TH1D*> & histSystUp_,  std::map<std::string, TH1D*> & histSystDown_, double weight);
+  void fill(vector <Var>* var, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_, double weight, double addWeightForWeightedSyst);
+  void fillHist(Var * var,std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapUp_, std::map<std::pair<std::string, std::string>, Var*> & SystematicsVarMapDown_,  std::map<std::string, TH1D*> & histSystUp_,  std::map<std::string, TH1D*> & histSystDown_, double weight, double addWeightForWeightedSyst);
   bool isAffectedBySystematic(Var  var, std::string systematic);
 };
 
