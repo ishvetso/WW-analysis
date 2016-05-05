@@ -44,6 +44,7 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/BTauReco/interface/CATopJetTagInfo.h"
+#include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -117,6 +118,7 @@ private:
 
   //supercluster variables
   double sc_et, sc_eta;
+  bool isEB;
 
   double tau1, tau2, tau3, tau21;
   
@@ -344,6 +346,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     if(channel == "el"){
         outTree_->Branch("sc_eta",       &sc_eta,     "sc_eta/D"          );  
         outTree_->Branch("sc_et",       &sc_et,     "sc_et/D"          );  
+        outTree_->Branch("isEB",       &isEB,     "isEB/B"          );  
     }
     outTree_->Branch("l_pt_LeptonEnUp",       &Lepton.pt_LeptonEnUp,     "l_pt_LeptonEnUp/D"          );
     outTree_->Branch("l_pt_LeptonEnDown",     &Lepton.pt_LeptonEnDown,   "l_pt_LeptonEnDown/D"          );
@@ -789,6 +792,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       reco::SuperClusterRef  superCluster = aselectronPtr->superCluster();
       sc_eta = superCluster->eta();
       sc_et = (superCluster -> energy())* sin((aselectronPtr->superClusterPosition()).theta());
+      const reco::CaloClusterPtr& seed = aselectronPtr -> superCluster()->seed();
+      isEB = ( seed->seed().subdetId() == EcalBarrel );
       triggerWeightHLTEle27NoER  =  trigEle27NoER::turnOn(sc_et, sc_eta);
 
     }
@@ -819,7 +824,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       LeptonSF_trigger = sf::getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "trigger");
     }
    else if (channel == "el") {
-      LeptonSF_ID = 1.;
+      LeptonSF_ID = isEB?0.994:0.0993;//slide 27: https://indico.cern.ch/event/482671/contributions/2154184/attachments/1268166/1878158/HEEP_ScaleFactor_Study_v4.pdf
       LeptonSF_trigger = 1.;
 
     }
