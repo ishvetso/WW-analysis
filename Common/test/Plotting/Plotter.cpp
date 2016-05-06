@@ -1,5 +1,5 @@
 #include "Plotter.hpp"
-#include "makeEnvelope.cpp"
+#include "PDFUtils.cpp"
 
 Plotter::Plotter()
 {
@@ -38,7 +38,6 @@ void Plotter::SetVar(vector <Var> variables_)
     if(variables.at(iVar).VarName == varToWrite) varToWriteObj = &variables.at(iVar);
   }
 
-  //std::cout << varToWriteObj -> VarName<< std::endl;
 }
 
 void Plotter::Plotting(std::string OutPrefix_)
@@ -254,12 +253,14 @@ void Plotter::Plotting(std::string OutPrefix_)
       {
 	       Long64_t nb = tree->GetEntry(jentry);
          if(nb<0) break; // reached the end of the ntuple
-
          if (jentry == 0 && withSystematics){
               for(auto var = variables.begin(); var!= variables.end(); var++)
               {
                 for (uint iPDF =0; iPDF < PDFWeights -> size(); iPDF ++ )
                 {
+                  //this is a hack that should be disregarded, hack is done to keep the number of PDF variation *exactly* 100
+                  if(PDFWeights -> size() == 101 && iPDF == 0) continue;
+                  if(PDFWeights -> size() == 102 && (iPDF == 100 || iPDF == 101)) continue;
                   TH1D *temp = new TH1D(("PDFhist" + var->VarName+ std::to_string(iPDF)).c_str(), ("PDFhist"+  var->VarName + std::to_string(iPDF)).c_str(), Nbins, var ->Range.low, var->Range.high);
                   histsPDFPerFile[var->VarName].push_back(temp);
                 }  
@@ -276,7 +277,16 @@ void Plotter::Plotting(std::string OutPrefix_)
       	     hist_per_process[key]->Fill(var->value(), totEventWeight*(samples.at(process_i).weight));//check if the event passeds the selection, and if true fill the histogram
               for (uint iPDF =0; iPDF < PDFWeights -> size() && withSystematics; iPDF ++ )
               {
-                 histsPDFPerFile[var->VarName].at(iPDF) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*PDFWeights->at(iPDF));
+                //this is a hack that should be disregarded, hack is done to keep the number of PDF variation *exactly* 100
+                 if(PDFWeights -> size() == 101 ){
+                  if(iPDF == 0) continue;
+                  else histsPDFPerFile[var->VarName].at(iPDF-1) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*PDFWeights->at(iPDF));
+                }
+                else if(PDFWeights -> size() == 102 ){
+                  if(iPDF == 100 || iPDF == 101) continue;
+                  else histsPDFPerFile[var->VarName].at(iPDF) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*PDFWeights->at(iPDF));
+                }
+                else histsPDFPerFile[var->VarName].at(iPDF) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*PDFWeights->at(iPDF));
               }  
 	         }
 	       }
@@ -286,8 +296,8 @@ void Plotter::Plotting(std::string OutPrefix_)
       //create envelopes for PDF variation
       for(auto var = variables.begin(); var != variables.end() && withSystematics ; var++)
       {
-        TH1D *histPDFEnvelopeUp = makeEnvelope(histsPDFPerFile[var ->VarName], "up");
-        TH1D *histPDFEnvelopeDown = makeEnvelope(histsPDFPerFile[var ->VarName], "down");
+        TH1D *histPDFEnvelopeUp = makePDF4LHC(histsPDFPerFile[var ->VarName], "up");
+        TH1D *histPDFEnvelopeDown = makePDF4LHC(histsPDFPerFile[var ->VarName], "down");
         hist_PDFUp[var->VarName] -> Add(histPDFEnvelopeUp);
         hist_PDFDown[var->VarName] -> Add(histPDFEnvelopeDown);
         if(var->VarName == varToWrite && wantToWriteHists)hist_per_process_PDFUp -> Add(histPDFEnvelopeUp);
