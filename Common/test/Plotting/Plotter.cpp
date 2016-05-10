@@ -46,7 +46,10 @@ void Plotter::Plotting(std::string OutPrefix_)
   system(("mkdir -p " + OutPrefix_ + "/png").c_str());
   system(("mkdir -p " + OutPrefix_ + "/pdf").c_str());
 
-  if (wantToWriteHists) fileToWriteHists = new TFile("hists.root", "RECREATE");
+  std::string channelName;
+  if (channel == MUON) channelName = "mu";
+  else channelName = "ele";
+  if (wantToWriteHists) fileToWriteHists = new TFile(("hists_" + channelName + ".root").c_str(), "RECREATE");
 
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
@@ -62,11 +65,15 @@ void Plotter::Plotting(std::string OutPrefix_)
   std::map<std::string,TH1D*> hist_summed;
   std::map<std::string, TH1D*> hist_PDFUp;
   std::map<std::string, TH1D*> hist_PDFDown;
+  std::map<std::string, TH1D*> hist_ScaleUp;
+  std::map<std::string, TH1D*> hist_ScaleDown;
   std::map<std::pair<std::string,std::string>, TH1D*> hist_per_process;
   std::map<std::string, TH1D*> hist_per_process_SystUp;
   std::map<std::string, TH1D*> hist_per_process_SystDown;
   TH1D* hist_per_process_PDFUp;
   TH1D* hist_per_process_PDFDown;
+  TH1D* hist_per_process_ScaleUp;
+  TH1D* hist_per_process_ScaleDown;
   
   SystHelper systematics;
   if(withMC && withSystematics) systematics = SystHelper(samples[0].selection);
@@ -102,11 +109,21 @@ void Plotter::Plotting(std::string OutPrefix_)
       //PDF Down
       hist_PDFDown[vname] = new TH1D((vname + "summed_PDFDown").c_str(),( vname+ "summed_PDFDown").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
       hist_PDFDown[vname] -> Sumw2();
+
+       //Scale Up
+      hist_ScaleUp[vname] = new TH1D((vname + "summed_ScaleUp").c_str(),( vname+ "summed_ScaleUp").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+      hist_ScaleUp[vname] -> Sumw2();
+      //PDF Down
+      hist_ScaleDown[vname] = new TH1D((vname + "summed_ScaleDown").c_str(),( vname+ "summed_ScaleDown").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
+      hist_ScaleDown[vname] -> Sumw2();
       //systematics
       systematics.AddVar( &(variables.at(var_i)) ,  hist_summed[vname]);
     }
   }
-  if(withSystematics)systematics.AddSyst(hist_PDFUp, hist_PDFDown);
+  if(withSystematics){
+    systematics.AddSyst(hist_PDFUp, hist_PDFDown);
+    systematics.AddSyst(hist_ScaleUp, hist_ScaleDown);
+  }
 
   //begin loop over data files
   for (uint file_i = 0; file_i < DataSample.filenames.size() && withData; ++file_i){
@@ -198,10 +215,16 @@ void Plotter::Plotting(std::string OutPrefix_)
 
     }
     if (wantToWriteHists){
+      //PDF systematics
        hist_per_process_PDFUp = new TH1D((process + "_PDFUp").c_str(),(process + "_PDFUp").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
        hist_per_process_PDFDown = new TH1D((process + "_PDFDown").c_str(),(process + "_PDFDown").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
        hist_per_process_PDFUp -> Sumw2();
        hist_per_process_PDFDown -> Sumw2();
+      //Scale systematics
+       hist_per_process_ScaleUp = new TH1D((process + "_ScaleUp").c_str(),(process + "_ScaleUp").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+       hist_per_process_ScaleDown = new TH1D((process + "_ScaleDown").c_str(),(process + "_ScaleDown").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+       hist_per_process_ScaleUp -> Sumw2();
+       hist_per_process_ScaleDown -> Sumw2();
     }
     //loop over files for the given process
     for (uint file_i = 0; file_i < (samples.at(process_i)).filenames.size(); ++file_i)
@@ -211,10 +234,14 @@ void Plotter::Plotting(std::string OutPrefix_)
       Double_t totEventWeight;
       double genWeight, lumiWeight,PUWeight;
       std::vector<double> *PDFWeights = 0;
+      std::vector<double> *ScaleWeights = 0;
       tree -> SetBranchAddress("totEventWeight", &totEventWeight);
       tree -> SetBranchAddress("PDFWeights", &PDFWeights);
+      tree -> SetBranchAddress("ScaleWeights", &ScaleWeights);
+
       TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",samples.at(process_i).selection.c_str(),tree);//that should be without any weights!
       std::map<std::string, vector<TH1D*>> histsPDFPerFile;
+      std::map<std::string, vector<TH1D*>> histsScalePerFile;
 	  
       //initialize variables.
       for(auto var = variables.begin(); var != variables.end() ; var++)
@@ -264,6 +291,11 @@ void Plotter::Plotting(std::string OutPrefix_)
                   TH1D *temp = new TH1D(("PDFhist" + var->VarName+ std::to_string(iPDF)).c_str(), ("PDFhist"+  var->VarName + std::to_string(iPDF)).c_str(), Nbins, var ->Range.low, var->Range.high);
                   histsPDFPerFile[var->VarName].push_back(temp);
                 }  
+                for (uint iScale =1; iScale < ScaleWeights -> size(); iScale ++ )
+                {
+                  TH1D *temp = new TH1D(("Scalehist" + var->VarName+ std::to_string(iScale)).c_str(), ("Scalehist"+  var->VarName + std::to_string(iScale)).c_str(), Nbins, var ->Range.low, var->Range.high);
+                  histsScalePerFile[var->VarName].push_back(temp);
+                } 
               }
           }
 	
@@ -288,20 +320,37 @@ void Plotter::Plotting(std::string OutPrefix_)
                 }
                 else histsPDFPerFile[var->VarName].at(iPDF) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*PDFWeights->at(iPDF));
               }  
+              for (uint iScale =1; iScale < ScaleWeights -> size() && withSystematics; iScale ++ )
+              {
+               histsScalePerFile[var->VarName].at(iScale-1) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*ScaleWeights->at(iScale));
+              }
 	         }
 	       }
        if(withSystematics)systematics.fill(&variables, SystematicsVarMapUp, SystematicsVarMapDown,(samples.at(process_i).weight)*totEventWeight, (samples.at(process_i).weight));
        if(withSystematics && wantToWriteHists)systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, hist_per_process_SystUp, hist_per_process_SystDown, (samples.at(process_i).weight)*totEventWeight, (samples.at(process_i).weight));
+       PDFWeights->clear();
+       ScaleWeights->clear();
       }//end of event loop
       //create envelopes for PDF variation
       for(auto var = variables.begin(); var != variables.end() && withSystematics ; var++)
       {
-        TH1D *histPDFEnvelopeUp = makePDF4LHC(histsPDFPerFile[var ->VarName], "up");
-        TH1D *histPDFEnvelopeDown = makePDF4LHC(histsPDFPerFile[var ->VarName], "down");
-        hist_PDFUp[var->VarName] -> Add(histPDFEnvelopeUp);
-        hist_PDFDown[var->VarName] -> Add(histPDFEnvelopeDown);
-        if(var->VarName == varToWrite && wantToWriteHists)hist_per_process_PDFUp -> Add(histPDFEnvelopeUp);
-        if(var->VarName == varToWrite && wantToWriteHists)hist_per_process_PDFDown -> Add(histPDFEnvelopeDown);
+        TH1D *histPDFPDF4LHCUp = makePDF4LHC(histsPDFPerFile[var ->VarName], "up");
+        TH1D *histPDFPDF4LHCDown = makePDF4LHC(histsPDFPerFile[var ->VarName], "down");
+
+        TH1D *histScaleEnvelopeUp = makeEnvelope(histsScalePerFile[var ->VarName], "up");
+        TH1D *histScaleEnvelopeDown = makeEnvelope(histsScalePerFile[var ->VarName], "down");
+        
+        hist_PDFUp[var->VarName] -> Add(histPDFPDF4LHCUp);
+        hist_PDFDown[var->VarName] -> Add(histPDFPDF4LHCDown);
+
+        hist_ScaleUp[var->VarName] -> Add(histScaleEnvelopeUp);
+        hist_ScaleDown[var->VarName] -> Add(histScaleEnvelopeDown);
+        
+        if(var->VarName == varToWrite && wantToWriteHists)hist_per_process_PDFUp -> Add(histPDFPDF4LHCUp);
+        if(var->VarName == varToWrite && wantToWriteHists)hist_per_process_PDFDown -> Add(histPDFPDF4LHCDown);
+
+        if(var->VarName == varToWrite && wantToWriteHists)hist_per_process_ScaleUp -> Add(histScaleEnvelopeUp);
+        if(var->VarName == varToWrite && wantToWriteHists)hist_per_process_ScaleDown -> Add(histScaleEnvelopeDown);
       }//end of creating envelopes
     }// end of the loop for the given process      
     ++show_progress; 
@@ -324,6 +373,9 @@ void Plotter::Plotting(std::string OutPrefix_)
       }
       hist_per_process_PDFUp -> Write();
       hist_per_process_PDFDown -> Write();
+
+      hist_per_process_ScaleUp -> Write();
+      hist_per_process_ScaleDown -> Write();
     }
   }//end of cycle over processes
   
