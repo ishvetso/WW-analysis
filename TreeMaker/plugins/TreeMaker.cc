@@ -705,10 +705,14 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if (NominalPDF == 263000 ) RangeOfScaleVariation = range(1,9);
    else RangeOfScaleVariation = range(1001, 1009);
 
+   //if there are no weights for scale uncertainties just fill with ones, that's the case for tW single top  sample
+   if (LHEevtProductExternal->weights().size() == 0 ) std::fill(ScaleWeights.begin(), ScaleWeights.end(), 1.);
+
    unsigned int iScale_ID = RangeOfScaleVariation.low;
    for (unsigned int i=0; i<LHEevtProductExternal->weights().size(); i++) {
     if (iScale_ID > RangeOfScaleVariation.high) break;
     if (LHEevtProductExternal->weights()[i].id == std::to_string(iScale_ID)){
+      std::cout << LHEevtProductExternal->weights()[i].id  << " " << (LHEevtProductExternal->weights()[i].wgt) <<std::endl;
       unsigned int iScale = iScale_ID - RangeOfScaleVariation.low;
       ScaleWeights.at(iScale) = (LHEevtProductExternal->weights()[i].wgt)/LHEevtProductExternal->originalXWGTUP();
       iScale_ID++;
