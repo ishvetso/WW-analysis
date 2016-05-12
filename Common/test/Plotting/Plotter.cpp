@@ -322,7 +322,9 @@ void Plotter::Plotting(std::string OutPrefix_)
               }  
               for (uint iScale =1; iScale < ScaleWeights -> size() && withSystematics; iScale ++ )
               {
-               histsScalePerFile[var->VarName].at(iScale-1) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*ScaleWeights->at(iScale));
+               if( boost::algorithm::contains((samples.at(process_i)).filenames.at(file_i),"tW" ) ) histsScalePerFile[var->VarName].at(iScale-1) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight);
+               else histsScalePerFile[var->VarName].at(iScale-1) -> Fill(var->value(), (samples.at(process_i).weight)*totEventWeight*ScaleWeights->at(iScale));
+               
               }
 	         }
 	       }
