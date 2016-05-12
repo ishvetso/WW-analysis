@@ -50,6 +50,7 @@ void Plotter::Plotting(std::string OutPrefix_)
   if (channel == MUON) channelName = "mu";
   else channelName = "ele";
   if (wantToWriteHists) fileToWriteHists = new TFile(("hists_" + channelName + ".root").c_str(), "RECREATE");
+  if (withSignal) fileToWriteHistsSignal = new TFile(("hists_signal_" + channelName + ".root").c_str(), "RECREATE");
 
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
@@ -74,6 +75,9 @@ void Plotter::Plotting(std::string OutPrefix_)
   TH1D* hist_per_process_PDFDown;
   TH1D* hist_per_process_ScaleUp;
   TH1D* hist_per_process_ScaleDown;
+
+  std::vector<std::string> SignalParameters = {"cwww","ccw","cb"};
+  std::map<std::string, TH1D*> signalHistPerParPositive, signalHistPerParNegative;
   
   SystHelper systematics;
   if(withMC && withSystematics) systematics = SystHelper(samples[0].selection);
@@ -120,6 +124,12 @@ void Plotter::Plotting(std::string OutPrefix_)
       systematics.AddVar( &(variables.at(var_i)) ,  hist_summed[vname]);
     }
   }
+  //signal nominal histograms: positive and negative; basically only point with single non-zero value are used.
+  for (uint iPar = 0; iPar < SignalParameters.size() && withSignal; iPar++){
+      signalHistPerParPositive[SignalParameters.at(iPar)] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) ).c_str(),("signalPositive_" + SignalParameters.at(iPar) ).c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+      signalHistPerParNegative[SignalParameters.at(iPar)] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) ).c_str(),("signalNegative_" + SignalParameters.at(iPar) ).c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+  }
+
   if(withSystematics){
     systematics.AddSyst(hist_PDFUp, hist_PDFDown);
     systematics.AddSyst(hist_ScaleUp, hist_ScaleDown);
@@ -174,11 +184,37 @@ void Plotter::Plotting(std::string OutPrefix_)
       for(auto var = variables.begin(); var != variables.end() ; var++)
       {
 	       std::string vname = var->VarName;
-	       if(signalSelection -> EvalInstance())signalHist[vname]->Fill(var->value(),totWeight*(aTGCWeights->at(1))*2300./20.);//check if the event passeds the selection, and if true fill the histogram
+	       if(signalSelection -> EvalInstance()) signalHist[vname]->Fill(var->value(),totWeight*(aTGCWeights->at(1))*2300./20.);//check if the event passeds the selection, and if true fill the histogram
+      }
+      
+      for (uint iPar =0; iPar < SignalParameters.size() && signalSelection -> EvalInstance() ; iPar ++)
+      {
+        if (SignalParameters.at(iPar) == "cwww"){
+            signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(0))*2300./20. );
+            signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(1))*2300./20. );
+            varToWriteObj->value();
+           }
+        else if (SignalParameters.at(iPar) == "ccw"){
+            signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(2))*2300./20. );
+            signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(3))*2300./20. );
+           }
+         else if (SignalParameters.at(iPar) == "cb"){
+            signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(4))*2300./20. );
+            signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(5))*2300./20. );
+           }
+          else  throw std::runtime_error("parameter is not supported, something is confused");
+
       }
     }
   }// end loop over signal files
-
+  if(withSignal){
+    fileToWriteHistsSignal -> cd();
+    for (uint iPar = 0; iPar < SignalParameters.size(); iPar++)
+    {
+      signalHistPerParPositive[SignalParameters[iPar]]->Write();
+      signalHistPerParNegative[SignalParameters[iPar]]->Write();
+     }
+  }
   
   //Monte carlo samples
   //beginning of cycle over processes

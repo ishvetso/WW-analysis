@@ -51,6 +51,7 @@ class Plotter
 
 	public:
 	TFile *fileToWriteHists;
+	TFile *fileToWriteHistsSignal;
 	std::string varToWrite;
 	Var *varToWriteObj;
 	Plotter();	
