@@ -43,7 +43,7 @@ public:
   std::vector<std::string> WeightNameSystematics;
   SystHelper();
   SystHelper(std::string selection);
-  void initTree(TTree* tree);
+  void initTree(TTree* tree, std::string prefixEventWeight);
   void AddVar(Var* var, TH1D* refhist);
   void AddSyst(std::map<std::string, TH1D * > & Up, std::map<std::string, TH1D * > & Down);
   void eval(Var* var, TH1D * hist_nominal);

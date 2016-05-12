@@ -115,7 +115,7 @@ SystHelper::SystHelper(std::string selection){
   }    
 }
 
-void SystHelper::initTree(TTree* tree){
+void SystHelper::initTree(TTree* tree, std::string prefixEventWeight="totEventWeight"){
   nominalSelection = new TTreeFormula("nominalSelection", NominalSelection.c_str(), tree);
   for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
     {
@@ -132,8 +132,8 @@ void SystHelper::initTree(TTree* tree){
       weightsUp[WeightNameSystematics.at(wSyst)] = new Var();
       weightsDown[WeightNameSystematics.at(wSyst)] = new Var();
 
-      weightsUp[WeightNameSystematics.at(wSyst)] -> VarName = "totEventWeight_" + WeightNameSystematics.at(wSyst) + "Up";
-      weightsDown[WeightNameSystematics.at(wSyst)]  -> VarName = "totEventWeight_" + WeightNameSystematics.at(wSyst) + "Down";
+      weightsUp[WeightNameSystematics.at(wSyst)] -> VarName = prefixEventWeight + "_" + WeightNameSystematics.at(wSyst) + "Up";
+      weightsDown[WeightNameSystematics.at(wSyst)]  -> VarName = prefixEventWeight + "_" + WeightNameSystematics.at(wSyst) + "Down";
 
       weightsUp[WeightNameSystematics.at(wSyst)] -> Initialize(tree);
       weightsDown[WeightNameSystematics.at(wSyst)]  -> Initialize(tree);
