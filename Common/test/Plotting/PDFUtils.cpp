@@ -42,6 +42,7 @@ TH1D * makeEnvelope(std::vector<TH1D*> hists, std::string variation){
 		double MaxValue = *std::max_element(ValuesPerBin.begin(), ValuesPerBin.end());
 		double MinValue = *std::min_element(ValuesPerBin.begin(), ValuesPerBin.end());
 
+		//get the index of the max and min value in the vector
 		int indexOfMaxValue = std::distance(ValuesPerBin.begin(), std::max_element(ValuesPerBin.begin(), ValuesPerBin.end()));
 		int indexOfMinValue = std::distance(ValuesPerBin.begin(), std::min_element(ValuesPerBin.begin(), ValuesPerBin.end()));
 
@@ -64,6 +65,13 @@ TH1D * makeEnvelope(std::vector<TH1D*> hists, std::string variation){
 	return hist;
 }
 
+ struct  {
+        bool operator()(std::pair<double, double> a, std::pair<double, double> b )
+        {   
+            return a.first < b.first;
+        }   
+    } ComparePairs;
+
 TH1D * makePDF4LHC(std::vector<TH1D*> hists, std::string variation){
 	if (hists.size()!= 100)	throw std::runtime_error("you should have exactly 100 variations according to PDF4LHC recommendations");
 		
@@ -74,23 +82,30 @@ TH1D * makePDF4LHC(std::vector<TH1D*> hists, std::string variation){
 
 	for (int iBin = 1; iBin <= Nbins; iBin++ )
 	{
-		std::vector<double> ValuesPerBin;
-		std::vector<double> ErrorsPerBin;
+		std::vector<std::pair<double,double>> ValuesAndErrorsPerBin;
+	
 		for (unsigned int iHist = 0; iHist < hists.size(); iHist ++)
 		{
-			ValuesPerBin.push_back(hists.at(iHist)->GetBinContent(iBin));
-			ErrorsPerBin.push_back(hists.at(iHist)->GetBinError(iBin));
+			std::pair <double,double> ValueAndError;
+			ValueAndError = std::make_pair(hists.at(iHist)->GetBinContent(iBin),hists.at(iHist)->GetBinError(iBin));
+			ValuesAndErrorsPerBin.push_back(ValueAndError);
 		}
 
-		std::sort(ValuesPerBin.begin(), ValuesPerBin.end());		
+		std::sort(ValuesAndErrorsPerBin.begin(), ValuesAndErrorsPerBin.end(),ComparePairs);		
 		
-		if(variation == "up")hist -> SetBinContent(iBin,ValuesPerBin.at(83));
-		else if (variation == "down")hist -> SetBinContent(iBin,ValuesPerBin.at(15));
+		if(variation == "up"){
+			hist -> SetBinContent(iBin,ValuesAndErrorsPerBin.at(83).first);
+			hist -> SetBinError(iBin,ValuesAndErrorsPerBin.at(83).second);
+		}
+		else if (variation == "down"){
+			hist -> SetBinContent(iBin,ValuesAndErrorsPerBin.at(15).first);
+			hist -> SetBinError(iBin,ValuesAndErrorsPerBin.at(15).second);
+		}
 		else {
 			std::cerr << "Wrong type of variation, please use up or down" << std::endl;
 		}
-		ValuesPerBin.clear();
-		ErrorsPerBin.clear();
+		ValuesAndErrorsPerBin.clear();
+		
 	}
 
 	return hist;

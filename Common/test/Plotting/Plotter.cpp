@@ -253,7 +253,8 @@ void Plotter::Plotting(std::string OutPrefix_)
       
       for(uint iATGC = 0; iATGC < SignalParameters.size() && jentry == 0; iATGC++)
       {
-        for (uint iPDF =0; iPDF < PDFWeights -> size() ; iPDF ++ )
+        //temporary fix for PDF to get PDF4LHC recommendations
+        for (uint iPDF =1; iPDF < PDFWeights -> size() ; iPDF ++ )
         {
            TH1D *tempPositive = new TH1D(("PDFhistPositive" + SignalParameters.at(iATGC) + varToWriteObj->VarName+ std::to_string(iPDF)).c_str(), ("PDFhistPositive"  + SignalParameters.at(iATGC) +  varToWriteObj->VarName + std::to_string(iPDF)).c_str(), Nbins, varToWriteObj->Range.low, varToWriteObj->Range.high);
            tempPositive -> Sumw2();
@@ -278,10 +279,10 @@ void Plotter::Plotting(std::string OutPrefix_)
             signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(1))*2300./20. );
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParPositive_SystUp[SignalParameters.at(iPar)], signalHistPerParPositive_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(0))*2300./20. , (aTGCWeights->at(0))*2300./20.);
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(1))*2300./20. , (aTGCWeights->at(1))*2300./20.);
-            for (uint iPDF = 0; iPDF < PDFWeights -> size(); iPDF++)
+            for (uint iPDF = 1; iPDF < PDFWeights -> size(); iPDF++)
             {
-              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
-              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
+              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
+              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
             }
            }
         else if (SignalParameters.at(iPar) == "ccw"){
@@ -289,10 +290,10 @@ void Plotter::Plotting(std::string OutPrefix_)
             signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(3))*2300./20. );
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParPositive_SystUp[SignalParameters.at(iPar)], signalHistPerParPositive_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(2))*2300./20. , (aTGCWeights->at(2))*2300./20. );
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(3))*2300./20. , (aTGCWeights->at(3))*2300./20. );
-            for (uint iPDF = 0; iPDF < PDFWeights -> size(); iPDF++)
+            for (uint iPDF = 1; iPDF < PDFWeights -> size(); iPDF++)
             {
-              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(2))*2300./20. );
-              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(3))*2300./20. );
+              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(2))*2300./20. );
+              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(3))*2300./20. );
             }
            }
          else if (SignalParameters.at(iPar) == "cb"){
@@ -300,10 +301,10 @@ void Plotter::Plotting(std::string OutPrefix_)
             signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(5))*2300./20. );
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParPositive_SystUp[SignalParameters.at(iPar)], signalHistPerParPositive_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(4))*2300./20. , (aTGCWeights->at(4))*2300./20.);
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(5))*2300./20. , (aTGCWeights->at(5))*2300./20.);
-            for (uint iPDF = 0; iPDF < PDFWeights -> size(); iPDF++)
+            for (uint iPDF = 1; iPDF < PDFWeights -> size(); iPDF++)
             {
-              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
-              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
+              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
+              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
             }
            }
           else  throw std::runtime_error("parameter is not supported, something is confused");
@@ -312,12 +313,13 @@ void Plotter::Plotting(std::string OutPrefix_)
     }
     for (uint iPar=0; iPar < SignalParameters.size(); iPar++)
     {
-      signalHistPerParPositive_PDFUp[SignalParameters.at(iPar)] -> Add(makeEnvelope(histsPDFSignalPerFilePositive[SignalParameters.at(iPar)], "up"));
-      signalHistPerParPositive_PDFDown[SignalParameters.at(iPar)] -> Add(makeEnvelope(histsPDFSignalPerFilePositive[SignalParameters.at(iPar)], "down"));
+      signalHistPerParPositive_PDFUp[SignalParameters.at(iPar)] -> Add(makePDF4LHC(histsPDFSignalPerFilePositive[SignalParameters.at(iPar)], "up"));
+      signalHistPerParPositive_PDFDown[SignalParameters.at(iPar)] -> Add(makePDF4LHC(histsPDFSignalPerFilePositive[SignalParameters.at(iPar)], "down"));
 
-      signalHistPerParNegative_PDFUp[SignalParameters.at(iPar)] -> Add(makeEnvelope(histsPDFSignalPerFileNegative[SignalParameters.at(iPar)], "up"));
-      signalHistPerParNegative_PDFDown[SignalParameters.at(iPar)] -> Add(makeEnvelope(histsPDFSignalPerFileNegative[SignalParameters.at(iPar)], "down"));
+      signalHistPerParNegative_PDFUp[SignalParameters.at(iPar)] -> Add(makePDF4LHC(histsPDFSignalPerFileNegative[SignalParameters.at(iPar)], "up"));
+      signalHistPerParNegative_PDFDown[SignalParameters.at(iPar)] -> Add(makePDF4LHC(histsPDFSignalPerFileNegative[SignalParameters.at(iPar)], "down"));
     }
+    PDFWeights -> clear();
   }// end loop over signal files
   if(withSignal){
 
