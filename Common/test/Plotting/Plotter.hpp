@@ -25,6 +25,7 @@
 #include <TASImage.h>
 #include <tdrstyle.hpp>
 #include <CMS_lumi.hpp>
+#include <PDFUtils.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include "boost/algorithm/string.hpp"
 #include <boost/progress.hpp>

@@ -1,5 +1,4 @@
 #include "Plotter.hpp"
-#include "PDFUtils.cpp"
 
 Plotter::Plotter()
 {
