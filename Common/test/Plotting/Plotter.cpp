@@ -280,8 +280,8 @@ void Plotter::Plotting(std::string OutPrefix_)
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(1))*2300./20. , (aTGCWeights->at(1))*2300./20.);
             for (uint iPDF = 0; iPDF < PDFWeights -> size(); iPDF++)
             {
-              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(0))*2300./20. );
-              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(1))*2300./20. );
+              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
+              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
             }
            }
         else if (SignalParameters.at(iPar) == "ccw"){
@@ -291,8 +291,8 @@ void Plotter::Plotting(std::string OutPrefix_)
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(3))*2300./20. , (aTGCWeights->at(3))*2300./20. );
             for (uint iPDF = 0; iPDF < PDFWeights -> size(); iPDF++)
             {
-              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(2))*2300./20. );
-              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(3))*2300./20. );
+              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(2))*2300./20. );
+              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(3))*2300./20. );
             }
            }
          else if (SignalParameters.at(iPar) == "cb"){
@@ -302,8 +302,8 @@ void Plotter::Plotting(std::string OutPrefix_)
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(5))*2300./20. , (aTGCWeights->at(5))*2300./20.);
             for (uint iPDF = 0; iPDF < PDFWeights -> size(); iPDF++)
             {
-              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(0))*2300./20. );
-              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(1))*2300./20. );
+              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
+              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
             }
            }
           else  throw std::runtime_error("parameter is not supported, something is confused");
@@ -462,11 +462,13 @@ void Plotter::Plotting(std::string OutPrefix_)
                   if(PDFWeights -> size() == 101 && iPDF == 0) continue;
                   if(PDFWeights -> size() == 102 && (iPDF == 100 || iPDF == 101)) continue;
                   TH1D *temp = new TH1D(("PDFhist" + var->VarName+ std::to_string(iPDF)).c_str(), ("PDFhist"+  var->VarName + std::to_string(iPDF)).c_str(), Nbins, var ->Range.low, var->Range.high);
+                  temp -> Sumw2();
                   histsPDFPerFile[var->VarName].push_back(temp);
                 }  
                 for (uint iScale =1; iScale < ScaleWeights -> size(); iScale ++ )
                 {
                   TH1D *temp = new TH1D(("Scalehist" + var->VarName+ std::to_string(iScale)).c_str(), ("Scalehist"+  var->VarName + std::to_string(iScale)).c_str(), Nbins, var ->Range.low, var->Range.high);
+                  temp -> Sumw2();
                   histsScalePerFile[var->VarName].push_back(temp);
                 } 
               }
