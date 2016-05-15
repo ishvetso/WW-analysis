@@ -77,12 +77,16 @@ void Plotter::Plotting(std::string OutPrefix_)
 
   std::vector<std::string> SignalParameters = {"cwww","ccw","cb"};
   std::map<std::string, TH1D*> signalHistPerParPositive, signalHistPerParNegative;
+  TH1D * SMhist;
   //PDF uncertainties
   std::map<std::string, TH1D*> signalHistPerParPositive_PDFUp, signalHistPerParPositive_PDFDown, signalHistPerParNegative_PDFUp, signalHistPerParNegative_PDFDown;
   //scale uncertainties
   std::map<std::string, TH1D*> signalHistPerParPositive_ScaleUp, signalHistPerParPositive_ScaleDown, signalHistPerParNegative_ScaleUp, signalHistPerParNegative_ScaleDown;
+  TH1D * SMhist_PDFUp,* SMhist_PDFDown;
+  TH1D * SMhist_ScaleUp,* SMhist_ScaleDown;
   //map between aTGC  and map of  the type of systematics  and hist
   std::map<std::string,std::map<std::string, TH1D*>> signalHistPerParPositive_SystUp,signalHistPerParPositive_SystDown, signalHistPerParNegative_SystUp, signalHistPerParNegative_SystDown;
+  std::map<std::string, TH1D*> SMhist_SystUp,SMhist_SystDown;
   
   SystHelper systematics;
   if(withMC && withSystematics || withSignal) systematics = SystHelper(samples[0].selection);
@@ -134,6 +138,44 @@ void Plotter::Plotting(std::string OutPrefix_)
     systematics.AddSyst(hist_ScaleUp, hist_ScaleDown);
   }
 
+  if(withSignal){
+    SMhist = new TH1D("SMhist","SMhist", Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+    SMhist -> Sumw2();
+
+    SMhist_PDFUp = new TH1D("SMhist_PDFUp","SMhist_PDFUp", Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+    SMhist_PDFDown = new TH1D("SMhist_PDFDown","SMhist_PDFDown", Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+    SMhist_PDFUp -> Sumw2();
+    SMhist_PDFDown -> Sumw2();
+
+    SMhist_ScaleUp = new TH1D("SMhist_ScaleUp","SMhist_ScaleUp", Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+    SMhist_ScaleDown = new TH1D("SMhist_ScaleDown","SMhist_ScaleDown", Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+    SMhist_ScaleUp -> Sumw2();
+    SMhist_ScaleDown -> Sumw2();
+
+    for (uint iSyst =0; iSyst < systematics.ListOfSystematics.size(); iSyst++)
+    {
+      std::string theSyst = systematics.ListOfSystematics[iSyst];
+      
+      SMhist_SystUp[theSyst] = new TH1D(("SMhist_" + theSyst + "Up").c_str(),("SMhist_" + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+      SMhist_SystDown[theSyst] = new TH1D(("SMhist_" + theSyst + "Down").c_str(),("SMhist_" + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+      
+      SMhist_SystUp[theSyst] -> Sumw2();
+      SMhist_SystDown[theSyst] -> Sumw2();
+
+    }
+
+    for (uint wSyst =0; wSyst < systematics.WeightNameSystematics.size(); wSyst++)
+    {
+      std::string theSyst = systematics.WeightNameSystematics[wSyst];
+      
+      SMhist_SystUp[theSyst] = new TH1D(("SMhist_" + theSyst + "Up").c_str(),("SMhist_" + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+      SMhist_SystDown[theSyst] = new TH1D(("SMhist_" + theSyst + "Down").c_str(),("SMhist_" + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+      
+      SMhist_SystUp[theSyst] -> Sumw2();
+      SMhist_SystDown[theSyst] -> Sumw2();
+
+    }
+  }
   //signal nominal histograms: positive and negative; basically only point with single non-zero value are used.
   for (uint iPar = 0; iPar < SignalParameters.size() && withSignal; iPar++){
       signalHistPerParPositive[SignalParameters.at(iPar)] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) ).c_str(),("signalPositive_" + SignalParameters.at(iPar) ).c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
@@ -234,6 +276,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     std::map<std::string,std::vector<TH1D*>> histsPDFSignalPerFilePositive,histsPDFSignalPerFileNegative ;
     //map of aTGC and vector of Scale hists
     std::map<std::string,std::vector<TH1D*>> histsScaleSignalPerFilePositive,histsScaleSignalPerFileNegative ;
+    std::vector<TH1D*> SMhistsPDF, SMhistsScale;
     
     //initialize variables.
     for(auto var = variables.begin(); var != variables.end() ; var++){
@@ -292,58 +335,71 @@ void Plotter::Plotting(std::string OutPrefix_)
            histsScaleSignalPerFileNegative[SignalParameters.at(iATGC)].push_back(tempNegative);
         }  
       }
+      for (uint iPDF =1; iPDF < PDFWeights -> size() && jentry == 0; iPDF ++ )
+      {
+          TH1D *temp = new TH1D(("PDFhistSM" + varToWriteObj->VarName+ std::to_string(iPDF)).c_str(), ("PDFhistSM" +  varToWriteObj->VarName + std::to_string(iPDF)).c_str(), Nbins, varToWriteObj->Range.low, varToWriteObj->Range.high);
+          temp -> Sumw2();
+          SMhistsPDF.push_back(temp);
+      }
+
+      for (uint iScale =1; iScale < ScaleWeights -> size() && jentry == 0; iScale ++ )
+      {
+          TH1D *temp = new TH1D(("ScalehistSM" + varToWriteObj->VarName+ std::to_string(iScale)).c_str(), ("ScalehistSM" +  varToWriteObj->VarName + std::to_string(iScale)).c_str(), Nbins, varToWriteObj->Range.low, varToWriteObj->Range.high);
+           temp -> Sumw2();
+           SMhistsScale.push_back(temp);
+      }
       // fill variables
       for(auto var = variables.begin(); var != variables.end() ; var++)
       {
 	       std::string vname = var->VarName;
 	       if(signalSelection -> EvalInstance()) signalHist[vname]->Fill(var->value(),totWeight*(aTGCWeights->at(1))*2300./20.);//check if the event passeds the selection, and if true fill the histogram
       }
-      
-      for (uint iPar =0; iPar < SignalParameters.size() && signalSelection -> EvalInstance() ; iPar ++)
+      //start filling up hists for different aTGC points
+      for (uint iPar =0; iPar < SignalParameters.size()  ; iPar ++)
       {
         if (SignalParameters.at(iPar) == "cwww"){
-            signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(0))*2300./20. );
-            signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(1))*2300./20. );
+            if(signalSelection -> EvalInstance()) signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(0))*2300./20. );
+            if(signalSelection -> EvalInstance()) signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(1))*2300./20. );
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParPositive_SystUp[SignalParameters.at(iPar)], signalHistPerParPositive_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(0))*2300./20. , (aTGCWeights->at(0))*2300./20.);
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(1))*2300./20. , (aTGCWeights->at(1))*2300./20.);
-            for (uint iPDF = 1; iPDF < PDFWeights -> size(); iPDF++)
+            for (uint iPDF = 1; iPDF < PDFWeights -> size() && signalSelection -> EvalInstance(); iPDF++)
             {
               histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
               histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
             }
-            for (uint iScale = 1; iScale < ScaleWeights -> size(); iScale++)
+            for (uint iScale = 1; iScale < ScaleWeights -> size() && signalSelection -> EvalInstance(); iScale++)
             {
               histsScaleSignalPerFilePositive[SignalParameters.at(iPar)].at(iScale-1) -> Fill(varToWriteObj->value(),totWeight*ScaleWeights->at(iScale)*(aTGCWeights->at(0))*2300./20. );
               histsScaleSignalPerFileNegative[SignalParameters.at(iPar)].at(iScale-1) -> Fill(varToWriteObj->value(),totWeight*ScaleWeights->at(iScale)*(aTGCWeights->at(1))*2300./20. );
             }
            }
         else if (SignalParameters.at(iPar) == "ccw"){
-            signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(2))*2300./20. );
-            signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(3))*2300./20. );
+            if(signalSelection -> EvalInstance()) signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(2))*2300./20. );
+            if(signalSelection -> EvalInstance()) signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(3))*2300./20. );
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParPositive_SystUp[SignalParameters.at(iPar)], signalHistPerParPositive_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(2))*2300./20. , (aTGCWeights->at(2))*2300./20. );
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(3))*2300./20. , (aTGCWeights->at(3))*2300./20. );
-            for (uint iPDF = 1; iPDF < PDFWeights -> size(); iPDF++)
+            for (uint iPDF = 1; iPDF < PDFWeights -> size() && signalSelection -> EvalInstance() ; iPDF++)
             {
               histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(2))*2300./20. );
               histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(3))*2300./20. );
             }
-            for (uint iScale = 1; iScale < ScaleWeights -> size(); iScale++)
+            for (uint iScale = 1; iScale < ScaleWeights -> size() && signalSelection -> EvalInstance(); iScale++)
             {
               histsScaleSignalPerFilePositive[SignalParameters.at(iPar)].at(iScale-1) -> Fill(varToWriteObj->value(),totWeight*ScaleWeights->at(iScale)*(aTGCWeights->at(2))*2300./20. );
               histsScaleSignalPerFileNegative[SignalParameters.at(iPar)].at(iScale-1) -> Fill(varToWriteObj->value(),totWeight*ScaleWeights->at(iScale)*(aTGCWeights->at(3))*2300./20. );
             }
            }
         else if (SignalParameters.at(iPar) == "cb"){
-            signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(4))*2300./20. );
-            signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(5))*2300./20. );
+            if(signalSelection -> EvalInstance()) signalHistPerParPositive[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(4))*2300./20. );
+            if(signalSelection -> EvalInstance()) signalHistPerParNegative[SignalParameters.at(iPar)]->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(5))*2300./20. );
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParPositive_SystUp[SignalParameters.at(iPar)], signalHistPerParPositive_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(4))*2300./20. , (aTGCWeights->at(4))*2300./20.);
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(5))*2300./20. , (aTGCWeights->at(5))*2300./20.);
-            for (uint iPDF = 1; iPDF < PDFWeights -> size(); iPDF++)
+            for (uint iPDF = 1; iPDF < PDFWeights -> size() && signalSelection -> EvalInstance() ; iPDF++)
             {
               histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
               histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
             }
-            for (uint iScale = 1; iScale < ScaleWeights -> size(); iScale++)
+            for (uint iScale = 1; iScale < ScaleWeights -> size() && signalSelection -> EvalInstance(); iScale++)
             {
               histsScaleSignalPerFilePositive[SignalParameters.at(iPar)].at(iScale-1) -> Fill(varToWriteObj->value(),totWeight*ScaleWeights->at(iScale)*(aTGCWeights->at(4))*2300./20. );
               histsScaleSignalPerFileNegative[SignalParameters.at(iPar)].at(iScale-1) -> Fill(varToWriteObj->value(),totWeight*ScaleWeights->at(iScale)*(aTGCWeights->at(5))*2300./20. );
@@ -351,8 +407,24 @@ void Plotter::Plotting(std::string OutPrefix_)
            }
           else  throw std::runtime_error("parameter is not supported, something is confused");
 
+      }//end of filling different aTGC points 
+
+      if (signalSelection -> EvalInstance()) SMhist->Fill(varToWriteObj->value(),totWeight*(aTGCWeights->at(7))*2300./20. );
+      systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, SMhist_SystUp, SMhist_SystDown, totWeight*(aTGCWeights->at(7))*2300./20. , (aTGCWeights->at(7))*2300./20. );
+      for (uint iPDF = 1; iPDF < PDFWeights -> size() && signalSelection -> EvalInstance(); iPDF++)
+      {
+         SMhistsPDF.at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(7))*2300./20. );
       }
-    }
+
+      for (uint iScale = 1; iScale < ScaleWeights -> size() && signalSelection -> EvalInstance(); iScale++)
+      {
+        SMhistsScale.at(iScale-1) -> Fill(varToWriteObj->value(),totWeight*ScaleWeights->at(iScale)*(aTGCWeights->at(7))*2300./20. );
+      }
+
+      PDFWeights -> clear();
+      ScaleWeights -> clear(); 
+    }//end of event loop
+
     for (uint iPar=0; iPar < SignalParameters.size(); iPar++)
     {
       //PDF uncertainties
@@ -362,15 +434,23 @@ void Plotter::Plotting(std::string OutPrefix_)
       signalHistPerParNegative_PDFUp[SignalParameters.at(iPar)] -> Add(makePDF4LHC(histsPDFSignalPerFileNegative[SignalParameters.at(iPar)], "up"));
       signalHistPerParNegative_PDFDown[SignalParameters.at(iPar)] -> Add(makePDF4LHC(histsPDFSignalPerFileNegative[SignalParameters.at(iPar)], "down"));
 
+
       //Scale uncertainties
       signalHistPerParPositive_ScaleUp[SignalParameters.at(iPar)] -> Add(makeEnvelope(histsScaleSignalPerFilePositive[SignalParameters.at(iPar)], "up"));
       signalHistPerParPositive_ScaleDown[SignalParameters.at(iPar)] -> Add(makeEnvelope(histsScaleSignalPerFilePositive[SignalParameters.at(iPar)], "down"));
 
       signalHistPerParNegative_ScaleUp[SignalParameters.at(iPar)] -> Add(makeEnvelope(histsScaleSignalPerFileNegative[SignalParameters.at(iPar)], "up"));
       signalHistPerParNegative_ScaleDown[SignalParameters.at(iPar)] -> Add(makeEnvelope(histsScaleSignalPerFileNegative[SignalParameters.at(iPar)], "down"));
+
+
     }
-    PDFWeights -> clear();
-    ScaleWeights -> clear();
+
+    SMhist_PDFUp -> Add(makePDF4LHC(SMhistsPDF, "up"));
+    SMhist_PDFDown -> Add(makePDF4LHC(SMhistsPDF, "down"));
+
+    SMhist_ScaleUp -> Add(makeEnvelope(SMhistsScale, "up"));
+    SMhist_ScaleDown -> Add(makeEnvelope(SMhistsScale, "down"));
+
   }// end loop over signal files
   if(withSignal){
 
@@ -411,6 +491,30 @@ void Plotter::Plotting(std::string OutPrefix_)
 
       signalHistPerParNegative_ScaleUp[SignalParameters.at(iPar)] -> Write();
       signalHistPerParNegative_ScaleDown[SignalParameters.at(iPar)] -> Write();
+    }
+
+    //SM hists
+
+    SMhist ->Write();
+
+    SMhist_PDFUp -> Write();
+    SMhist_PDFDown -> Write();
+    
+    SMhist_ScaleUp -> Write();
+    SMhist_ScaleDown -> Write();
+
+    for (uint iSyst =0; iSyst < systematics.ListOfSystematics.size(); iSyst++)
+    {
+      std::string theSyst = systematics.ListOfSystematics[iSyst];
+      SMhist_SystUp[theSyst] -> Write();
+      SMhist_SystUp[theSyst] -> Write();        
+    }
+
+    for (uint wSyst =0; wSyst < systematics.WeightNameSystematics.size(); wSyst++)
+    {
+      std::string theSyst = systematics.WeightNameSystematics[wSyst];
+      SMhist_SystUp[theSyst] -> Write();
+      SMhist_SystUp[theSyst] -> Write();        
     }
   }
   
