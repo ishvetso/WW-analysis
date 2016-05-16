@@ -151,6 +151,33 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 
 def main(options):
 	fileWithHists = TFile('/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_6_4/src/aTGCsAnalysis/Common/test/Plotting/hists_signal_%s.root'%options.ch)
+	fileWithHists.cd()
+
+	keyList = [key.GetName() for key in ROOT.gDirectory.GetListOfKeys()]
+	print keyList
+	ListOfSystematics = []
+	for k in keyList:
+		if "SMhist" in k  and "Up" in k:
+			ListOfSystematics.append(k.replace("SMhist_","").replace("Up",""))
+
+	VocabularyForSystematicsUp = {}
+	VocabularyForSystematicsDown = {}
+
+	UncertaintiesUp = {}
+	UncertaintiesDown = {}
+
+	for iSyst in ListOfSystematics:
+		VocabularyForSystematicsUp[iSyst] = {}
+		VocabularyForSystematicsDown[iSyst] = {}
+
+	UncertaintiesUp["a_quad_cb_WW_mu"] = {}
+	UncertaintiesUp["a_quad_ccw_WW_mu"] = {}
+	UncertaintiesUp["a_quad_cwww_WW_mu"] = {}
+	
+	UncertaintiesDown["a_quad_cb_WW_mu"] = {}
+	UncertaintiesDown["a_quad_ccw_WW_mu"] = {}
+	UncertaintiesDown["a_quad_cwww_WW_mu"] = {}
+
 	SMhist = fileWithHists.Get("SMhist")
 	pos_hists = {}
 	neg_hists = {}
@@ -158,7 +185,46 @@ def main(options):
 		pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para)
 		neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para)
 		
-	print getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, 'mu')
+	#get nominal values
+	NominalValues = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, 'mu')
+	#get values for systematics
+	for iSyst in ListOfSystematics:
+		#start with Up variation
+		SMhist = fileWithHists.Get("SMhist_"+iSyst + "Up")
+		for para in POI:
+			pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para+"_" + iSyst + "Up")
+			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Up")
+
+		VocabularyForSystematicsUp[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, 'mu')
+
+		SMhist = fileWithHists.Get("SMhist_"+iSyst + "Up")
+		for para in POI:
+			pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para+"_" + iSyst + "Down")
+			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Down")
+		VocabularyForSystematicsDown[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, 'mu')
+
+	print VocabularyForSystematicsUp
+	
+	print VocabularyForSystematicsDown
+
+	for iSyst in VocabularyForSystematicsUp:
+		for iATGC in VocabularyForSystematicsUp[iSyst]:
+			UncertaintiesUp[iATGC][iSyst] = 100*(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]
+			UncertaintiesDown[iATGC][iSyst] = 100*(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]
+
+
+	print "Up: ", UncertaintiesUp
+	print "Down: ", UncertaintiesDown
+
+	for iSyst in VocabularyForSystematicsUp:
+		print iSyst,
+	print "\n"
+	for iATGC in UncertaintiesUp:
+		print iATGC,
+		for iSyst in UncertaintiesUp[iATGC]:
+			print format(max(UncertaintiesUp[iATGC][iSyst],UncertaintiesDown[iATGC][iSyst]),".2f"),
+		print ""
+
 
 if __name__ == "__main__":
 	parser	= OptionParser()	
