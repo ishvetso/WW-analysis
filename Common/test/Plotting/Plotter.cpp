@@ -207,10 +207,10 @@ void Plotter::Plotting(std::string OutPrefix_)
       //systematics
       for (uint iSyst =0; iSyst < systematics.ListOfSystematics.size(); iSyst++){
         std::string theSyst = systematics.ListOfSystematics[iSyst];
-        signalHistPerParPositive_SystUp[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(),("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
-        signalHistPerParPositive_SystDown[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(),("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
-        signalHistPerParNegative_SystUp[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(),("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
-        signalHistPerParNegative_SystDown[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(),("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+        signalHistPerParPositive_SystUp[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) + "_" + theSyst + "Up").c_str(),("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+        signalHistPerParPositive_SystDown[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) + "_" + theSyst + "Down").c_str(),("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+        signalHistPerParNegative_SystUp[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) + "_" + theSyst + "Up").c_str(),("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+        signalHistPerParNegative_SystDown[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) + "_" + theSyst + "Down").c_str(),("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
 
         signalHistPerParPositive_SystUp[SignalParameters.at(iPar)][theSyst] -> Sumw2();
         signalHistPerParPositive_SystDown[SignalParameters.at(iPar)][theSyst] -> Sumw2();
@@ -220,10 +220,10 @@ void Plotter::Plotting(std::string OutPrefix_)
       //weighted systematics
       for (uint wSyst =0; wSyst < systematics.WeightNameSystematics.size(); wSyst++){
         std::string theSyst = systematics.WeightNameSystematics[wSyst];
-        signalHistPerParPositive_SystUp[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(),("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
-        signalHistPerParPositive_SystDown[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(),("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
-        signalHistPerParNegative_SystUp[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(),("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
-        signalHistPerParNegative_SystDown[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(),("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+        signalHistPerParPositive_SystUp[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) + "_" + theSyst + "Up").c_str(),("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+        signalHistPerParPositive_SystDown[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalPositive_" + SignalParameters.at(iPar) + "_" + theSyst + "Down").c_str(),("signalPositive_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+        signalHistPerParNegative_SystUp[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) +  "_" + theSyst + "Up").c_str(),("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Up").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
+        signalHistPerParNegative_SystDown[SignalParameters.at(iPar)][theSyst] = new TH1D(("signalNegative_" + SignalParameters.at(iPar) + "_" + theSyst + "Down").c_str(),("signalNegative_" + SignalParameters.at(iPar) + theSyst + "Down").c_str(), Nbins,varToWriteObj->Range.low, varToWriteObj->Range.high);
 
         signalHistPerParPositive_SystUp[SignalParameters.at(iPar)][theSyst] -> Sumw2();
         signalHistPerParPositive_SystDown[SignalParameters.at(iPar)][theSyst] -> Sumw2();
