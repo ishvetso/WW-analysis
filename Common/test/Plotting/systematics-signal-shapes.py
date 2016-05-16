@@ -13,33 +13,19 @@ import os
 POI	=	['cwww','ccw','cb']
 par_max = {'cwww' : 12, 'ccw' : 20, 'cb' : 60}#atgc points
 
-parser	= OptionParser()
-parser.add_option('-n', '--newtrees', action='store_true', dest='newtrees', default=False, help='recreate input trees')
-parser.add_option('-p', '--plots', action='store_true', dest='do_plots', default=False, help='make plots')
-parser.add_option('--cat', dest='cat', default='WW', help='category, WW or WZ, defines signal region')
+def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,binhi=3500):
 
-(options,args) = parser.parse_args()
+	if cat == 'WW':
+		sigreg 	= 'lo'
+		mj_lo	= 65.
+		mj_hi	= 85.
+	elif cat == 'WZ':
+		sigreg	= 'hi'
+		mj_lo	= 85.
+		mj_hi	= 105
+	else:
+		raise RuntimeError('cateogry not supported!')
 
-
-if options.cat == 'WW':
-	sigreg 	= 'lo'
-	mj_lo	= 65.
-	mj_hi	= 85.
-elif options.cat == 'WZ':
-	sigreg	= 'hi'
-	mj_lo	= 85.
-	mj_hi	= 105
-else:
-	raise RuntimeError('cateogry not supported!')
-
-
-
-gStyle.SetOptStat(0)
-gStyle.SetOptTitle(0)
-
-def make_input(ch = 'el',binlo=900,binhi=3500):
-
-	cat		= options.cat	
 	nbins4fit	= 30
 	WS		= RooWorkspace("WS")
 
@@ -57,10 +43,10 @@ def make_input(ch = 'el',binlo=900,binhi=3500):
 	getattr(wtmp,'import')(cb);
 
 	#make and fill SM histogram, SM fit
-	fileWithHists = TFile('/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_6_4/src/aTGCsAnalysis/Common/test/Plotting/hists_signal_%s.root'%ch)
+	
 	#SMhist		= TH1F('SMhist','SMhist',nbins4fit,binlo,binhi)
 	#SMhist.Sumw2(kTRUE)
-	SMhist = fileWithHists.Get("SMhist")
+	
 	##read workspace containing background pdfs
 	#fileInWs	= TFile.Open('Input/wwlvj_%s_HPW_workspace.root'%ch[:2])
 	rrv_mass_lvj = RooRealVar('rrv_mass_lvj','rrv_mass_lvj',1000,binlo,binhi)
@@ -70,10 +56,6 @@ def make_input(ch = 'el',binlo=900,binhi=3500):
 	rrv_mass_lvj.setRange(binlo,binhi)
 
 	SMPdf		= RooExponential('SMPdf_%s_%s'%(cat,ch),'SMPdf_%s_%s'%(cat,ch),rrv_mass_lvj,a1)
-	'''for i in range(treeATGC.GetEntries()):
-		treeATGC.GetEntry(i)
-		if treeATGC.c_wwwl == 0 and treeATGC.c_wl == 0 and treeATGC.c_bl == 0:
-	    		SMhist.Fill(treeATGC.MWW,treeATGC.totEventWeight)'''
 	SMdatahist	= RooDataHist('SMdatahist','SMdatahist',RooArgList(rrv_mass_lvj),SMhist)
 	##actual fit to determine SM shape parameter
 	fitresSM	= SMPdf.fitTo(SMdatahist, RooFit.SumW2Error(kTRUE))
@@ -90,8 +72,8 @@ def make_input(ch = 'el',binlo=900,binhi=3500):
 	for para in POI:
 		hist4fit = TH1F('hist4fit_%s'%para,'hist4fit_%s'%para,3,-1.5*par_max[para],1.5*par_max[para])
 		hist4fit.SetDirectory(0)
-		pos_hist	= fileWithHists.Get('signalPositive_%s'%para)
-		neg_hist	= fileWithHists.Get('signalNegative_%s'%para)
+		pos_hist	= pos_hists[para]
+		neg_hist	= neg_hists[para]
 		pos_datahist	= RooDataHist('pos_datahist_%s'%para,'pos_datahist_%s'%para,RooArgList(rrv_mass_lvj),pos_hist)
 		neg_datahist	= RooDataHist('neg_datahist_%s'%para,'neg_datahist_%s'%para,RooArgList(rrv_mass_lvj),neg_hist)
 #
@@ -160,14 +142,32 @@ def make_input(ch = 'el',binlo=900,binhi=3500):
 		wtmp.var('a_quad_%s_%s_%s'%(POI[i],cat,ch)).setConstant(kTRUE)
 
 	for i in range(3):
-		print "=W===========================", fitresults[i].floatParsFinal().find('a_quad_%s_%s_%s'%(POI[i],cat,ch)).getVal()
+		print "============================", fitresults[i].floatParsFinal().find('a_quad_%s_%s_%s'%(POI[i],cat,ch)).getVal()
 		VocabularyWithResults['a_quad_%s_%s_%s'%(POI[i],cat,ch)] = fitresults[i].floatParsFinal().find('a_quad_%s_%s_%s'%(POI[i],cat,ch)).getVal()
 		fitresults[i].Print()
 
-	print "Ivan", VocabularyWithResults	
+	return VocabularyWithResults
 
 
-#make_input('el')
-make_input('mu')
+def main(options):
+	fileWithHists = TFile('/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_6_4/src/aTGCsAnalysis/Common/test/Plotting/hists_signal_%s.root'%options.ch)
+	SMhist = fileWithHists.Get("SMhist")
+	pos_hists = {}
+	neg_hists = {}
+	for para in POI:
+		pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para)
+		neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para)
+		
+	print getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, 'mu')
+
+if __name__ == "__main__":
+	parser	= OptionParser()	
+	parser.add_option('--cat', dest='cat', default='WW', help='category, WW or WZ, defines signal region')
+	parser.add_option('--ch', dest='ch', default='mu', help='channel, electron or muon')
+
+	(options,args) = parser.parse_args()
+	main(options)
+
+
 
 
