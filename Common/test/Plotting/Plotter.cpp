@@ -396,8 +396,8 @@ void Plotter::Plotting(std::string OutPrefix_)
             systematics.fillHist(varToWriteObj, SystematicsVarMapUp, SystematicsVarMapDown, signalHistPerParNegative_SystUp[SignalParameters.at(iPar)], signalHistPerParNegative_SystDown[SignalParameters.at(iPar)], totWeight*(aTGCWeights->at(5))*2300./20. , (aTGCWeights->at(5))*2300./20.);
             for (uint iPDF = 1; iPDF < PDFWeights -> size() && signalSelection -> EvalInstance() ; iPDF++)
             {
-              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(0))*2300./20. );
-              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(1))*2300./20. );
+              histsPDFSignalPerFilePositive[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(4))*2300./20. );
+              histsPDFSignalPerFileNegative[SignalParameters.at(iPar)].at(iPDF-1) -> Fill(varToWriteObj->value(),totWeight*PDFWeights->at(iPDF)*(aTGCWeights->at(5))*2300./20. );
             }
             for (uint iScale = 1; iScale < ScaleWeights -> size() && signalSelection -> EvalInstance(); iScale++)
             {
@@ -507,14 +507,14 @@ void Plotter::Plotting(std::string OutPrefix_)
     {
       std::string theSyst = systematics.ListOfSystematics[iSyst];
       SMhist_SystUp[theSyst] -> Write();
-      SMhist_SystUp[theSyst] -> Write();        
+      SMhist_SystDown[theSyst] -> Write();        
     }
 
     for (uint wSyst =0; wSyst < systematics.WeightNameSystematics.size(); wSyst++)
     {
       std::string theSyst = systematics.WeightNameSystematics[wSyst];
       SMhist_SystUp[theSyst] -> Write();
-      SMhist_SystUp[theSyst] -> Write();        
+      SMhist_SystDown[theSyst] -> Write();        
     }
   }
   
