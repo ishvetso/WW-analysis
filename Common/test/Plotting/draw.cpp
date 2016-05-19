@@ -26,7 +26,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 	var.VarName = "MWW";
 	var.Title = "m_{WV}";
-	var.SetRange(800., 2500.);
+	var.SetRange(900., 3500.);
 	variables.push_back(var);
 
 	var.VarName = "nPV";
@@ -194,7 +194,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	string addOnCutWjets = defaulCuts +  " * ( (Mjpruned < 65. || Mjpruned > 105. ) && nbtag == 0) ";
 	string addOnCutTtbar = defaulCuts +  " * (nbtag > 0 )";
 
-	string signalRegion  ="(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0";
+	string signalRegion  ="(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 105. && Mjpruned > 65. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0";
 	if (channel == "ele") signalRegion += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") signalRegion += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -304,6 +304,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
  	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = 12 TeV^{-2}}", SignalSelection, kRed);
  	signalSample.SetFileNames(prefix + "WW-aTGC_"+ channel + ".root");
+ 	signalSample.SetFileNames(prefix + "WZ-aTGC_"+ channel + ".root");
 
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
