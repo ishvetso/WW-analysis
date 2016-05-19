@@ -4,6 +4,8 @@ from optparse import OptionParser
 import math as math
 import random
 import os
+import CMS_lumi, tdrstyle
+from array import *
 
 #change this!
 #gSystem.Load('%s/lib/slc6_amd64_gcc481/libHiggsAnalysisCombinedLimit.so'%os.environ['CMSSW_BASE'])
@@ -12,6 +14,30 @@ import os
 
 POI	=	['cwww','ccw','cb']
 par_max = {'cwww' : 12, 'ccw' : 20, 'cb' : 60}#atgc points
+
+gStyle.SetOptStat(0)
+gStyle.SetOptTitle(0)
+
+def SetSystematicsFromFile(file_, histNominal_, ListOfSystematics_):
+	binErrors = []
+	binErrorsSquaredAdd = []
+	histName = histNominal_.GetName()
+	for iBin in range(1, histNominal_.GetNbinsX()):
+		binErrors.append(histNominal_.GetBinError(iBin))
+		binErrorsSquaredAdd.append(0.)
+	for iSyst in ListOfSystematics_ :
+		histUp = file_.Get(histName + "_" + iSyst + "Up")
+		histDown = file_.Get(histName + "_" + iSyst + "Down")
+		for iBin in range(1, histUp.GetNbinsX()):
+			Up = histUp.GetBinContent(iBin) - histNominal_.GetBinContent(iBin)
+			Down = histDown.GetBinContent(iBin) - histNominal_.GetBinContent(iBin)
+			maxValue = max(abs(Up), abs(Down))
+			binErrorsSquaredAdd[iBin-1] += pow(maxValue,2)
+			print pow(maxValue,2)
+	for iBin in range(1, histNominal_.GetNbinsX()):
+		histNominal_.SetBinError(iBin, sqrt( pow(binErrors[iBin-1],2) +  binErrorsSquaredAdd[iBin-1]))
+
+
 
 def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,binhi=3500):
 
@@ -150,11 +176,10 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 
 
 def main(options):
-	fileWithHists = TFile('/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_6_4/src/aTGCsAnalysis/Common/test/Plotting/hists_signal_%s.root'%options.ch)
+	fileWithHists = TFile('/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_6_4/src/aTGCsAnalysis/Common/test/Plotting/hists_signal_%s_%s.root'%(options.cat, options.ch))
 	fileWithHists.cd()
 
-	keyList = [key.GetName() for key in ROOT.gDirectory.GetListOfKeys()]
-	print keyList
+	keyList = [key.GetName() for key in gDirectory.GetListOfKeys()]
 	ListOfSystematics = []
 	for k in keyList:
 		if "SMhist" in k  and "Up" in k:
@@ -170,13 +195,25 @@ def main(options):
 		VocabularyForSystematicsUp[iSyst] = {}
 		VocabularyForSystematicsDown[iSyst] = {}
 
-	UncertaintiesUp["a_quad_cb_WW_mu"] = {}
-	UncertaintiesUp["a_quad_ccw_WW_mu"] = {}
-	UncertaintiesUp["a_quad_cwww_WW_mu"] = {}
+	UncertaintiesUp["a_quad_cb_" + options.cat + "_" + options.ch] = {}
+	UncertaintiesUp["a_quad_ccw_" + options.cat + "_"+ options.ch] = {}
+	UncertaintiesUp["a_quad_cwww_" + options.cat + "_"+ options.ch] = {}
 	
-	UncertaintiesDown["a_quad_cb_WW_mu"] = {}
-	UncertaintiesDown["a_quad_ccw_WW_mu"] = {}
-	UncertaintiesDown["a_quad_cwww_WW_mu"] = {}
+	UncertaintiesDown["a_quad_cb_"+ options.cat + "_"+ options.ch] = {}
+	UncertaintiesDown["a_quad_ccw_"+ options.cat + "_"+ options.ch] = {}
+	UncertaintiesDown["a_quad_cwww_"+ options.cat +"_"+ options.ch] = {}
+
+	UncertaintiesSquaredUp = {}
+	UncertaintiesSquaredUp["a_quad_cb_"+ options.cat +"_"+ options.ch] = 0.
+	UncertaintiesSquaredUp["a_quad_ccw_"+ options.cat +"_"+ options.ch] = 0.
+	UncertaintiesSquaredUp["a_quad_cwww_"+ options.cat +"_"+ options.ch] = 0.
+
+	UncertaintiesSquaredDown = {}
+	UncertaintiesSquaredDown["a_quad_cb_"+ options.cat +"_"+ options.ch] = 0.
+	UncertaintiesSquaredDown["a_quad_ccw_"+ options.cat +"_"+ options.ch] = 0.
+	UncertaintiesSquaredDown["a_quad_cwww_"+ options.cat +"_"+ options.ch] = 0.
+
+	Uncertainties = {}
 
 	SMhist = fileWithHists.Get("SMhist")
 	pos_hists = {}
@@ -186,7 +223,7 @@ def main(options):
 		neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para)
 		
 	#get nominal values
-	NominalValues = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, 'mu')
+	NominalValues = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, options.ch)
 	#get values for systematics
 	for iSyst in ListOfSystematics:
 		#start with Up variation
@@ -195,35 +232,86 @@ def main(options):
 			pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para+"_" + iSyst + "Up")
 			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Up")
 
-		VocabularyForSystematicsUp[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, 'mu')
+		VocabularyForSystematicsUp[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, options.ch)
+		print VocabularyForSystematicsUp
 
 		SMhist = fileWithHists.Get("SMhist_"+iSyst + "Up")
 		for para in POI:
 			pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para+"_" + iSyst + "Down")
 			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Down")
-		VocabularyForSystematicsDown[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, 'mu')
-
-	print VocabularyForSystematicsUp
-	
-	print VocabularyForSystematicsDown
+		VocabularyForSystematicsDown[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, options.ch)	
+		print VocabularyForSystematicsDown	
 
 	for iSyst in VocabularyForSystematicsUp:
+		print iSyst
 		for iATGC in VocabularyForSystematicsUp[iSyst]:
-			UncertaintiesUp[iATGC][iSyst] = 100*(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]
-			UncertaintiesDown[iATGC][iSyst] = 100*(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]
+			print iATGC
+			UncertaintiesSquaredUp[iATGC] += pow(abs(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),2)
+			UncertaintiesSquaredDown[iATGC] += pow(abs(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]),2)
+			print 100* max(abs(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),abs(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]))/NominalValues[iATGC]
 
+	for iATGC in UncertaintiesSquaredUp:
+		UncertaintiesUp[iATGC] = sqrt(UncertaintiesSquaredUp[iATGC])
+		UncertaintiesDown[iATGC] = sqrt(UncertaintiesSquaredDown[iATGC])
+		Uncertainties[iATGC] = abs(100*(max(UncertaintiesUp[iATGC], UncertaintiesDown[iATGC]))/NominalValues[iATGC])
 
-	print "Up: ", UncertaintiesUp
-	print "Down: ", UncertaintiesDown
+	print Uncertainties
+	tdrstyle.setTDRStyle()
+	canvas = TCanvas("canvas","canvas",1200,800)
+	canvas.SetLogy()
 
-	for iSyst in VocabularyForSystematicsUp:
-		print iSyst,
-	print "\n"
-	for iATGC in UncertaintiesUp:
-		print iATGC,
-		for iSyst in UncertaintiesUp[iATGC]:
-			print format(max(UncertaintiesUp[iATGC][iSyst],UncertaintiesDown[iATGC][iSyst]),".2f"),
-		print ""
+	low = 900.
+	high = 3500.
+	step = (high - low)/1000
+	for iATGC in POI:
+		legend = TLegend(0.7,0.7,0.9,0.8)
+		legend.SetFillColor(kWhite)
+		if options.ch == "ele":
+			legend.SetHeader(options.cat + " , electron channel")
+		elif options.ch == "mu" :
+			legend.SetHeader(options.cat + " , muon channel")
+		else :
+			raise RuntimeError('channel not supported!')
+		integral = (exp(high*NominalValues["a_quad_" + iATGC + "_" + options.cat + "_" + options.ch ]) - exp(low*NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch ]))/NominalValues["a_quad_" + iATGC + "_" + options.cat + "_" + options.ch ]
+
+		ValueUp = NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch] + UncertaintiesUp["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]
+		ValueDown = NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch] - UncertaintiesDown["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]
+
+		integralUp = (exp(high*ValueUp) - exp(low*ValueUp))/ValueUp
+		integralDown = (exp(high*ValueDown) - exp(low*ValueDown))/ValueDown
+
+		mass = low
+		iMass = 0
+		graph = TGraphAsymmErrors()
+		sum_ = 0.
+		while mass <= high:
+			graph.SetPoint(iMass, mass, pow(integral,-1)*exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass))
+			graph.SetPointEYlow(iMass,  abs(pow(integral,-1)*exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)  - pow(integralDown,-1)*exp((NominalValues["a_quad_"+ iATGC + "_"+ options.cat +"_"+ options.ch] - UncertaintiesDown["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch])*mass )))
+			graph.SetPointEYhigh(iMass,  abs(pow(integral,-1)*exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)  - pow(integralUp,-1)*exp((NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch] + UncertaintiesUp["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch])*mass )))
+			mass += step
+			sum_ += pow(integral,-1)*exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)*step
+			iMass += 1
+		graph.SetFillStyle(3010)
+		graph.GetXaxis().SetTitle("m_{WV}")
+		graph.SetLineWidth(4)
+		graph.SetLineColor(kRed)
+		legend.AddEntry(graph, iATGC)
+		graph.Draw("AL3")
+		legend.Draw("SAME")
+		hist_ = fileWithHists.Get('signalNegative_%s'%iATGC) 
+		hist_.SetLineWidth(4)
+		hist_.SetLineColor(kBlue)
+		SetSystematicsFromFile(fileWithHists,hist_, ListOfSystematics)
+		hist_.Add(SMhist, -1.)
+		hist_.Scale(1/hist_.Integral("width"))
+		print "hist : ", hist_.Integral()
+		print "sum : ", sum_
+		hist_.Draw("SAME")		
+
+		CMS_lumi.CMS_lumi(canvas, 4, 33)
+		canvas.SaveAs("graph_"+ iATGC + "_" + options.cat + "_" + options.ch +".png")
+		canvas.Clear()
+		
 
 
 if __name__ == "__main__":
