@@ -37,7 +37,7 @@ def SetSystematicsFromFile(file_, histNominal_, ListOfSystematics_):
 			maxValue = max(abs(Up), abs(Down))
 			binErrorsSquaredAdd[iBin-1] += pow(maxValue,2)
 	for iBin in range(1, histNominal_.GetNbinsX()):
-		histNominal_.SetBinError(iBin, sqrt( binErrorsSquaredAdd[iBin-1]))
+		histNominal_.SetBinError(iBin, math.sqrt( binErrorsSquaredAdd[iBin-1]))
 
 
 
@@ -66,9 +66,9 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 	cwww.setConstant(kTRUE);
 	ccw.setConstant(kTRUE);
 	cb.setConstant(kTRUE);
-	getattr(wtmp,'import')(cwww);
-	getattr(wtmp,'import')(ccw);
-	getattr(wtmp,'import')(cb);
+	getattr(wtmp,'import')(cwww,RooCmdArg());
+	getattr(wtmp,'import')(ccw,RooCmdArg());
+	getattr(wtmp,'import')(cb,RooCmdArg());
 
 	#make and fill SM histogram, SM fit
 	
@@ -91,8 +91,8 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 	N_SM		= RooRealVar('N_SM_%s_%s'%(cat,ch),'N_SM_%s_%s'%(cat,ch),SMdatahist.sumEntries())
 	N_SM.setConstant(kTRUE)
 
-	getattr(wtmp,'import')(SMdatahist)
-	getattr(wtmp,'import')(N_SM)
+	getattr(wtmp,'import')(SMdatahist,RooCmdArg())
+	getattr(wtmp,'import')(N_SM,RooCmdArg())
 
 
 	#make and fill ATGC histograms, fit quadratic scales
@@ -125,11 +125,11 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 		a2.setConstant(kTRUE)
 		cPdf_quad	= RooExponential('Pdf_quad_%s_%s_%s'%(para,cat,ch),'Pdf_quad_%s_%s_%s'%(para,cat,ch),rrv_mass_lvj,a2)
 
-		getattr(wtmp,'import')(cPdf_quad)
-		getattr(wtmp,'import')(pos_datahist)
-		getattr(wtmp,'import')(neg_datahist)
-		getattr(wtmp,'import')(N_quad)
-		getattr(wtmp,'import')(scaleshape)
+		getattr(wtmp,'import')(cPdf_quad,RooCmdArg())
+		getattr(wtmp,'import')(pos_datahist,RooCmdArg())
+		getattr(wtmp,'import')(neg_datahist,RooCmdArg())
+		getattr(wtmp,'import')(N_quad,RooCmdArg())
+		getattr(wtmp,'import')(scaleshape,RooCmdArg())
 		wtmp.Print()
 
 
@@ -154,8 +154,8 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 					wtmp.function('scaleshape_%s_%s_%s'%(POI[2],cat,ch)))
 	normfactor_3d	= RooFormulaVar('normfactor_3d_%s_%s'%(cat,ch),'normfactor_3d_%s_%s'%(cat,ch),'1+@0+@1+@2',scale_list)
 
-	getattr(WS,'import')(normfactor_3d)	
-	getattr(wtmp,'import')(normfactor_3d)	
+	getattr(WS,'import')(normfactor_3d,RooCmdArg())	
+	getattr(wtmp,'import')(normfactor_3d,RooCmdArg())	
 	#wtmp.Print()
 	
 	#fit 3 pdfs
@@ -191,6 +191,7 @@ def main(options):
 
 	VocabularyForSystematicsUp = {}
 	VocabularyForSystematicsDown = {}
+	VocabularyForSystematicsMax = {}
 
 	UncertaintiesUp = {}
 	UncertaintiesDown = {}
@@ -198,6 +199,7 @@ def main(options):
 	for iSyst in ListOfSystematics:
 		VocabularyForSystematicsUp[iSyst] = {}
 		VocabularyForSystematicsDown[iSyst] = {}
+		VocabularyForSystematicsMax[iSyst] = {}
 
 	UncertaintiesUp["a_quad_cb_" + options.cat + "_" + options.ch] = {}
 	UncertaintiesUp["a_quad_ccw_" + options.cat + "_"+ options.ch] = {}
@@ -244,19 +246,22 @@ def main(options):
 			pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para+"_" + iSyst + "Down")
 			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Down")
 		VocabularyForSystematicsDown[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, options.ch)	
-		#print VocabularyForSystematicsDown	
+		print VocabularyForSystematicsDown	
 
 	for iSyst in VocabularyForSystematicsUp:
 		for iATGC in VocabularyForSystematicsUp[iSyst]:
 			UncertaintiesSquaredUp[iATGC] += pow(abs(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),2)
 			UncertaintiesSquaredDown[iATGC] += pow(abs(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]),2)
+	VocabularyForSystematicsMax = max(VocabularyForSystematicsUp, VocabularyForSystematicsDown)
 
 	for iATGC in UncertaintiesSquaredUp:
-		UncertaintiesUp[iATGC] = sqrt(UncertaintiesSquaredUp[iATGC])
-		UncertaintiesDown[iATGC] = sqrt(UncertaintiesSquaredDown[iATGC])
+		UncertaintiesUp[iATGC] = math.sqrt(UncertaintiesSquaredUp[iATGC])
+		UncertaintiesDown[iATGC] = math.sqrt(UncertaintiesSquaredDown[iATGC])
 		Uncertainties[iATGC] = format(abs(100*(max(UncertaintiesUp[iATGC], UncertaintiesDown[iATGC]))/NominalValues[iATGC]),".2f")
 
 	print Uncertainties
+	table =  pandas.DataFrame(VocabularyForSystematicsMax,index=["a_quad_cwww_WW_mu","a_quad_ccw_WW_mu","a_quad_cb_WW_mu"], columns=ListOfSystematics)
+	print table
 	tdrstyle.setTDRStyle()
 	canvas = TCanvas("canvas","canvas",1200,800)
 	canvas.SetLogy()
@@ -273,24 +278,24 @@ def main(options):
 			legend.SetHeader(options.cat + " , muon channel")
 		else :
 			raise RuntimeError('channel not supported!')
-		integral = (exp(high*NominalValues["a_quad_" + iATGC + "_" + options.cat + "_" + options.ch ]) - exp(low*NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch ]))/NominalValues["a_quad_" + iATGC + "_" + options.cat + "_" + options.ch ]
+		integral = (math.exp(high*NominalValues["a_quad_" + iATGC + "_" + options.cat + "_" + options.ch ]) - math.exp(low*NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch ]))/NominalValues["a_quad_" + iATGC + "_" + options.cat + "_" + options.ch ]
 
 		ValueUp = NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch] + UncertaintiesUp["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]
 		ValueDown = NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch] - UncertaintiesDown["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]
 
-		integralUp = (exp(high*ValueUp) - exp(low*ValueUp))/ValueUp
-		integralDown = (exp(high*ValueDown) - exp(low*ValueDown))/ValueDown
+		integralUp = (math.exp(high*ValueUp) - math.exp(low*ValueUp))/ValueUp
+		integralDown = (math.exp(high*ValueDown) - math.exp(low*ValueDown))/ValueDown
 
 		mass = low
 		iMass = 0
 		graph = TGraphAsymmErrors()
 		sum_ = 0.
 		while mass <= high:
-			graph.SetPoint(iMass, mass, pow(integral,-1)*exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass))
-			graph.SetPointEYlow(iMass,  abs(pow(integral,-1)*exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)  - pow(integralDown,-1)*exp((NominalValues["a_quad_"+ iATGC + "_"+ options.cat +"_"+ options.ch] - UncertaintiesDown["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch])*mass )))
-			graph.SetPointEYhigh(iMass,  abs(pow(integral,-1)*exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)  - pow(integralUp,-1)*exp((NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch] + UncertaintiesUp["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch])*mass )))
+			graph.SetPoint(iMass, mass, pow(integral,-1)*math.exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass))
+			graph.SetPointEYlow(iMass,  abs(pow(integral,-1)*math.exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)  - pow(integralDown,-1)*math.exp((NominalValues["a_quad_"+ iATGC + "_"+ options.cat +"_"+ options.ch] - UncertaintiesDown["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch])*mass )))
+			graph.SetPointEYhigh(iMass,  abs(pow(integral,-1)*math.exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)  - pow(integralUp,-1)*math.exp((NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch] + UncertaintiesUp["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch])*mass )))
 			mass += step
-			sum_ += pow(integral,-1)*exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)*step
+			sum_ += pow(integral,-1)*math.exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)*step
 			iMass += 1
 		graph.SetFillStyle(3010)
 		graph.GetXaxis().SetTitle("m_{WV}")
