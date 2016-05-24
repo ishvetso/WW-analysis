@@ -178,9 +178,7 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 
 
 def main(options):
-	if options.input.endswith("/"):
-		continue
-	else:
+	if not options.input.endswith("/"):
 		options.input += "/"
 	fileWithHists = TFile(options.input + 'hists_signal_%s_%s.root'%(options.cat, options.ch))
 	fileWithHists.cd()
