@@ -178,8 +178,9 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 
 
 def main(options):
-	if not options.input.endswith("/"):
+	if not options.input.endswith("/") and not options.input == '':
 		options.input += "/"
+
 	fileWithHists = TFile(options.input + 'hists_signal_%s_%s.root'%(options.cat, options.ch))
 	fileWithHists.cd()
 
@@ -239,29 +240,40 @@ def main(options):
 			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Up")
 
 		VocabularyForSystematicsUp[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, options.ch)
-		print VocabularyForSystematicsUp
+		
 
 		SMhist = fileWithHists.Get("SMhist_"+iSyst + "Up")
 		for para in POI:
 			pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para+"_" + iSyst + "Down")
 			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Down")
 		VocabularyForSystematicsDown[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, options.ch)	
-		print VocabularyForSystematicsDown	
+	print "Up"
+	print VocabularyForSystematicsUp
+	print "Down"
+	print VocabularyForSystematicsDown	
+
 
 	for iSyst in VocabularyForSystematicsUp:
 		for iATGC in VocabularyForSystematicsUp[iSyst]:
 			UncertaintiesSquaredUp[iATGC] += pow(abs(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),2)
 			UncertaintiesSquaredDown[iATGC] += pow(abs(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]),2)
-	VocabularyForSystematicsMax = max(VocabularyForSystematicsUp, VocabularyForSystematicsDown)
+			if iATGC=="a_quad_cwww_WW_ele" and iSyst == "PDF":
+				print "Up", (VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]
+				print "Down", (VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]
+				print "max", max((NominalValues[iATGC]) - VocabularyForSystematicsUp[iSyst][iATGC], (NominalValues[iATGC] - VocabularyForSystematicsDown[iSyst][iATGC]))/NominalValues[iATGC]
+				print "max2", max((VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]))/NominalValues[iATGC]
+			VocabularyForSystematicsMax[iSyst][iATGC] = format(100*max(abs((VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]),abs((VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC])),".2f")
 
-	for iATGC in UncertaintiesSquaredUp:
+	for iATGC in UncertaintiesSquaredUp :
 		UncertaintiesUp[iATGC] = math.sqrt(UncertaintiesSquaredUp[iATGC])
 		UncertaintiesDown[iATGC] = math.sqrt(UncertaintiesSquaredDown[iATGC])
 		Uncertainties[iATGC] = format(abs(100*(max(UncertaintiesUp[iATGC], UncertaintiesDown[iATGC]))/NominalValues[iATGC]),".2f")
-
-	print Uncertainties
-	table =  pandas.DataFrame(VocabularyForSystematicsMax,index=["a_quad_cwww_WW_mu","a_quad_ccw_WW_mu","a_quad_cb_WW_mu"], columns=ListOfSystematics)
-	print table
+	
+	table =  pandas.DataFrame(VocabularyForSystematicsMax,index=['a_quad_cwww_%s_%s'%(options.cat,options.ch),'a_quad_ccw_%s_%s'%(options.cat,options.ch),'a_quad_cb_%s_%s'%(options.cat,options.ch)], columns=ListOfSystematics)
+	if (not options.latex):
+		print table
+	else : 
+		print table.to_latex()
 	tdrstyle.setTDRStyle()
 	canvas = TCanvas("canvas","canvas",1200,800)
 	canvas.SetLogy()
@@ -322,14 +334,13 @@ def main(options):
 		CMS_lumi.CMS_lumi(canvas, 4, 33)
 		canvas.SaveAs("graph_"+ iATGC + "_" + options.cat + "_" + options.ch +".png")
 		canvas.Clear()
-		
-
 
 if __name__ == "__main__":
 	parser	= OptionParser()	
 	parser.add_option('--cat', dest='cat', default='WW', help='category, WW or WZ, defines signal region')
 	parser.add_option('--ch', dest='ch', default='mu', help='channel, electron or muon')
 	parser.add_option('--input', dest='input', default='', help='input gDirectory')
+	parser.add_option("-l", action="store_true", dest="latex")
 
 	(options,args) = parser.parse_args()
 	main(options)
