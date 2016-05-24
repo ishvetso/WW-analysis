@@ -1,3 +1,4 @@
+#!/usr/bin/python 
 from ROOT import  *
 from array import array
 from optparse import OptionParser
@@ -6,6 +7,8 @@ import random
 import os
 import CMS_lumi, tdrstyle
 from array import *
+import math
+import pandas
 
 #change this!
 #gSystem.Load('%s/lib/slc6_amd64_gcc481/libHiggsAnalysisCombinedLimit.so'%os.environ['CMSSW_BASE'])
@@ -33,9 +36,8 @@ def SetSystematicsFromFile(file_, histNominal_, ListOfSystematics_):
 			Down = histDown.GetBinContent(iBin) - histNominal_.GetBinContent(iBin)
 			maxValue = max(abs(Up), abs(Down))
 			binErrorsSquaredAdd[iBin-1] += pow(maxValue,2)
-			print pow(maxValue,2)
 	for iBin in range(1, histNominal_.GetNbinsX()):
-		histNominal_.SetBinError(iBin, sqrt( pow(binErrors[iBin-1],2) +  binErrorsSquaredAdd[iBin-1]))
+		histNominal_.SetBinError(iBin, sqrt( binErrorsSquaredAdd[iBin-1]))
 
 
 
@@ -145,7 +147,7 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 	Pdf_list	= RooArgList(SMPdf,wtmp.pdf('Pdf_quad_%s_%s_%s'%(POI[0],cat,ch)),wtmp.pdf('Pdf_quad_%s_%s_%s'%(POI[1],cat,ch)),wtmp.pdf('Pdf_quad_%s_%s_%s'%(POI[2],cat,ch)))
 
 	model		= RooAddPdf('aTGC_model','aTGC_model', Pdf_list, N_list)
-	model.Print()
+	#model.Print()
 
 	scale_list	= RooArgList(wtmp.function('scaleshape_%s_%s_%s'%(POI[0],cat,ch)),\
 					wtmp.function('scaleshape_%s_%s_%s'%(POI[1],cat,ch)),\
@@ -154,7 +156,7 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 
 	getattr(WS,'import')(normfactor_3d)	
 	getattr(wtmp,'import')(normfactor_3d)	
-	wtmp.Print()
+	#wtmp.Print()
 	
 	#fit 3 pdfs
 	fitresults	= []
@@ -170,13 +172,17 @@ def getSignalParmeters(cat, SMhist, pos_hists, neg_hists, ch = 'el',binlo=900,bi
 	for i in range(3):
 		print "============================", fitresults[i].floatParsFinal().find('a_quad_%s_%s_%s'%(POI[i],cat,ch)).getVal()
 		VocabularyWithResults['a_quad_%s_%s_%s'%(POI[i],cat,ch)] = fitresults[i].floatParsFinal().find('a_quad_%s_%s_%s'%(POI[i],cat,ch)).getVal()
-		fitresults[i].Print()
-
+		#fitresults[i].Print()
+	
 	return VocabularyWithResults
 
 
 def main(options):
-	fileWithHists = TFile('/afs/cern.ch/work/i/ishvetso/aTGCRun2/CMSSW_7_6_4/src/aTGCsAnalysis/Common/test/Plotting/hists_signal_%s_%s.root'%(options.cat, options.ch))
+	if options.input.endswith("/"):
+		continue
+	else:
+		options.input += "/"
+	fileWithHists = TFile(options.input + 'hists_signal_%s_%s.root'%(options.cat, options.ch))
 	fileWithHists.cd()
 
 	keyList = [key.GetName() for key in gDirectory.GetListOfKeys()]
@@ -240,20 +246,17 @@ def main(options):
 			pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para+"_" + iSyst + "Down")
 			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Down")
 		VocabularyForSystematicsDown[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, options.ch)	
-		print VocabularyForSystematicsDown	
+		#print VocabularyForSystematicsDown	
 
 	for iSyst in VocabularyForSystematicsUp:
-		print iSyst
 		for iATGC in VocabularyForSystematicsUp[iSyst]:
-			print iATGC
 			UncertaintiesSquaredUp[iATGC] += pow(abs(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),2)
 			UncertaintiesSquaredDown[iATGC] += pow(abs(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]),2)
-			print 100* max(abs(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),abs(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]))/NominalValues[iATGC]
 
 	for iATGC in UncertaintiesSquaredUp:
 		UncertaintiesUp[iATGC] = sqrt(UncertaintiesSquaredUp[iATGC])
 		UncertaintiesDown[iATGC] = sqrt(UncertaintiesSquaredDown[iATGC])
-		Uncertainties[iATGC] = abs(100*(max(UncertaintiesUp[iATGC], UncertaintiesDown[iATGC]))/NominalValues[iATGC])
+		Uncertainties[iATGC] = format(abs(100*(max(UncertaintiesUp[iATGC], UncertaintiesDown[iATGC]))/NominalValues[iATGC]),".2f")
 
 	print Uncertainties
 	tdrstyle.setTDRStyle()
@@ -293,20 +296,25 @@ def main(options):
 			iMass += 1
 		graph.SetFillStyle(3010)
 		graph.GetXaxis().SetTitle("m_{WV}")
+		graph.GetYaxis().SetTitle("arb. units")
 		graph.SetLineWidth(4)
 		graph.SetLineColor(kRed)
-		legend.AddEntry(graph, iATGC)
+		legend.AddEntry(graph, iATGC,"l")
 		graph.Draw("AL3")
-		legend.Draw("SAME")
 		hist_ = fileWithHists.Get('signalNegative_%s'%iATGC) 
 		hist_.SetLineWidth(4)
 		hist_.SetLineColor(kBlue)
 		SetSystematicsFromFile(fileWithHists,hist_, ListOfSystematics)
 		hist_.Add(SMhist, -1.)
 		hist_.Scale(1/hist_.Integral("width"))
-		print "hist : ", hist_.Integral()
-		print "sum : ", sum_
-		hist_.Draw("SAME")		
+		graphMC = TGraph()
+		for iBin in range(1, hist_.GetNbinsX()+1):
+			graphMC.SetPoint(iBin, hist_.GetBinCenter(iBin),hist_.GetBinContent(iBin) )
+		graphMC.SetMarkerColor(kBlue)
+		legend.AddEntry(graphMC, "MC", "p")		
+		graphMC.Draw("PSAME")
+		legend.Draw("SAME")
+		
 
 		CMS_lumi.CMS_lumi(canvas, 4, 33)
 		canvas.SaveAs("graph_"+ iATGC + "_" + options.cat + "_" + options.ch +".png")
@@ -318,6 +326,7 @@ if __name__ == "__main__":
 	parser	= OptionParser()	
 	parser.add_option('--cat', dest='cat', default='WW', help='category, WW or WZ, defines signal region')
 	parser.add_option('--ch', dest='ch', default='mu', help='channel, electron or muon')
+	parser.add_option('--input', dest='input', default='', help='input gDirectory')
 
 	(options,args) = parser.parse_args()
 	main(options)
