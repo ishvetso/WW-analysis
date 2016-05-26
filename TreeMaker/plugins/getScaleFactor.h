@@ -12,7 +12,7 @@ namespace sf
 {
 	edm::FileInPath SFFileMuID("aTGCsAnalysis/TreeMaker/data/MuonHighPt_Z_RunCD_Reco74X_Dec17.root");
 	TFile fileSFMuID(SFFileMuID.fullPath().c_str());
-	TH2F *hist_mu_ID = (TH2F *) fileSFMuID.Get("tkRelIsoID_PtEtaBins_Pt20/pTtuneP_abseta_ratio");
+	TH2F *hist_mu_ID = (TH2F *) fileSFMuID.Get("tkRelIsoID_PtEtaBins_Pt53/pTtuneP_abseta_ratio");
 
 	double getScaleFactor(double pt, double eta, std::string channel, std::string type){
 
