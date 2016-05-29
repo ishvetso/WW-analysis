@@ -20,6 +20,7 @@ par_max = {'cwww' : 12, 'ccw' : 20, 'cb' : 60}#atgc points
 
 gStyle.SetOptStat(0)
 gStyle.SetOptTitle(0)
+gROOT.SetBatch(1)
 
 def SetSystematicsFromFile(file_, histNominal_, ListOfSystematics_):
 	binErrors = []
@@ -247,28 +248,19 @@ def main(options):
 			pos_hists[para] = fileWithHists.Get('signalPositive_%s'%para+"_" + iSyst + "Down")
 			neg_hists[para] = fileWithHists.Get('signalNegative_%s'%para+"_" + iSyst + "Down")
 		VocabularyForSystematicsDown[iSyst] = getSignalParmeters(options.cat, SMhist, pos_hists, neg_hists, options.ch)	
-	print "Up"
-	print VocabularyForSystematicsUp
-	print "Down"
-	print VocabularyForSystematicsDown	
-
 
 	for iSyst in VocabularyForSystematicsUp:
 		for iATGC in VocabularyForSystematicsUp[iSyst]:
 			UncertaintiesSquaredUp[iATGC] += pow(abs(VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),2)
 			UncertaintiesSquaredDown[iATGC] += pow(abs(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]),2)
-			if iATGC=="a_quad_cwww_WW_ele" and iSyst == "PDF":
-				print "Up", (VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]
-				print "Down", (VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]
-				print "max", max((NominalValues[iATGC]) - VocabularyForSystematicsUp[iSyst][iATGC], (NominalValues[iATGC] - VocabularyForSystematicsDown[iSyst][iATGC]))/NominalValues[iATGC]
-				print "max2", max((VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC]),(VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC]))/NominalValues[iATGC]
 			VocabularyForSystematicsMax[iSyst][iATGC] = format(100*max(abs((VocabularyForSystematicsUp[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC]),abs((VocabularyForSystematicsDown[iSyst][iATGC] - NominalValues[iATGC])/NominalValues[iATGC])),".2f")
 
 	for iATGC in UncertaintiesSquaredUp :
 		UncertaintiesUp[iATGC] = math.sqrt(UncertaintiesSquaredUp[iATGC])
 		UncertaintiesDown[iATGC] = math.sqrt(UncertaintiesSquaredDown[iATGC])
 		Uncertainties[iATGC] = format(abs(100*(max(UncertaintiesUp[iATGC], UncertaintiesDown[iATGC]))/NominalValues[iATGC]),".2f")
-	
+
+	print Uncertainties
 	table =  pandas.DataFrame(VocabularyForSystematicsMax,index=['a_quad_cwww_%s_%s'%(options.cat,options.ch),'a_quad_ccw_%s_%s'%(options.cat,options.ch),'a_quad_cb_%s_%s'%(options.cat,options.ch)], columns=ListOfSystematics)
 	if (not options.latex):
 		print table
@@ -332,7 +324,7 @@ def main(options):
 		
 
 		CMS_lumi.CMS_lumi(canvas, 4, 33)
-		canvas.SaveAs("graph_"+ iATGC + "_" + options.cat + "_" + options.ch +".png")
+		canvas.SaveAs("shape-syst_"+ iATGC + "_" + options.cat + "_" + options.ch +".pdf")
 		canvas.Clear()
 
 if __name__ == "__main__":
