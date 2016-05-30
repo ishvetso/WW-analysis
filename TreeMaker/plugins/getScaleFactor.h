@@ -12,16 +12,20 @@ namespace sf
 {
 	edm::FileInPath SFFileMuID("aTGCsAnalysis/TreeMaker/data/MuonHighPt_Z_RunCD_Reco74X_Dec17.root");
 	TFile fileSFMuID(SFFileMuID.fullPath().c_str());
-	TH2F *hist_mu_ID = (TH2F *) fileSFMuID.Get("tkRelIsoID_PtEtaBins_Pt53/pTtuneP_abseta_ratio");
+	TH2F * hist_mu_iso = (TH2F *) fileSFMuID.Get("tkRelIsoID_PtEtaBins_Pt53/pTtuneP_abseta_ratio");
+	TH2F * hist_mu_ID = (TH2F *) fileSFMuID.Get("HighPtID_PtEtaBins_Pt53/pTtuneP_abseta_ratio");
 
 	double getScaleFactor(double pt, double eta, std::string channel, std::string type){
 
 		double SF;
 		if (channel == "mu")
-		{
+		{		
+			TH2F * hist_mu_SF = (TH2F*)hist_mu_iso->Clone();
+			hist_mu_SF -> Multiply(hist_mu_ID);
+
 			if (type == "ID"){
-				if(hist_mu_ID -> GetXaxis() -> FindBin(pt) != hist_mu_ID -> GetXaxis() -> GetNbins() + 1) SF = hist_mu_ID -> GetBinContent(hist_mu_ID -> GetXaxis() -> FindBin(pt), hist_mu_ID -> GetYaxis() -> FindBin(eta));
-				else SF = hist_mu_ID -> GetBinContent(hist_mu_ID -> GetXaxis() -> GetNbins(), hist_mu_ID -> GetYaxis() -> FindBin(eta));
+				if(hist_mu_SF -> GetXaxis() -> FindBin(pt) != hist_mu_SF -> GetXaxis() -> GetNbins() + 1) SF = hist_mu_SF -> GetBinContent(hist_mu_SF -> GetXaxis() -> FindBin(pt), hist_mu_SF -> GetYaxis() -> FindBin(eta));
+				else SF = hist_mu_SF -> GetBinContent(hist_mu_SF -> GetXaxis() -> GetNbins(), hist_mu_SF -> GetYaxis() -> FindBin(eta));
 			}
 			else if (type == "trigger"){
 				SF = Mu50::scaleFactor( pt, eta);
