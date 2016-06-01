@@ -58,7 +58,7 @@
 #include "SystematicsHelper.h"
 #include "PU.h"
 #include "PDFVariationMap.h"
-#include "getScaleFactor.h"
+#include "ScaleFactorHelper.h"
 #include "BTagHelper.h"
 #include "JetResolutionSmearer.h"
 #include "Ele27WPLooseTrigTurnOn.h"
@@ -202,6 +202,7 @@ private:
   edm::EDGetTokenT<LHEEventProduct> LHEEventProductTokenExternal;
   edm::EDGetTokenT<LHERunInfoProduct> lheProducerToken;
   SystematicsHelper SystematicsHelper_;
+  ScaleFactorHelper ScaleFactorHelper_;
   JetResolutionSmearer<pat::Jet>JetResolutionSmearer_;
   //for JEC
   boost::shared_ptr<FactorizedJetCorrector> jecAK8_;
@@ -230,9 +231,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   isSignal(iConfig.getParameter<bool>("isSignal")),
   channel(iConfig.getParameter<std::string>("channel")),
   SystematicsHelper_(SystematicsHelper()),
+  ScaleFactorHelper_(ScaleFactorHelper(iConfig.getParameter<std::string>("channel"))),
   JetResolutionSmearer_(iConfig.getParameter<bool>("isMC")),
   BTagHelper_(iConfig.getParameter<std::string>("BtagEffFile"))
-
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
   edm::FileInPath L2("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_MC_L2Relative_AK8PFchs.txt");
@@ -712,7 +713,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    for (unsigned int i=0; i<LHEevtProductExternal->weights().size(); i++) {
     if (iScale_ID > RangeOfScaleVariation.high) break;
     if (LHEevtProductExternal->weights()[i].id == std::to_string(iScale_ID)){
-      std::cout << LHEevtProductExternal->weights()[i].id  << " " << (LHEevtProductExternal->weights()[i].wgt) <<std::endl;
       unsigned int iScale = iScale_ID - RangeOfScaleVariation.low;
       ScaleWeights.at(iScale) = (LHEevtProductExternal->weights()[i].wgt)/LHEevtProductExternal->originalXWGTUP();
       iScale_ID++;
@@ -824,8 +824,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
    
    if (channel == "mu"){
-      LeptonSF_ID = sf::getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID");
-      LeptonSF_trigger = sf::getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "trigger");
+      LeptonSF_ID = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID");
+      LeptonSF_trigger = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "trigger");
     }
    else if (channel == "el") {
       LeptonSF_ID = isEB?0.994:0.993;//slide 27: https://indico.cern.ch/event/482671/contributions/2154184/attachments/1268166/1878158/HEEP_ScaleFactor_Study_v4.pdf

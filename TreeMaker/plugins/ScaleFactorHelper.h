@@ -3,19 +3,30 @@
 #include "Mu50.h"
 
 /*
-* This macro supports application of scale factors in the analysis
+* This class supports application of scale factors in the analysis
 * electron channel is not covered
 * Author: Ivan Shvetsov, 2016
 */
 
-namespace sf
-{
-	edm::FileInPath SFFileMuID("aTGCsAnalysis/TreeMaker/data/MuonHighPt_Z_RunCD_Reco74X_Dec17.root");
-	TFile fileSFMuID(SFFileMuID.fullPath().c_str());
-	TH2F * hist_mu_iso = (TH2F *) fileSFMuID.Get("tkRelIsoID_PtEtaBins_Pt53/pTtuneP_abseta_ratio");
-	TH2F * hist_mu_ID = (TH2F *) fileSFMuID.Get("HighPtID_PtEtaBins_Pt53/pTtuneP_abseta_ratio");
 
-	double getScaleFactor(double pt, double eta, std::string channel, std::string type){
+class ScaleFactorHelper{
+	
+	TH2F * hist_mu_iso;
+	TH2F * hist_mu_ID;
+
+public:
+	ScaleFactorHelper(std::string channel){
+
+		if (channel == "mu"  ){
+			edm::FileInPath SFFileMuID("aTGCsAnalysis/TreeMaker/data/MuonHighPt_Z_RunCD_Reco74X_Dec17.root");
+			TFile fileSFMuID(SFFileMuID.fullPath().c_str());
+			hist_mu_iso = (TH2F *) fileSFMuID.Get("tkRelIsoID_PtEtaBins_Pt53/pTtuneP_abseta_ratio");
+			hist_mu_ID = (TH2F *) fileSFMuID.Get("HighPtID_PtEtaBins_Pt53/pTtuneP_abseta_ratio");
+		}
+	}
+	
+
+    double getScaleFactor(double pt, double eta, std::string channel, std::string type){
 
 		double SF;
 		if (channel == "mu")
@@ -57,4 +68,4 @@ namespace sf
 		}
 		return SF;
 	}
-}
+};
