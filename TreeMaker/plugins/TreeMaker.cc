@@ -97,9 +97,9 @@ private:
   double PUweight;
   double btagWeight, btagWeight_BTagUp, btagWeight_BTagDown, btagWeight_MistagUp, btagWeight_MistagDown;
   double genWeight;
-  double LeptonSF_trigger, LeptonSF_ID;
+  double LeptonSF_trigger, LeptonSF_ID, LeptonSF_ID_Up, LeptonSF_ID_Down;
   double rho_;
-  double totWeight, totWeight_BTagUp, totWeight_BTagDown, totWeight_MistagUp, totWeight_MistagDown;
+  double totWeight, totWeight_BTagUp, totWeight_BTagDown, totWeight_MistagUp, totWeight_MistagDown, totWeight_LeptonIDUp, totWeight_LeptonIDDown;
   double VTagSF;
   Particle Wboson_lep, METCand, Electron, Muon, Lepton;
   double m_pruned;
@@ -296,6 +296,8 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   if (isMC) {
      outTree_->Branch("puweight",       &PUweight,     "puweight/D"          );
      outTree_->Branch("LeptonSF_ID",       &LeptonSF_ID,     "LeptonSF_ID/D"          );
+     outTree_->Branch("LeptonSF_ID_Up",       &LeptonSF_ID_Up,     "LeptonSF_ID_Up/D"          );
+     outTree_->Branch("LeptonSF_ID_Down",       &LeptonSF_ID_Down,     "LeptonSF_ID_Down/D"          );
      outTree_->Branch("LeptonSF_trigger",       &LeptonSF_trigger,     "LeptonSF_trigger/D"          );
      outTree_->Branch("genweight",       &genWeight,     "genweight/D"          );
      outTree_->Branch("btagWeight",       &btagWeight,     "btagWeight/D"          );
@@ -306,10 +308,17 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
      outTree_->Branch("btagWeight_MistagDown",       &btagWeight_MistagDown,     "btagWeight_MistagDown/D"          );
      //total weights: central and systematics
      outTree_->Branch("totWeight",       &totWeight,     "totWeight/D"          );
+     
      outTree_->Branch("totWeight_BTagUp",       &totWeight_BTagUp,     "totWeight_BTagUp/D"          );
      outTree_->Branch("totWeight_BTagDown",       &totWeight_BTagDown,     "totWeight_BTagDown/D"          );
+     
      outTree_->Branch("totWeight_MistagUp",       &totWeight_MistagUp,     "totWeight_MistagUp/D"          );
      outTree_->Branch("totWeight_MistagDown",       &totWeight_MistagDown,     "totWeight_MistagDown/D"          );
+
+     outTree_->Branch("totWeight_LeptonIDUp",       &totWeight_LeptonIDUp,     "totWeight_LeptonIDUp/D"          );
+     outTree_->Branch("totWeight_LeptonIDDown",       &totWeight_LeptonIDDown,     "totWeight_LeptonIDDown/D"          );
+
+
      //PDF and scale weights: systematics
      outTree_->Branch("PDFWeights","std::vector<double>",&PDFWeights);
      outTree_->Branch("ScaleWeights","std::vector<double>",&ScaleWeights);
@@ -825,10 +834,14 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    if (channel == "mu"){
       LeptonSF_ID = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID");
+      LeptonSF_ID_Up = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID", "up");
+      LeptonSF_ID_Down = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID", "down");
       LeptonSF_trigger = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "trigger");
     }
    else if (channel == "el") {
       LeptonSF_ID = isEB?0.994:0.993;//slide 27: https://indico.cern.ch/event/482671/contributions/2154184/attachments/1268166/1878158/HEEP_ScaleFactor_Study_v4.pdf
+      LeptonSF_ID_Up =  LeptonSF_ID;
+      LeptonSF_ID_Down =  LeptonSF_ID;
       LeptonSF_trigger = 1.;
 
     }
@@ -1364,6 +1377,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     totWeight_BTagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID*LeptonSF_trigger*btagWeight_BTagDown*VTagSF;  
     totWeight_MistagUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID*LeptonSF_trigger*btagWeight_MistagUp*VTagSF; 
     totWeight_MistagDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID*LeptonSF_trigger*btagWeight_MistagDown*VTagSF; 
+    totWeight_LeptonIDUp = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID_Up*LeptonSF_trigger*btagWeight*VTagSF; 
+    totWeight_LeptonIDDown = PUweight*(genWeight/(std::abs(genWeight)))*LeptonSF_ID_Down*LeptonSF_trigger*btagWeight*VTagSF; 
   }
   //probably would leave it like that if we keep reweighting to data trigger efficiency in electron channel. In this case lepton ID & trigger scale factors are set to unity in the electron channel.
   if (isMC&&channel=="el"){
