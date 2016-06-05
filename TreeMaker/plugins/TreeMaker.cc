@@ -787,12 +787,13 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
    nLep = leptons -> size();
    
-   auto leptonPtr = leptons -> ptrAt(0);
-   reco::MuonPtr asmuonPtr(leptonPtr);
-   reco::ElectronPtr aselectronPtr(leptonPtr);
+  
    //electron channel
    if ( ( leptons -> size() ) > 0)
    {
+    auto leptonPtr = leptons -> ptrAt(0);
+    reco::MuonPtr asmuonPtr(leptonPtr);
+    reco::ElectronPtr aselectronPtr(leptonPtr);
      if (channel == "mu"){
       Lepton.pt =  asmuonPtr -> tunePMuonBestTrack() -> pt();
       Lepton.eta = asmuonPtr -> tunePMuonBestTrack() -> eta();
