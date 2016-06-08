@@ -869,7 +869,6 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         Wboson_lep.pt_UnclEnDown = SystMap.at("UnclusteredEnDown").Pt();
 
         //mass
-        //mt
         Wboson_lep.mass_LeptonEnUp = SystMap.at("LeptonEnUp").M();
         Wboson_lep.mass_LeptonEnDown = SystMap.at("LeptonEnDown").M();
         Wboson_lep.mass_LeptonResUp = SystMap.at("LeptonResUp").M();

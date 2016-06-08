@@ -140,8 +140,8 @@ LeptonSystematicsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
        double LeptonUncertainty =0.;
        if (channel == "el") {
         LeptonUncertainty = 0.001;//this  uncertainty is set temporary (after talking with Lindsey), not yet retrieved for 13 TeV
-        if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(lepton.px()),(1 + LeptonUncertainty)*(lepton.py()), lepton.pz()  ,(1 + LeptonUncertainty)*(lepton.energy()) ) ;
-        else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(lepton.px()),(1 - LeptonUncertainty)*(lepton.py()), lepton.pz()  ,(1 - LeptonUncertainty)*(lepton.energy()) ) ;
+        if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(lepton.px()),(1 + LeptonUncertainty)*(lepton.py()), (1 + LeptonUncertainty)*lepton.pz()  ,(1 + LeptonUncertainty)*(lepton.energy()) ) ;
+        else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(lepton.px()),(1 - LeptonUncertainty)*(lepton.py()), (1 - LeptonUncertainty)*lepton.pz()  ,(1 - LeptonUncertainty)*(lepton.energy()) ) ;
         else std::cerr << "Invalid variation used in systematics, use up or down.";
       }
        else if (channel == "mu")  {
@@ -152,8 +152,8 @@ LeptonSystematicsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
         }
 
         double muon_energy = sqrt((asmuonPtr -> tunePMuonBestTrack() -> pt())*(asmuonPtr -> tunePMuonBestTrack() -> pt()) + (asmuonPtr -> tunePMuonBestTrack() -> pz())*(asmuonPtr -> tunePMuonBestTrack() -> pz()) + lepton.mass() * lepton.mass());
-        if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> px()),(1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> py()), asmuonPtr -> tunePMuonBestTrack() -> pz()  ,(1 + LeptonUncertainty)*muon_energy ) ;
-        else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> px()),(1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> py()), asmuonPtr -> tunePMuonBestTrack() -> pz()  ,(1 - LeptonUncertainty)*muon_energy ) ;
+        if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> px()),(1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> py()), (1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> pz())  ,(1 + LeptonUncertainty)*muon_energy ) ;
+        else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> px()),(1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> py()), (1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> pz())  ,(1 - LeptonUncertainty)*muon_energy ) ;
         else {
          std::cerr << "Invalid variation used in systematics, use up or down.";
          exit(0);
