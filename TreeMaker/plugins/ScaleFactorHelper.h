@@ -41,9 +41,8 @@ public:
 			int iBinPt, iBinEta;
 			double nom_SF;
 			double error_SF;
-			if(hist_mu_SF -> GetXaxis() -> FindBin(pt) != hist_mu_SF -> GetXaxis() -> GetNbins() + 1){
+			if(hist_mu_SF -> GetXaxis() -> FindBin(pt) != hist_mu_SF -> GetXaxis() -> GetNbins() + 1 && pt < 300.){
 				iBinPt = hist_mu_SF -> GetXaxis() -> FindBin(pt);
-				//else iBinPt = hist_mu_SF -> GetXaxis() -> GetNbins();
 				iBinEta = hist_mu_SF -> GetYaxis() -> FindBin(eta);
 				nom_SF = hist_mu_SF -> GetBinContent(iBinPt,iBinEta);
 				error_SF = hist_mu_SF -> GetBinError(iBinPt,iBinEta);
