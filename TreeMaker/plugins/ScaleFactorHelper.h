@@ -39,18 +39,28 @@ public:
 		{		
 
 			int iBinPt, iBinEta;
-			if(hist_mu_SF -> GetXaxis() -> FindBin(pt) != hist_mu_SF -> GetXaxis() -> GetNbins() + 1) iBinPt = hist_mu_SF -> GetXaxis() -> FindBin(pt);
-			else iBinPt = hist_mu_SF -> GetXaxis() -> GetNbins();
-			iBinEta = hist_mu_SF -> GetYaxis() -> FindBin(eta);
-			double nom_SF = hist_mu_SF -> GetBinContent(iBinPt,iBinEta);
-			double error_SF = hist_mu_SF -> GetBinError(iBinPt,iBinEta);
+			double nom_SF;
+			double error_SF;
+			if(hist_mu_SF -> GetXaxis() -> FindBin(pt) != hist_mu_SF -> GetXaxis() -> GetNbins() + 1){
+				iBinPt = hist_mu_SF -> GetXaxis() -> FindBin(pt);
+				//else iBinPt = hist_mu_SF -> GetXaxis() -> GetNbins();
+				iBinEta = hist_mu_SF -> GetYaxis() -> FindBin(eta);
+				nom_SF = hist_mu_SF -> GetBinContent(iBinPt,iBinEta);
+				error_SF = hist_mu_SF -> GetBinError(iBinPt,iBinEta);
+			}
+			else if (pt >= 300.){
+				nom_SF = 0.975;
+				if (variation=="up") error_SF = 0.;
+				else if (variation=="down") error_SF = 0.975 - 0.975*0.975;
+				else error_SF = 0.;
 
+			}
+			else throw cms::Exception("InvalidValue") << " out of range values for muon scale factors, please check: pt " << pt << " eta: " << eta << std::endl;
 			if (type == "ID" && variation=="") SF = nom_SF;
-			else if (type == "ID" && variation=="up") SF = nom_SF + error_SF;
+			else if (type == "ID" && variation=="up") SF = nom_SF + error_SF;			
 			else if (type == "ID" && variation=="down") SF = nom_SF - error_SF;
 			else if (type == "trigger")	SF = Mu50::scaleFactor( pt, eta);
 			else throw cms::Exception("InvalidValue") <<  " not supported type of scale factor is used !!! " << std::endl;	
-			std::cout << SF << std::endl;
 		}
 
 		//electron is not yet supported
