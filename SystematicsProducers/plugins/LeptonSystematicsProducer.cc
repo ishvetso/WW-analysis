@@ -86,9 +86,9 @@ LeptonSystematicsProducer::LeptonSystematicsProducer(const edm::ParameterSet& iC
   variation(iConfig.getParameter<std::string>("variation"))
 {
    channel = iConfig.getParameter<std::string>("channel");
-   if (channel != "mu" && channel != "el") std::cerr << "Invalid channel used, use el or mu" << std::endl; 
+   if (channel != "mu" && channel != "el") throw cms::Exception("InvalidValue") << "Invalid channel used, use el or mu" << std::endl; 
    type = iConfig.getParameter<std::string>("type");  
-   if (type != "scale" && type != "resolution") std::cerr << "Invalid type of uncertainty used, use scale or resolution" << std::endl; 
+   if (type != "scale" && type != "resolution") throw cms::Exception("InvalidValue")  << "Invalid type of uncertainty used, use scale or resolution" << std::endl; 
    leptonsToken = consumes<edm::View<reco::Candidate> >(iConfig.getParameter<edm::InputTag>("leptonSource"));
    if (type == "resolution") genParticlesToken = mayConsume<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genSource"));
    produces<std::vector<reco::LeafCandidate>>();
@@ -139,10 +139,11 @@ LeptonSystematicsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
        //set the lepton uncertainty
        double LeptonUncertainty =0.;
        if (channel == "el") {
-        LeptonUncertainty = 0.001;//this  uncertainty is set temporary (after talking with Lindsey), not yet retrieved for 13 TeV
+        LeptonUncertainty = 0.014;//Zprime AN 2015 222 v7, page 19, figure 12 http://cms.cern.ch/iCMS/jsp/db_notes/noteInfo.jsp?cmsnoteid=CMS%20AN-2015/222
+
         if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(lepton.px()),(1 + LeptonUncertainty)*(lepton.py()), (1 + LeptonUncertainty)*lepton.pz()  ,(1 + LeptonUncertainty)*(lepton.energy()) ) ;
         else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(lepton.px()),(1 - LeptonUncertainty)*(lepton.py()), (1 - LeptonUncertainty)*lepton.pz()  ,(1 - LeptonUncertainty)*(lepton.energy()) ) ;
-        else std::cerr << "Invalid variation used in systematics, use up or down.";
+        else throw cms::Exception("InvalidValue") << "Invalid variation used in systematics, use up or down.";
       }
        else if (channel == "mu")  {
         LeptonUncertainty = 0.002;// 13 TeV uncertainty not yet available, use recommendation from Run I: if pt of muon < 200, uncertainty is 0.2%, else the uncertainty on the 1/pT bias is about 0.05 c/TeV : https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceResolution#General_recommendations_for_muon
@@ -154,15 +155,9 @@ LeptonSystematicsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
         double muon_energy = sqrt((asmuonPtr -> tunePMuonBestTrack() -> pt())*(asmuonPtr -> tunePMuonBestTrack() -> pt()) + (asmuonPtr -> tunePMuonBestTrack() -> pz())*(asmuonPtr -> tunePMuonBestTrack() -> pz()) + lepton.mass() * lepton.mass());
         if (variation == "up") SmearedP4.SetPxPyPzE((1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> px()),(1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> py()), (1 + LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> pz())  ,(1 + LeptonUncertainty)*muon_energy ) ;
         else if (variation == "down") SmearedP4.SetPxPyPzE((1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> px()),(1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> py()), (1 - LeptonUncertainty)*(asmuonPtr -> tunePMuonBestTrack() -> pz())  ,(1 - LeptonUncertainty)*muon_energy ) ;
-        else {
-         std::cerr << "Invalid variation used in systematics, use up or down.";
-         exit(0);
-        }
+        else throw cms::Exception("InvalidValue")  << "Invalid variation used in systematics, use up or down.";
        }
-       else {
-        std::cerr << "Invalid channel used, use el or mu" << std::endl;
-        exit(0);
-       }
+       else throw cms::Exception("InvalidValue") << "Invalid channel used, use el or mu" << std::endl;
        
        lepton.setP4(SmearedP4);
     }
@@ -205,10 +200,7 @@ LeptonSystematicsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
           pt = pt_reco;
           pz = pz_reco;
         }
-        else {
-          std::cerr << "Smth is wrong,  you have specied the wrong type of variation, probably ... Exit ..." << std::endl;
-          exit(0);
-        }
+        else throw cms::Exception("InvalidValue") << "Smth is wrong,  you have specied the wrong type of variation, probably ... Exit ..." << std::endl;
 
         SmearedP4.SetPx(pt * cos(asmuonPtr -> tunePMuonBestTrack()->phi()));
         SmearedP4.SetPy(pt * sin(asmuonPtr -> tunePMuonBestTrack()->phi()));
@@ -222,38 +214,44 @@ LeptonSystematicsProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
         pt_reco = aselectronPtr -> pt();
         pz_reco = aselectronPtr -> pz();
 
+
+        //do  matching 
+        for (unsigned iGen = 0; iGen < genParticles -> size(); iGen ++){
+        if ( deltaR(genParticles -> at(iGen), lepton) < 0.3 && lepton.pdgId() == genParticles -> at(iGen).pdgId() ) {
+         pt_gen = genParticles -> at(iGen).pt();
+         pz_gen = genParticles -> at(iGen).pz();
+         }  
+        }
+
         const reco::CaloClusterPtr& seed = aselectronPtr -> superCluster()->seed();
         isEB = ( seed->seed().subdetId() == EcalBarrel );
-        double ElectronResUncertainty = 0.1* (isEB ? 0.02 : 0.04 );//http://arxiv.org/pdf/1502.02701v2.pdf
+        double ElectronResUncertainty = (isEB ? 0.0116 : 0.0161 );//Zprime AN 2015 222 v7, page 15, table 8 http://cms.cern.ch/iCMS/jsp/db_notes/noteInfo.jsp?cmsnoteid=CMS%20AN-2015/222
 
-        if ( variation == "up"){
-          pt = pt + ElectronResUncertainty*pt;
-          pz = pz + ElectronResUncertainty*pz;
+         if (pt_gen > 0.  && variation == "up") {
+          pt = pt_gen + (1. + ElectronResUncertainty)*(pt_reco - pt_gen);
+          pz = pz_gen + (1. + ElectronResUncertainty)*(pz_reco - pz_gen);
         }
-        else if (variation == "down"){
-          pt = pt - ElectronResUncertainty*pt;
-          pz = pz - ElectronResUncertainty*pz;
+        else if (pt_gen > 0. && variation == "down") {
+          pt = pt_gen + (1. - ElectronResUncertainty)*(pt_reco - pt_gen);
+          pz = pz_gen + (1. - ElectronResUncertainty)*(pz_reco - pz_gen);
         }
-        else {
-          std::cerr << "Invalid type of variation, use up or down" << std::endl;
-          exit(0);
+        else if (pt_gen ==  -1. && pz_gen == -1. && ( variation == "up" || variation == "down" ) ) {
+          pt = pt_reco;
+          pz = pz_reco;
         }
+        else throw cms::Exception("InvalidValue")  << "Invalid type of variation, use up or down" << std::endl;
 
        SmearedP4.SetPx(pt * cos(lepton.phi()));
        SmearedP4.SetPy(pt * sin(lepton.phi()));
        SmearedP4.SetPz(pz);
        SmearedP4.SetE(sqrt(pt*pt + pz*pz + (lepton.mass()) * (lepton.mass()) ) );
       }
-      else {
-        std::cerr << "Invalid channel used. Please use mu or el." << std::endl;
-        exit(0);
-      }
-
+      else throw cms::Exception("InvalidValue")  << "Invalid channel used. Please use mu or el." << std::endl;
 
      lepton.setP4(SmearedP4);
 
    }
-    else std::cerr <<  "Invalid type of uncertainty used, use scale or resolution" << std::endl;
+    else throw cms::Exception("InvalidValue") <<  "Invalid type of uncertainty used, use scale or resolution" << std::endl;
    outCollection -> push_back(lepton);
   
    iEvent.put(outCollection);
