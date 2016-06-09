@@ -1,6 +1,10 @@
 #ifndef PU_H
 #define PU_H
  std::vector<float> PU_data, PU_MC;
+
+ /* pileup is extracted with command (72 mb):
+ * pileupCalc.py -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/PileUp/pileup_latest.txt  --calcMode true --minBiasXsec 72000 --maxPileupBin 50 --numPileupBins 50  MyDataPileupHistogram.root
+ */
 float PU_data_f[50] = {
 			4.87096787115e-05 ,
 			0.000247523008608 ,
@@ -50,9 +54,13 @@ float PU_data_f[50] = {
 			1.35532040397e-16 ,
 			2.57998807107e-17 ,
 			4.66672024659e-18 ,
-			8.03329413261e-19
+			8.03329413261e-19,
+			1.29155723876e-19
 };
 
+/* MC distribution is taken from: 
+* SimGeneral/MixingModule/python/mix_2015_25ns_FallMC_matchData_PoissonOOTPU_cfi.py
+*/
 float PU_MC_f[50]  {
  				0.000108643,
                 0.000388957,
