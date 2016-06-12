@@ -757,16 +757,18 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    Wminus_gen_mass = Wminus_p4.M();
   }
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
-  iSetup.get<JetCorrectionsRecord>().get("AK8PFchs",JetCorParCollAK8);
+  if (isMC) {
+    iSetup.get<JetCorrectionsRecord>().get("AK8PFchs",JetCorParCollAK8);
 
-  JetCorrectorParameters const & JetCorPar = (*JetCorParCollAK8)["Uncertainty"];
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
+    JetCorrectorParameters const & JetCorPar = (*JetCorParCollAK8)["Uncertainty"];
+    JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
-  jecUnc->setJetEta((jets -> at(0)).eta());
-  jecUnc->setJetPt((jets -> at(0)).pt()); // here you must use the CORRECTED jet pt
+    jecUnc->setJetEta((jets -> at(0)).eta());
+    jecUnc->setJetPt((jets -> at(0)).pt()); // here you must use the CORRECTED jet pt
 
-  JECunc = jecUnc->getUncertainty(true);
-
+    JECunc = jecUnc->getUncertainty(true);
+  }
+  else JECunc = 0.;
       
    //  Defining decay channel on the gen level
    N_had_Wgen  = 0, N_lep_Wgen = 0 ;
