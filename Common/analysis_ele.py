@@ -16,7 +16,7 @@ process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
-process.GlobalTag.globaltag = '76X_dataRun2_16Dec2015_v0'
+process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v8'
 
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
@@ -89,7 +89,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     triggers = cms.InputTag("TriggerResults","","HLT"),
                                     isMC = cms.bool(False),
                                     BtagEffFile = cms.string(""),
-		                    isSignal = cms.bool(False),
+		                            isSignal = cms.bool(False),
                                     channel = cms.string("el")
                                     )
 
@@ -104,7 +104,7 @@ process.analysis = cms.Path(process.NoiseFilters +  process.METele +  process.eg
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/data/Run2015D/SingleElectron/MINIAOD/16Dec2015-v1/20000/00050EF1-F9A6-E511-86B2-0025905A48D0.root'),
+    fileNames = cms.untracked.vstring('/store/data/Run2016B/SingleElectron/MINIAOD/PromptReco-v2/000/273/150/00000/0A6284C7-D719-E611-93E6-02163E01421D.root'),
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")

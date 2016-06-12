@@ -16,7 +16,7 @@ process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
-process.GlobalTag.globaltag = '76X_dataRun2_16Dec2015_v0'
+process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v8'
 
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
@@ -102,7 +102,7 @@ process.analysis = cms.Path(process.NoiseFilters +  process.TriggerMuon + proces
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/data/Run2015C_25ns/SingleMuon/MINIAOD/16Dec2015-v1/00000/002C22D4-E1AF-E511-AE8E-001E673971CA.root')
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/data/Run2015C_25ns/SingleMuon/MINIAOD/16Dec2015-v1/00000/002C22D4-E1AF-E511-AE8E-001E673971CA.root')
     
 )
 
