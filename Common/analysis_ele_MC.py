@@ -17,7 +17,7 @@ process.load("aTGCsAnalysis.Common.leptonicW_cff")
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
-process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_RunIIFall15DR76_v1'
+process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_2016_miniAODv2'
 
 process.GenWeights = cms.EDAnalyzer("GenWeights",
             genInfo = cms.InputTag("generator"),
@@ -41,7 +41,7 @@ dataFormat = DataFormat.MiniAOD
 switchOnVIDElectronIdProducer(process, dataFormat)
 
 # define which IDs we want to produce
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV61_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
 
 #add them to the VID producer
 for idmod in my_id_modules:
@@ -116,7 +116,7 @@ process.analysis = cms.Path(process.GenWeights + process.NoiseFilters + process.
 #process.maxEvents.input = 1000
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/mc/RunIIFall15MiniAODv2/TTJets_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/40000/624CCA85-D5D0-E511-9858-0CC47A4D76AC.root'),
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/mc/RunIISpring16MiniAODv2/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1/00000/002825F6-8D1E-E611-8276-002481E94B26.root'),
     
 )
 
