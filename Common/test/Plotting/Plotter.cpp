@@ -231,7 +231,7 @@ void Plotter::Plotting(std::string OutPrefix_)
         signalHistPerParNegative_SystDown[SignalParameters.at(iPar)][theSyst] -> Sumw2();
       }
   
-  }
+  }//end of initialiazing histograms for signal positive and negative
 
 
   //begin loop over data files
@@ -352,7 +352,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       for(auto var = variables.begin(); var != variables.end() ; var++)
       {
 	       std::string vname = var->VarName;
-	       if(signalSelection -> EvalInstance()) signalHist[vname]->Fill(var->value(),totWeight*(aTGCWeights->at(1))*2300./20.);//check if the event passeds the selection, and if true fill the histogram
+	       if(signalSelection -> EvalInstance()) signalHist[vname]->Fill(var->value(),SignalSample.weight*totWeight*(aTGCWeights->at(6))*2300./20.);//check if the event passeds the selection, and if true fill the histogram
       }
       //start filling up hists for different aTGC points
       for (uint iPar =0; iPar < SignalParameters.size()  ; iPar ++)
