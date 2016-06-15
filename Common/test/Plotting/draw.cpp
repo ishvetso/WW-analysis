@@ -51,7 +51,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 	var.VarName = "jet_pt";
 	var.Title = "p_{T, jet}";
-	var.SetRange(200., 1000.);
+	var.SetRange(200., 800.);
 	variables.push_back(var);
 
 	var.VarName = "jet2_pt";
@@ -94,7 +94,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 	var.VarName = "W_mass";
 	var.Title = "m_{W lep}";
-	var.SetRange(75., 200.);
+	var.SetRange(75., 120.);
 	variables.push_back(var);
 
 	var.VarName = "W_mt";
@@ -259,7 +259,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	
 	
 	s.SetParameters("WW", MCSelection, kRed);
- 	s.SetFileNames( prefix + "WW_"+ channel + ".root");
+ 	s.SetFileNames( prefix + "WW-tot_"+ channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
 
@@ -269,13 +269,13 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	s.ReSet();
 
 	s.SetParameters("W+jets", MCSelection, kGreen);
- 	s.SetFileNames(prefix + "WJets_Ht100To200_" + channel + ".root");
- 	s.SetFileNames(prefix + "WJets_Ht200To400_" + channel + ".root");
- 	s.SetFileNames(prefix + "WJets_Ht400To600_" + channel + ".root");
- 	s.SetFileNames(prefix + "WJets_Ht600To800_" + channel + ".root");
- 	s.SetFileNames(prefix + "WJets_Ht800To1200_" + channel + ".root");
- 	s.SetFileNames(prefix + "WJets_Ht1200To2500_" + channel + ".root");
- 	s.SetFileNames(prefix + "WJets_Ht2500ToInf_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_HT-100To200-tot_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_HT-200To400-tot_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_HT-400To600_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_HT-600To800_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_HT-800To1200-tot_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_HT-1200To2500-tot_" + channel + ".root");
+ 	s.SetFileNames(prefix + "WJets_HT-2500ToInf-tot_" + channel + ".root");
  	//rescale W+jets to the normalization from the fit in the pruned jet mass side
  	if (channel == "ele")s.weight = 0.954;
  	else if (channel == "mu")s.weight = 0.99;
@@ -287,14 +287,14 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	s.ReSet();
 
 	s.SetParameters("ttbar", MCSelection, kOrange);
- 	s.SetFileNames(prefix + "ttbar-powheg_" + channel + ".root");
+ 	s.SetFileNames(prefix + "ttbar-powheg-tot_" + channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
 
 	s.SetParameters("Single Top", MCSelection, kBlue);
  	s.SetFileNames(prefix + "tW-ch-top_" + channel + ".root");
  	s.SetFileNames(prefix + "tW-ch-antitop_" + channel + ".root");
- 	s.SetFileNames(prefix + "t-ch_" + channel + ".root");
+ 	s.SetFileNames(prefix + "t-ch-tot_" + channel + ".root");
  	s.SetFileNames(prefix + "s-ch_" + channel + ".root");
 	samples.push_back(s);
 	s.ReSet();
@@ -302,9 +302,16 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	dataSample.SetParameters("data", DataSelection, kBlack);
  	dataSample.SetFileNames(prefix + "data-RunD_" + channel + ".root");
 
- 	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = 12 TeV^{-2}}", SignalSelection, kRed);
+ 	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = -12 TeV^{-2}, c_{W} = -20 TeV^{-2},c_{B} = -60 TeV^{-2}}", SignalSelection, kRed);
  	signalSample.SetFileNames(prefix + "WW-aTGC_"+ channel + ".root");
  	signalSample.SetFileNames(prefix + "WZ-aTGC_"+ channel + ".root");
+ 	//K factor to match NLO prediction (obtained from SM sample)
+ 	if (channel == "ele")signalSample.weight = 0.27;
+ 	else if (channel == "mu")signalSample.weight = 0.32;
+ 	else {
+ 		std::cerr << "Wrong channel, use ele or mu" << std::endl;
+ 		exit(0);
+ 	}
 
 	p.SetSamples(samples);
 	p.DataSample = dataSample;
