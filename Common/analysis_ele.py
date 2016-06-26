@@ -16,8 +16,15 @@ process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
+process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
+process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
+
 process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v8'
 
+process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
+process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
+process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
             noiseFilter = cms.InputTag("TriggerResults", "", "RECO"),
@@ -46,13 +53,13 @@ for idmod in my_id_modules:
 #
 
 process.ElectronVeto = cms.EDFilter("LeptonVeto",
-				    looseLeptonSrc = cms.InputTag("looseElectrons"),
-				    tightLeptonSrc = cms.InputTag("tightElectrons"),
+                    looseLeptonSrc = cms.InputTag("looseElectrons"),
+                    tightLeptonSrc = cms.InputTag("tightElectrons"),
                                     minNLoose = cms.int32(1),
                                     maxNLoose = cms.int32(1),
                                     minNTight = cms.int32(1),
                                     maxNTight = cms.int32(1),
-				   )
+                   )
 
 process.MuonVeto = cms.EDFilter("LeptonVeto",
             looseLeptonSrc = cms.InputTag("looseMuons"),
@@ -71,8 +78,8 @@ process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                 )
 
 process.jetSequence = cms.Sequence(process.fatJetsSequence +
-				                            process.jetFilter+
-                          				   process.AK4JetsSequence )
+                                            process.jetFilter+
+                                           process.AK4JetsSequence )
 
 
 process.treeDumper = cms.EDAnalyzer("TreeMaker",
@@ -89,7 +96,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     triggers = cms.InputTag("TriggerResults","","HLT"),
                                     isMC = cms.bool(False),
                                     BtagEffFile = cms.string(""),
-		                            isSignal = cms.bool(False),
+                                    isSignal = cms.bool(False),
                                     channel = cms.string("el")
                                     )
 
@@ -98,7 +105,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.NoiseFilters + process.TriggerElectron +  process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
+process.analysis = cms.Path(process.NoiseFilters + process.BadChargedCandidateFilter  + process.BadPFMuonFilter + process.TriggerElectron +  process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
 
 
 

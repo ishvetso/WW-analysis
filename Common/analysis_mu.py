@@ -16,7 +16,14 @@ process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
+process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
+process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
+
 process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v8'
+process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
+process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
+process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
 
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
@@ -89,7 +96,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     leptonSrc = cms.InputTag("tightMuons"),
                                     isMC = cms.bool(False),
                                     BtagEffFile = cms.string(""),
-		                    isSignal = cms.bool(False),	
+		                            isSignal = cms.bool(False),	
                                     channel = cms.string("mu")
                                     )
 
@@ -98,7 +105,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.NoiseFilters + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
+process.analysis = cms.Path(process.NoiseFilters + process.BadChargedCandidateFilter  + process.BadPFMuonFilter  + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence +  process.treeDumper)
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),

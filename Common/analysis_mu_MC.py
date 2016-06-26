@@ -16,10 +16,16 @@ process.load("aTGCsAnalysis.Common.MET_cff")
 process.load("aTGCsAnalysis.Common.goodJets_cff")
 process.load("aTGCsAnalysis.Common.trigger_cff")
 process.load("aTGCsAnalysis.Common.leptonicW_cff")
-
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
+process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
+process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
+
 process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_2016_miniAODv2'
+process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
+process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
+process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
 
 process.GenWeights = cms.EDAnalyzer("GenWeights",
             genInfo = cms.InputTag("generator"),
@@ -111,7 +117,7 @@ process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 process.metSequenceSystematics = CreateWLepWithSystematicsSequence(process, "mu")
 
 # PATH
-process.analysis = cms.Path(process.GenWeights + process.NoiseFilters  + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.metSequenceSystematics +  process.treeDumper)
+process.analysis = cms.Path(process.GenWeights + process.NoiseFilters  + process.BadChargedCandidateFilter  + process.BadPFMuonFilter + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.metSequenceSystematics +  process.treeDumper)
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
