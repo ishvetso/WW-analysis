@@ -899,7 +899,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       LeptonSF_ID = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID");
       LeptonSF_ID_Up = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID", "up");
       LeptonSF_ID_Down = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "ID", "down");
-      LeptonSF_trigger = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "trigger");
+      //LeptonSF_trigger = ScaleFactorHelper_.getScaleFactor(Lepton.pt, std::abs(Lepton.eta), "mu", "trigger");
+      LeptonSF_trigger = 1.;
     }
    else if (channel == "el") {
       LeptonSF_ID = isEB?0.994:0.993;//slide 27: https://indico.cern.ch/event/482671/contributions/2154184/attachments/1268166/1878158/HEEP_ScaleFactor_Study_v4.pdf
