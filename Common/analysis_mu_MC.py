@@ -28,7 +28,7 @@ process.GenWeights = cms.EDAnalyzer("GenWeights",
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
             noiseFilter = cms.InputTag("TriggerResults", "", "PAT"),
-            filterNames = cms.vstring("Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter",  "Flag_CSCTightHaloFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_eeBadScFilter") 
+            filterNames = cms.vstring("Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter",  "Flag_globalTightHalo2016Filter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_eeBadScFilter") 
             )
 
 #
@@ -99,7 +99,7 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
                                     LHEEventProductSrcExternal = cms.InputTag("externalLHEProducer"),
                                     isMC = cms.bool(True),
                                     BtagEffFile = cms.string(""),
-				    isSignal = cms.bool(False),
+				                    isSignal = cms.bool(False),
                                     channel = cms.string("mu"),
                                     VTagSF = cms.double(0.915),
                                     )
@@ -111,11 +111,11 @@ process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 process.metSequenceSystematics = CreateWLepWithSystematicsSequence(process, "mu")
 
 # PATH
-process.analysis = cms.Path(process.GenWeights + process.NoiseFilters + process.TriggerMuon + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.metSequenceSystematics +  process.treeDumper)
+process.analysis = cms.Path(process.GenWeights + process.NoiseFilters  + process.METmu +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence + process.metSequenceSystematics +  process.treeDumper)
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/mc/RunIIFall15MiniAODv2/TTJets_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/00000/0098C21A-E1D0-E511-86A0-0026189438BC.root'),
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/mc/RunIISpring16MiniAODv2/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1/00000/002825F6-8D1E-E611-8276-002481E94B26.root'),
 )
 
 

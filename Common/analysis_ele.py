@@ -21,7 +21,7 @@ process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v8'
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
             noiseFilter = cms.InputTag("TriggerResults", "", "RECO"),
-            filterNames = cms.vstring("Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter",  "Flag_CSCTightHaloFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_eeBadScFilter") 
+            filterNames = cms.vstring("Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter",  "Flag_globalTightHalo2016Filter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_eeBadScFilter") 
             )
 #
 # Set up electron ID (VID framework)
@@ -98,13 +98,13 @@ process.treeDumper = cms.EDAnalyzer("TreeMaker",
 process.DecayChannel = cms.EDAnalyzer("DecayChannelAnalyzer")
 
 # PATH
-process.analysis = cms.Path(process.NoiseFilters +  process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
+process.analysis = cms.Path(process.NoiseFilters + process.TriggerElectron +  process.METele +  process.egmGsfElectronIDSequence +  process.leptonSequence +   process.jetSequence  + process.treeDumper)
 
 
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/data/Run2016B/SingleElectron/MINIAOD/PromptReco-v2/000/273/150/00000/0A6284C7-D719-E611-93E6-02163E01421D.root'),
+    fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/i/ishvetso/eos/cms/store/data/Run2016B/SingleElectron/MINIAOD/PromptReco-v2/000/273/158/00000/429D71B2-1D1A-E611-A5A9-02163E013926.root'),
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")

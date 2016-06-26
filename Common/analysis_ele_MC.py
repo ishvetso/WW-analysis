@@ -25,7 +25,7 @@ process.GenWeights = cms.EDAnalyzer("GenWeights",
 
 process.NoiseFilters = cms.EDFilter("NoiseFilter",
             noiseFilter = cms.InputTag("TriggerResults", "", "PAT"),
-            filterNames = cms.vstring("Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter",  "Flag_CSCTightHaloFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_eeBadScFilter") 
+            filterNames = cms.vstring("Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter",  "Flag_globalTightHalo2016Filter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_goodVertices", "Flag_eeBadScFilter") 
             )
 
 
