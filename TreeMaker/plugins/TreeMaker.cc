@@ -131,6 +131,8 @@ private:
   //Jets
   int NAK8jet, njets, nbtag;
   double jet_pt, jet_eta, jet_phi, jet_mass, jet_mass_pruned, jet_mass_softdrop, jet_tau2tau1, jet_tau3tau2, jet_tau1, jet_tau2, jet_tau3;
+  //PUPPI variables 
+  double jet_pt_PUPPI, jet_eta_PUPPI, jet_phi_PUPPI, jet_mass_PUPPI, jet_tau1_PUPPI, jet_tau2_PUPPI, jet_tau3_PUPPI, jet_tau21_PUPPI, jet_mass_softdrop_PUPPI, jet_tau21_DT;
 
   //gen info
   bool isMatched_;
@@ -540,6 +542,18 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   outTree_->Branch("jet_tau1",    &jet_tau1,    "jet_tau1/D"   );
   outTree_->Branch("jet_tau2",    &jet_tau2,    "jet_tau2/D"   );
   outTree_->Branch("jet_tau3",    &jet_tau3,    "jet_tau3/D"   );
+  //PUPPI variables
+  outTree_->Branch("jet_pt_PUPPI",    &jet_pt_PUPPI,    "jet_pt_PUPPI/D"   );
+  outTree_->Branch("jet_eta_PUPPI",    &jet_eta_PUPPI,    "jet_eta_PUPPI/D"   );
+  outTree_->Branch("jet_phi_PUPPI",    &jet_phi_PUPPI,    "jet_phi_PUPPI/D"   );
+  outTree_->Branch("jet_mass_PUPPI",    &jet_mass_PUPPI,    "jet_mass_PUPPI/D"   );
+  outTree_->Branch("jet_tau1_PUPPI",    &jet_tau1_PUPPI,    "jet_tau1_PUPPI/D"   );
+  outTree_->Branch("jet_tau2_PUPPI",    &jet_tau2_PUPPI,    "jet_tau2_PUPPI/D"   );
+  outTree_->Branch("jet_tau3_PUPPI",    &jet_tau3_PUPPI,    "jet_tau3_PUPPI/D"   );
+  outTree_->Branch("jet_tau21_PUPPI",    &jet_tau21_PUPPI,    "jet_tau21_PUPPI/D"   );
+  outTree_->Branch("jet_mass_softdrop_PUPPI",    &jet_mass_softdrop_PUPPI,    "jet_mass_softdrop_PUPPI/D"   );
+  outTree_->Branch("jet_tau21_DT",    &jet_tau21_DT,    "jet_tau21_DT/D"   );
+  
   if (isMC) {
      //JEC uncertainties
     outTree_->Branch("JECunc",    &JECunc,    "JECunc/D"   ); 
@@ -1224,6 +1238,27 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
     jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
+
+    //https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD2016#Jets
+    jet_pt_PUPPI = jets->at(0).userFloat("ak8PFJetsPuppiValueMap:pt");
+    jet_eta_PUPPI = jets->at(0).userFloat("ak8PFJetsPuppiValueMap:eta");
+    jet_phi_PUPPI = jets->at(0).userFloat("ak8PFJetsPuppiValueMap:phi");
+    jet_mass_PUPPI = jets->at(0).userFloat("ak8PFJetsPuppiValueMap:mass");
+    jet_tau1_PUPPI = jets->at(0).userFloat("ak8PFJetsPuppiValueMap:NjettinessAK8PuppiTau1");
+    jet_tau2_PUPPI = jets->at(0).userFloat("ak8PFJetsPuppiValueMap:NjettinessAK8PuppiTau2");
+    jet_tau3_PUPPI = jets->at(0).userFloat("ak8PFJetsPuppiValueMap:NjettinessAK8PuppiTau3");
+    jet_tau21_PUPPI = jet_tau2_PUPPI/jet_tau1_PUPPI;
+
+
+    TLorentzVector puppi_softdrop,puppi_softdrop_subjet;
+    auto const & sdSubjetsPuppi = jets->at(0).subjets("SoftDropPuppi");
+    for ( auto const & it : sdSubjetsPuppi ) 
+    {
+      puppi_softdrop_subjet.SetPtEtaPhiM(it->pt(),it->eta(),it->phi(),it->mass());
+      puppi_softdrop+=puppi_softdrop_subjet;
+    }
+    jet_mass_softdrop_PUPPI = puppi_softdrop.M();
+    jet_tau21_DT = jet_tau21_PUPPI + 0.063*std::log(jet_pt_PUPPI*jet_pt_PUPPI/jet_mass_PUPPI);
 
     if(isMC)
     {
