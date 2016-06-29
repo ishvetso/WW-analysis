@@ -238,15 +238,15 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   BTagHelper_(iConfig.getParameter<std::string>("BtagEffFile"))
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
-  edm::FileInPath L1MC("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_MC_L1FastJet_AK8PFchs.txt");
-  edm::FileInPath L2MC("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L2Relative_AK8PFchs.txt");
-  edm::FileInPath L3MC("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L3Absolute_AK8PFchs.txt");
+  edm::FileInPath L1MC("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_MC_L1FastJet_AK8PFchs.txt");
+  edm::FileInPath L2MC("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_MC_L2Relative_AK8PFchs.txt");
+  edm::FileInPath L3MC("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_MC_L3Absolute_AK8PFchs.txt");
   
 
-  edm::FileInPath L1Data("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L1FastJet_AK8PFchs.txt");
-  edm::FileInPath L2Data("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L2Relative_AK8PFchs.txt");
-  edm::FileInPath L3Data("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L3Absolute_AK8PFchs.txt");
-  edm::FileInPath L2L3ResData("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_L2L3Residual_AK8PFchs.txt"); 
+  edm::FileInPath L1Data("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_L1FastJet_AK8PFchs.txt");
+  edm::FileInPath L2Data("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_L2Relative_AK8PFchs.txt");
+  edm::FileInPath L3Data("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_L3Absolute_AK8PFchs.txt");
+  edm::FileInPath L2L3ResData("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_L2L3Residual_AK8PFchs.txt"); 
   std::vector<std::string> jecAK8PayloadNamesMC_, jecAK8PayloadNamesMC_L2L3_, jecAK8PayloadNamesData_,jecAK8PayloadNamesData_L2L3_;
   
   if (isMC){
@@ -837,8 +837,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     JECunc = jecUnc->getUncertainty(true);
   }
   else JECunc = 0.;*/
-  edm::FileInPath UncertaintyMC("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_MC_Uncertainty_AK8PFchs.txt");
-  edm::FileInPath UncertaintyData("aTGCsAnalysis/TreeMaker/data/Fall15_25nsV2_DATA_Uncertainty_AK8PFchs.txt"); 
+  edm::FileInPath UncertaintyMC("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_MC_Uncertainty_AK8PFchs.txt");
+  edm::FileInPath UncertaintyData("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_Uncertainty_AK8PFchs.txt"); 
   JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(isMC?UncertaintyMC.fullPath():UncertaintyData.fullPath());
   jecUnc->setJetEta(corrJet.eta());
   jecUnc->setJetPt(corrJet.pt()); // here you must use the CORRECTED jet pt
