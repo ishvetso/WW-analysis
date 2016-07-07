@@ -1,5 +1,5 @@
 CC      = g++
-CFLAGS  = -g -lboost_program_options --std=c++11 `root-config --cflags` -O2 -I./ -I/afs/cern.ch/work/i/ishvetso/GitHub/IvanShvetsov/src/IvanShvetsov/CMS_stylistics 
+CFLAGS  = -g -lboost_program_options --std=c++11 `root-config --cflags` -O2 
 LDFLAGS = `root-config --libs`  -lASImage -lTreePlayer
 
 OBJ =  dumpEffPlot.o Sample.o CMS_lumi.o tdrstyle.o 
