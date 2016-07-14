@@ -1346,7 +1346,7 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   }  
   for (unsigned int iBtag = 0; iBtag < AK4Jets -> size(); iBtag ++)
   {
-    //WP for 8 TeV and preliminary. Should be updated at some point
+    //taken from: https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80X#Supported_Algorithms_and_Operati
     if(((AK4Jets -> at(iBtag)).bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")) > 0.935){
      nbtag ++;
     }
