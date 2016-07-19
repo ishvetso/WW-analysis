@@ -7,6 +7,7 @@ cmsrel CMSSW_8_0_11
 cd CMSSW_8_0_11/src
 cmsenv
 # checkout aTGC analysis code
+git cms-merge-topic -u cms-met:CMSSW_8_0_X-METFilterUpdate
 git clone -b 80X git@github.com:ishvetso/aTGCsAnalysis.git
 # Compile
 scram b -j 10
