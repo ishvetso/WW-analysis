@@ -3,8 +3,8 @@ Instructions to setup the aTGC analysis code
 
 ```
 This is the branch for 80X samples, summer 2016
-cmsrel CMSSW_8_0_11
-cd CMSSW_8_0_11/src
+cmsrel CMSSW_8_0_12
+cd CMSSW_8_0_12/src
 cmsenv
 # checkout aTGC analysis code
 git cms-merge-topic -u cms-met:CMSSW_8_0_X-METFilterUpdate
