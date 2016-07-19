@@ -207,7 +207,7 @@ private:
   ScaleFactorHelper ScaleFactorHelper_;
   JetResolutionSmearer<pat::Jet>JetResolutionSmearer_;
   //for JEC
-  boost::shared_ptr<FactorizedJetCorrector> jecAK8MC_,jecAK8Data_, jecAK8MC_L2L3_, jecAK8Data_L2L3_;
+  boost::shared_ptr<FactorizedJetCorrector> jecAK8MC_L2L3_, jecAK8Data_L2L3_;
   BTagHelper BTagHelper_;
   
 
@@ -238,7 +238,6 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   BTagHelper_(iConfig.getParameter<std::string>("BtagEffFile"))
 {
   //loading JEC from text files, this is done because groomed mass should be corrected with L2L3 corrections, if this is temporary, that shouldn't be done, as we take corrections from GT
-  edm::FileInPath L1MC("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_MC_L1FastJet_AK8PFchs.txt");
   edm::FileInPath L2MC("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_MC_L2Relative_AK8PFchs.txt");
   edm::FileInPath L3MC("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_MC_L3Absolute_AK8PFchs.txt");
   
@@ -247,12 +246,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   edm::FileInPath L2Data("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_L2Relative_AK8PFchs.txt");
   edm::FileInPath L3Data("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_L3Absolute_AK8PFchs.txt");
   edm::FileInPath L2L3ResData("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_L2L3Residual_AK8PFchs.txt"); 
-  std::vector<std::string> jecAK8PayloadNamesMC_, jecAK8PayloadNamesMC_L2L3_, jecAK8PayloadNamesData_,jecAK8PayloadNamesData_L2L3_;
+  std::vector<std::string> jecAK8PayloadNamesMC_L2L3_,jecAK8PayloadNamesData_L2L3_;
   
   if (isMC){
-    jecAK8PayloadNamesMC_.push_back(L1MC.fullPath());
-    jecAK8PayloadNamesMC_.push_back(L2MC.fullPath()); 
-    jecAK8PayloadNamesMC_.push_back(L3MC.fullPath()); 
 
     jecAK8PayloadNamesMC_L2L3_.push_back(L2MC.fullPath()); 
     jecAK8PayloadNamesMC_L2L3_.push_back(L3MC.fullPath()); 
@@ -260,25 +256,13 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   }
 
   if(!isMC) {
-    jecAK8PayloadNamesData_.push_back(L1Data.fullPath());
-    jecAK8PayloadNamesData_.push_back(L2Data.fullPath()); 
-    jecAK8PayloadNamesData_.push_back(L3Data.fullPath()); 
-    jecAK8PayloadNamesData_.push_back(L2L3ResData.fullPath()); 
-
     jecAK8PayloadNamesData_L2L3_.push_back(L2Data.fullPath()); 
     jecAK8PayloadNamesData_L2L3_.push_back(L3Data.fullPath()); 
     jecAK8PayloadNamesData_L2L3_.push_back(L2L3ResData.fullPath()); 
   }
 
-  std::vector<JetCorrectorParameters> vParMC, vParData, vParMCL2L3, vParDataL2L3;
-  for ( std::vector<std::string>::const_iterator payloadBegin = jecAK8PayloadNamesMC_.begin(), payloadEnd = jecAK8PayloadNamesMC_.end(), ipayload = payloadBegin; ipayload != payloadEnd; ++ipayload ) {
-    JetCorrectorParameters parsMC(*ipayload);
-    vParMC.push_back(parsMC);
-  }
-  for ( std::vector<std::string>::const_iterator payloadBegin = jecAK8PayloadNamesData_.begin(), payloadEnd = jecAK8PayloadNamesData_.end(), ipayload = payloadBegin; ipayload != payloadEnd; ++ipayload ) {
-    JetCorrectorParameters parsData(*ipayload);
-    vParData.push_back(parsData);
-  }
+  std::vector<JetCorrectorParameters> vParMCL2L3, vParDataL2L3;
+
   for ( std::vector<std::string>::const_iterator payloadBegin = jecAK8PayloadNamesMC_L2L3_.begin(), payloadEnd = jecAK8PayloadNamesMC_L2L3_.end(), ipayload = payloadBegin; ipayload != payloadEnd; ++ipayload ) {
     JetCorrectorParameters parsMC(*ipayload);
     vParMCL2L3.push_back(parsMC);
@@ -289,9 +273,6 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     vParDataL2L3.push_back(parsData);
   }
   // Make the FactorizedJetCorrector
-  jecAK8MC_ = boost::shared_ptr<FactorizedJetCorrector> ( new FactorizedJetCorrector(vParMC) );
-  jecAK8Data_ = boost::shared_ptr<FactorizedJetCorrector> ( new FactorizedJetCorrector(vParData) );
-
   jecAK8MC_L2L3_ = boost::shared_ptr<FactorizedJetCorrector> ( new FactorizedJetCorrector(vParMCL2L3) );
   jecAK8Data_L2L3_ = boost::shared_ptr<FactorizedJetCorrector> ( new FactorizedJetCorrector(vParDataL2L3) );
 
@@ -801,31 +782,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    Wminus_gen_mass = Wminus_p4.M();
   }
 
-   math::XYZTLorentzVector uncorrJet = (jets -> at(0)).correctedP4(0);
-   double JECAK8;
-   if (isMC){
-    jecAK8MC_->setJetEta( uncorrJet.eta() );
-    jecAK8MC_->setJetPt ( uncorrJet.pt() );
-    jecAK8MC_->setJetE  ( uncorrJet.energy() );
-    jecAK8MC_->setJetA  ( (jets -> at(0)).jetArea() );
-    jecAK8MC_->setRho   ( rho_ );
-    jecAK8MC_->setNPV   (  vertices->size());
-    JECAK8  = jecAK8MC_->getCorrection();
-
-  }
-  else {
-    jecAK8Data_->setJetEta( uncorrJet.eta() );
-    jecAK8Data_->setJetPt ( uncorrJet.pt() );
-    jecAK8Data_->setJetE  ( uncorrJet.energy() );
-    jecAK8Data_->setJetA  ( (jets -> at(0)).jetArea() );
-    jecAK8Data_->setRho   ( rho_ );
-    jecAK8Data_->setNPV   (  vertices->size()); 
-    JECAK8  = jecAK8Data_->getCorrection();
-  }
-   math::XYZTLorentzVector corrJet = JECAK8*(jets -> at(0)).correctedP4(0);
+  
 
 
-  /*edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
+  edm::ESHandle<JetCorrectorParametersCollection> JetCorParCollAK8;
   if (isMC) {
     iSetup.get<JetCorrectionsRecord>().get("AK8PFchs",JetCorParCollAK8);
 
@@ -836,13 +796,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     JECunc = jecUnc->getUncertainty(true);
   }
-  else JECunc = 0.;*/
-  edm::FileInPath UncertaintyMC("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_MC_Uncertainty_AK8PFchs.txt");
-  edm::FileInPath UncertaintyData("aTGCsAnalysis/TreeMaker/data/Spring16_25nsV3_DATA_Uncertainty_AK8PFchs.txt"); 
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(isMC?UncertaintyMC.fullPath():UncertaintyData.fullPath());
-  jecUnc->setJetEta(corrJet.eta());
-  jecUnc->setJetPt(corrJet.pt()); // here you must use the CORRECTED jet pt
-  JECunc = jecUnc->getUncertainty(true);
+  else JECunc = 0.;
+ 
       
    //  Defining decay channel on the gen level
    N_had_Wgen  = 0, N_lep_Wgen = 0 ;
@@ -1111,8 +1066,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     {
       deltaR_LeptonWJet = deltaR(Lepton.eta,Lepton.phi,(jets -> at(0)).eta(), (jets -> at(0)).phi()); 
       deltaPhi_LeptonMet = deltaPhi(Lepton.phi, METCand.phi);
-      deltaPhi_WJetMet = deltaPhi(corrJet.phi(), METCand.phi);
-      deltaPhi_WJetWlep = deltaPhi(corrJet.phi(), Wboson_lep.phi);
+      deltaPhi_WJetMet = deltaPhi(jets->at(0).phi(), METCand.phi);
+      deltaPhi_WJetWlep = deltaPhi(jets->at(0).phi(), Wboson_lep.phi);
       if (isMC){
         //Unclustered energy
         deltaPhi_LeptonMet_UnclEnUp = deltaPhi(Lepton.phi, MET_Phi_UnclEnUp);
@@ -1129,28 +1084,28 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
         //////////////////////
         //Unclustered energy
-        deltaPhi_WJetMet_UnclEnUp = deltaPhi(corrJet.phi(), MET_Phi_UnclEnUp);
-        deltaPhi_WJetMet_UnclEnDown = deltaPhi(corrJet.phi(), MET_Phi_UnclEnDown);
+        deltaPhi_WJetMet_UnclEnUp = deltaPhi(jets->at(0).phi(), MET_Phi_UnclEnUp);
+        deltaPhi_WJetMet_UnclEnDown = deltaPhi(jets->at(0).phi(), MET_Phi_UnclEnDown);
         //JEC
-        deltaPhi_WJetMet_JECUp = deltaPhi(corrJet.phi(), MET_Phi_JECUp);
-        deltaPhi_WJetMet_JECDown = deltaPhi(corrJet.phi(), MET_Phi_JECDown);
+        deltaPhi_WJetMet_JECUp = deltaPhi(jets->at(0).phi(), MET_Phi_JECUp);
+        deltaPhi_WJetMet_JECDown = deltaPhi(jets->at(0).phi(), MET_Phi_JECDown);
         //lepton energy scale
-        deltaPhi_WJetMet_LeptonEnUp = deltaPhi(corrJet.phi(), MET_Phi_LeptonEnUp);
-        deltaPhi_WJetMet_LeptonEnDown = deltaPhi(corrJet.phi(), MET_Phi_LeptonEnDown);
+        deltaPhi_WJetMet_LeptonEnUp = deltaPhi(jets->at(0).phi(), MET_Phi_LeptonEnUp);
+        deltaPhi_WJetMet_LeptonEnDown = deltaPhi(jets->at(0).phi(), MET_Phi_LeptonEnDown);
         //JER
-        deltaPhi_WJetMet_JERUp = deltaPhi(corrJet.phi(), MET_Phi_JERUp);
-        deltaPhi_WJetMet_JERDown = deltaPhi(corrJet.phi(), MET_Phi_JERDown);
+        deltaPhi_WJetMet_JERUp = deltaPhi(jets->at(0).phi(), MET_Phi_JERUp);
+        deltaPhi_WJetMet_JERDown = deltaPhi(jets->at(0).phi(), MET_Phi_JERDown);
 
         //////////////////////
         //Unclustered energy
-        deltaPhi_WJetWlep_UnclEnUp = deltaPhi(corrJet.phi(), SystMap.at("UnclusteredEnUp").Phi());
-        deltaPhi_WJetWlep_UnclEnDown = deltaPhi(corrJet.phi(), SystMap.at("UnclusteredEnDown").Phi());
+        deltaPhi_WJetWlep_UnclEnUp = deltaPhi(jets->at(0).phi(), SystMap.at("UnclusteredEnUp").Phi());
+        deltaPhi_WJetWlep_UnclEnDown = deltaPhi(jets->at(0).phi(), SystMap.at("UnclusteredEnDown").Phi());
         //JEC
-        deltaPhi_WJetWlep_JECUp = deltaPhi(corrJet.phi(), SystMap.at("JetEnUp").Phi());
-        deltaPhi_WJetWlep_JECDown = deltaPhi(corrJet.phi(), SystMap.at("JetEnDown").Phi());
+        deltaPhi_WJetWlep_JECUp = deltaPhi(jets->at(0).phi(), SystMap.at("JetEnUp").Phi());
+        deltaPhi_WJetWlep_JECDown = deltaPhi(jets->at(0).phi(), SystMap.at("JetEnDown").Phi());
         //lepton energy scale
-        deltaPhi_WJetWlep_LeptonEnUp = deltaPhi(corrJet.phi(), SystMap.at("LeptonEnUp").Phi());
-        deltaPhi_WJetWlep_LeptonEnDown = deltaPhi(corrJet.phi(), SystMap.at("LeptonEnDown").Phi());
+        deltaPhi_WJetWlep_LeptonEnUp = deltaPhi(jets->at(0).phi(), SystMap.at("LeptonEnUp").Phi());
+        deltaPhi_WJetWlep_LeptonEnDown = deltaPhi(jets->at(0).phi(), SystMap.at("LeptonEnDown").Phi());
 
 
       }
@@ -1264,10 +1219,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     {
       isMatched_ = isMatchedToGenW(genParticles, jets->at(0));
       smearedJet = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0));
-      jet_pt = JECAK8*smearedJet.Pt();
+      jet_pt = smearedJet.Pt();
       jet_eta = smearedJet.Eta();
       jet_phi = smearedJet.Phi();
-      jet_mass = JECAK8*smearedJet.M();
+      jet_mass = smearedJet.M();
       //JEC uncertainty
       jet_pt_JECDown = (1 - JECunc)*jet_pt;
       jet_pt_JECUp   = (1 + JECunc)*jet_pt;
@@ -1283,10 +1238,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       smearedJetDown = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0),Variation::DOWN);  
       double JERUpCorrection = smearedJetUp.Pt()/smearedJet.Pt();
       double JERDownCorrection = smearedJetDown.Pt()/smearedJet.Pt();
-      jet_pt_JERUp = JECAK8*smearedJetUp.Pt();
-      jet_pt_JERDown = JECAK8*smearedJetDown.Pt();
-      jet_mass_JERUp = JECAK8*smearedJetUp.M();
-      jet_mass_JERDown = JECAK8*smearedJetDown.M();
+      jet_pt_JERUp = smearedJetUp.Pt();
+      jet_pt_JERDown = smearedJetDown.Pt();
+      jet_mass_JERUp = smearedJetUp.M();
+      jet_mass_JERDown = smearedJetDown.M();
       
       jet_mass_pruned_JERUp = JERUpCorrection*jet_mass_pruned;
       jet_mass_pruned_JERDown = JERDownCorrection*jet_mass_pruned;
@@ -1388,10 +1343,10 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //diboson mass
    ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > hadronicVp4, leptonicVp4, lvj_p4;
    //hadronic W
-   hadronicVp4.SetPt(JECAK8*(jets -> at(0)).pt());
+   hadronicVp4.SetPt((jets -> at(0)).pt());
    hadronicVp4.SetEta((jets -> at(0)).eta());
    hadronicVp4.SetPhi((jets -> at(0)).phi());
-   hadronicVp4.SetM(JECAK8*(jets -> at(0)).mass());
+   hadronicVp4.SetM((jets -> at(0)).mass());
    //leptonic W
    leptonicVp4.SetPt(Wboson_lep.pt);
    leptonicVp4.SetEta(Wboson_lep.eta);
