@@ -809,6 +809,8 @@ void Plotter::Plotting(std::string OutPrefix_)
     if (channel == ELECTRON) pt -> AddText("Electron channel");
     else if (channel == MUON) pt -> AddText("Muon channel");
     else std::cerr << "no channel set..." << std::endl;
+    pt -> AddText("");
+    pt -> AddText(AddTitleOnCanvas.c_str());
     pt -> Draw("SAME");
     
     pad1 -> SetTopMargin(0.07);
@@ -852,8 +854,8 @@ void Plotter::Plotting(std::string OutPrefix_)
         	}
     }
     if(withMC){
-      data_dif_MCerr -> SetMaximum(2.);
-      data_dif_MCerr ->  SetMinimum(-2.);
+      data_dif_MCerr -> SetMaximum(1.);
+      data_dif_MCerr ->  SetMinimum(-1.);
       data_dif_MCerr -> GetYaxis() -> SetNdivisions(5);
       data_dif_MCerr -> GetYaxis() -> SetLabelSize(0.15);
       data_dif_MCerr -> GetXaxis() -> SetLabelSize(0.2);

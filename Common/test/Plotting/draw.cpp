@@ -11,7 +11,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	var.logscale = false;
 	var.VarName = "Mjpruned";
 	var.Title = "m_{jet pruned}";
-	var.SetRange(40., 200.);
+	var.SetRange(40., 150.);
 	variables.push_back(var);
 
 	var.VarName = "jet_tau2tau1";
@@ -104,7 +104,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 	var.VarName = "pfMET";
 	var.Title = "MET";
-	var.SetRange(30., 900.);
+	var.SetRange(30., 200.);
 	variables.push_back(var);
 
 	var.VarName = "pfMETPhi";
@@ -186,7 +186,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	
 	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900.";
 	if (channel == "ele") defaulCuts += " && l_pt > 50. && pfMET > 80. )"; 
-	else if (channel == "mu") defaulCuts += " && l_pt > 50. && pfMET > 40. )"; 
+	else if (channel == "mu") defaulCuts += " && l_pt > 50.  && pfMET > 40. )"; 
 	else {
 		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
 		exit(0);
@@ -224,21 +224,25 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		MCSelection =  addOnCutWjets ;
 		SignalSelection = "( " + addOnCutWjets + " )";
 		DataSelection = addOnCutWjets;
+		p.AddTitleOnCanvas = "W+jets control region";
 	}
 	else if(region == "ttbar"){
 		MCSelection =  addOnCutTtbar;
 		SignalSelection = "( " + addOnCutTtbar + " )";
 		DataSelection = addOnCutTtbar;
+		p.AddTitleOnCanvas = "ttbar control region I";
 	}
 	else if(region == "TTBarEnrichedInclusive"){
 		MCSelection =  TTBarEnrichedInclusive;
 		SignalSelection = "( " + TTBarEnrichedInclusive + " )";
 		DataSelection = TTBarEnrichedInclusive;
+		p.AddTitleOnCanvas = "ttbar control region II";
 	}
 	else if(region == "TTBarEnrichedBTagVeto"){
 		MCSelection =  TTBarEnrichedBTagVeto;
 		SignalSelection = "( " + TTBarEnrichedBTagVeto + " )";
 		DataSelection = TTBarEnrichedBTagVeto;
+		p.AddTitleOnCanvas = "ttbar control region veto";
 	}
 	else if(region == "signal"){
 		MCSelection =  signalRegion;
@@ -277,7 +281,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
  	s.SetFileNames(prefix + "WJets_HT-1200To2500-tot_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_HT-2500ToInf-tot_" + channel + ".root");
  	//rescale W+jets to the normalization from the fit in the pruned jet mass side
- 	if (channel == "ele")s.weight = 0.954;
+ 	if (channel == "ele")s.weight = 0.88;
  	else if (channel == "mu")s.weight = 0.99;
  	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
@@ -288,6 +292,12 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 	s.SetParameters("ttbar", MCSelection, kOrange);
  	s.SetFileNames(prefix + "ttbar-powheg-tot_" + channel + ".root");
+ 	 if (channel == "ele")s.weight = 1.04;
+ 	else if (channel == "mu")s.weight = 0.99;
+ 	else {
+ 		std::cerr << "Wrong channel, use ele or mu" << std::endl;
+ 		exit(0);
+ 	}
 	samples.push_back(s);
 	s.ReSet();
 

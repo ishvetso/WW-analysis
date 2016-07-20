@@ -54,6 +54,7 @@ class Plotter
 	TFile *fileToWriteHists;
 	TFile *fileToWriteHistsSignal;
 	std::string varToWrite;
+	std::string AddTitleOnCanvas;
 	Var *varToWriteObj;
 	Plotter();	
 	Plotter(CHANNEL channel_);
