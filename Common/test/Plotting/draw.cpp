@@ -10,7 +10,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	Var var;
 	var.logscale = false;
 	var.VarName = "Mjpruned";
-	var.Title = "m_{jet pruned}";
+	var.Title = "M_{jet pruned} (GeV)";
 	var.SetRange(40., 150.);
 	variables.push_back(var);
 
@@ -25,7 +25,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	variables.push_back(var);
 
 	var.VarName = "MWW";
-	var.Title = "m_{WV}";
+	var.Title = "M_{WV} (GeV)";
 	var.SetRange(900., 3500.);
 	variables.push_back(var);
 
@@ -35,7 +35,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	variables.push_back(var);
 	
 	var.VarName = "l_pt";
-	var.Title = "p_{T, lepton}";
+	var.Title = "p_{T, lepton} (GeV)";
 	var.SetRange(50., 800.);
 	variables.push_back(var);
 
@@ -50,12 +50,12 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	variables.push_back(var);
 
 	var.VarName = "jet_pt";
-	var.Title = "p_{T, jet}";
+	var.Title = "p_{T, jet} (GeV)";
 	var.SetRange(200., 800.);
 	variables.push_back(var);
 
 	var.VarName = "jet2_pt";
-	var.Title = "p_{T, jet}";
+	var.Title = "p_{T, jet}  (GeV)";
 	var.SetRange(30., 100.);
 	variables.push_back(var);
 
@@ -75,7 +75,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	variables.push_back(var);
 
 	var.VarName = "W_pt";
-	var.Title = "p_{T, W}";
+	var.Title = "p_{T, W}  (GeV)";
 	var.SetRange(60., 1000.);
 	variables.push_back(var);
 
@@ -93,18 +93,18 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 
 	var.VarName = "W_mass";
-	var.Title = "m_{W lep}";
+	var.Title = "m_{W lep}  (GeV)";
 	var.SetRange(75., 120.);
 	variables.push_back(var);
 
 	var.VarName = "W_mt";
-	var.Title = "m_{T, W lep}";
+	var.Title = "m_{T, W lep} (GeV)";
 	var.SetRange(200., 1100.);
 	variables.push_back(var);
 
 	var.VarName = "pfMET";
-	var.Title = "MET";
-	var.SetRange(30., 200.);
+	var.Title = "MET (GeV)";
+	var.SetRange(40., 900.);
 	variables.push_back(var);
 
 	var.VarName = "pfMETPhi";
@@ -113,7 +113,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	variables.push_back(var);
 
 	var.VarName = "jet_mass_softdrop";
-	var.Title = "m_{jet softdrop}";
+	var.Title = "m_{jet softdrop} (GeV)";
 	var.SetRange(0., 250.);
 	variables.push_back(var);
 
@@ -181,7 +181,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	vector <Sample> samples;
 	p.varToWrite = "MWW";
 	p.SetVar(variables);
-	p.SetNbins(30);
+	p.SetNbins(20);
 
 	
 	string defaulCuts = "(jet_pt > 200. && jet_tau2tau1 < 0.6  && Mjpruned < 150. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900.";
