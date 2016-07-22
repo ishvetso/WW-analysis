@@ -102,7 +102,6 @@ private:
   double totWeight, totWeight_BTagUp, totWeight_BTagDown, totWeight_MistagUp, totWeight_MistagDown, totWeight_LeptonIDUp, totWeight_LeptonIDDown;
   double VTagSF;
   Particle Wboson_lep, METCand, Electron, Muon, Lepton;
-  double m_pruned;
 
   //Decay Info (gen level)
   DecayClass WDecayClass;
@@ -135,10 +134,13 @@ private:
   //gen info
   bool isMatched_;
   //JEC uncertainties
-  double JECunc;
+  double JECunc, JECL2L3;
   double jet_pt_JECUp, jet_pt_JECDown, jet_mass_JECUp, jet_mass_JECDown, jet_mass_pruned_JECUp, jet_mass_pruned_JECDown, jet_mass_softdrop_JECUp, jet_mass_softdrop_JECDown;
   //JER uncerainties
   double jet_pt_JERUp, jet_pt_JERDown, jet_mass_JERUp, jet_mass_JERDown, jet_mass_softdrop_JERUp, jet_mass_softdrop_JERDown, jet_mass_pruned_JERUp, jet_mass_pruned_JERDown;
+
+  //pruned mass uncertainty
+  double jet_mass_pruned_JMSUp, jet_mass_pruned_JMSDown;
   //AK4 jets
   double jet2_pt, jet2_btag, jet3_pt, jet3_btag;
   double jet2_eta,jet2_phi, jet3_eta, jet3_phi;
@@ -513,6 +515,7 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
   if (isMC) {
      //JEC uncertainties
     outTree_->Branch("JECunc",    &JECunc,    "JECunc/D"   ); 
+    outTree_->Branch("JECL2L3",    &JECL2L3,    "JECL2L3/D"   ); 
     outTree_->Branch("jet_pt_JECUp",    &jet_pt_JECUp,    "jet_pt_JECUp/D"   ); 
     outTree_->Branch("jet_pt_JECDown",    &jet_pt_JECDown,    "jet_pt_JECDown/D"   );  
     outTree_->Branch("jet_mass_JECUp",    &jet_mass_JECUp,    "jet_mass_JECUp/D"   ); 
@@ -532,6 +535,9 @@ TreeMaker::TreeMaker(const edm::ParameterSet& iConfig):
     outTree_->Branch("Mjpruned_JERDown",    &jet_mass_pruned_JERDown,    "Mjpruned_JERDown/D"   );  
     outTree_->Branch("jet_mass_softdrop_JERUp",    &jet_mass_softdrop_JERUp,    "jet_mass_softdrop_JERUp/D"   ); 
     outTree_->Branch("jet_mass_softdrop_JERDown",    &jet_mass_softdrop_JERDown,    "jet_mass_softdrop_JERDown/D"   );  
+    //pruned mass uncertainty
+    outTree_->Branch("Mjpruned_JMSUp",    &jet_mass_pruned_JMSUp,    "Mjpruned_JMSUp/D"   ); 
+    outTree_->Branch("Mjpruned_JMSDown",    &jet_mass_pruned_JMSDown,    "Mjpruned_JMSDown/D"   );  
     outTree_->Branch("isMatched",    &isMatched_,    "isMatched/B"   ); 
     //add info for AK4 jets
     outTree_ -> Branch("jetFlavours",  &jetFlavours); 
@@ -1146,14 +1152,17 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     jecAK8_->setJetA  ( (jets -> at(0)).jetArea() );
     jecAK8_->setRho   ( rho_ );
     jecAK8_->setNPV   (  vertices->size());
-    double corr = jecAK8_->getCorrection();
-    jet_mass_pruned = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
-    jet_mass_softdrop = corr*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
+    JECL2L3= jecAK8_->getCorrection();
+    jet_mass_pruned = JECL2L3*(jets -> at(0)).userFloat("ak8PFJetsCHSPrunedMass");
+    jet_mass_softdrop = JECL2L3*(jets -> at(0)).userFloat("ak8PFJetsCHSSoftDropMass");
 
     if(isMC)
     {
       isMatched_ = isMatchedToGenW(genParticles, jets->at(0));
       smearedJet = JetResolutionSmearer_.LorentzVectorWithSmearedPt(jets->at(0));
+      double JMS_pruned_uncertainty = sqrt(JECL2L3 - JECunc*JECunc + 0.02*0.02);//taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetWtagging
+      jet_mass_pruned_JMSUp = jet_mass_pruned+JMS_pruned_uncertainty;
+      jet_mass_pruned_JMSDown = jet_mass_pruned-JMS_pruned_uncertainty;
       jet_pt = smearedJet.Pt();
       jet_eta = smearedJet.Eta();
       jet_phi = smearedJet.Phi();
