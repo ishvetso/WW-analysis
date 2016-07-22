@@ -1396,6 +1396,8 @@ TreeMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     totWeight_BTagDown *= triggerWeightHLTEle27NoER;
     totWeight_MistagUp *= triggerWeightHLTEle27NoER; 
     totWeight_MistagDown *= triggerWeightHLTEle27NoER;
+    totWeight_LeptonIDUp *= triggerWeightHLTEle27NoER; 
+    totWeight_LeptonIDDown *= triggerWeightHLTEle27NoER;
   }
  
   outTree_->Fill();
