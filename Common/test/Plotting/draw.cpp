@@ -11,7 +11,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	var.logscale = false;
 	var.VarName = "Mjpruned";
 	var.Title = "M_{jet pruned} (GeV)";
-	var.SetRange(40., 150.);
+	var.SetRange(65., 105.);
 	variables.push_back(var);
 
 	var.VarName = "jet_tau2tau1";
@@ -248,6 +248,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		MCSelection =  signalRegion;
 		SignalSelection = "( " + signalRegion + " )";
 		DataSelection = signalRegion;
+		p.AddTitleOnCanvas = "signal region";
 	}
 	else std::cout << "This should not happen ..." << std::endl;
 
@@ -412,11 +413,7 @@ int main(int argc, char* argv[]){
 
     if(vm.count("wantToWriteHists")) wantToWriteHists = true;
     else wantToWriteHists = false;
-
-    if(withData && vm["CR"].as<std::string>() == "signal"){
-    	std::cerr << "You are blinded, dude" << std::endl;
-    	return 0;
-    }
+ 
 
    	draw(vm["channel"].as<std::string>(), vm["CR"].as<std::string>(), vm["output"].as<std::string>(), vm["input"].as<std::string>(), withData, withMC, withSystematics, withSignal, wantToWriteHists);
 }
