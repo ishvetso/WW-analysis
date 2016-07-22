@@ -87,6 +87,7 @@ SystHelper::SystHelper(std::string selection){
   //weighted systematics
   WeightNameSystematics.push_back("Mistag");
   WeightNameSystematics.push_back("BTag");
+  WeightNameSystematics.push_back("LeptonID");
   
 
   //set up systematically varied selections
@@ -116,7 +117,10 @@ SystHelper::SystHelper(std::string selection){
 }
 
 void SystHelper::initTree(TTree* tree, std::string prefixEventWeight="totEventWeight"){
+  if ( nominalSelection != NULL) delete nominalSelection;
+  std::cout << nominalSelection << std::endl;
   nominalSelection = new TTreeFormula("nominalSelection", NominalSelection.c_str(), tree);
+  std::cout << nominalSelection << std::endl;
   for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
     {
       if (selectionUpInFormula[ListOfSystematics[iSyst]]!=0) delete selectionUpInFormula[ListOfSystematics[iSyst]];
@@ -144,8 +148,7 @@ void SystHelper::initTree(TTree* tree, std::string prefixEventWeight="totEventWe
 
 void SystHelper::AddVar(Var* var, TH1D* refhist){
   std::string VarName = var->VarName;
-  //create histograms for each of systematics and defined if the variable should be varied (is affected)
-  // and if the histogram doesn't exist already
+  //create histograms for each of systematics 
   int Nbins = refhist->GetNbinsX();
   for (unsigned int iSyst = 0; iSyst < ListOfSystematics.size(); iSyst ++){      
     std::pair<std::string,std::string> key(VarName,ListOfSystematics.at(iSyst));
