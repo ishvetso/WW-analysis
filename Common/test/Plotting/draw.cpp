@@ -281,7 +281,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
  	s.SetFileNames(prefix + "WJets_HT-1200To2500-tot_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_HT-2500ToInf-tot_" + channel + ".root");
  	//rescale W+jets to the normalization from the fit in the pruned jet mass side
- 	if (channel == "ele")s.weight = 0.88;
+ 	if (channel == "ele")s.weight = 0.87;
  	else if (channel == "mu")s.weight = 0.99;
  	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
@@ -292,8 +292,8 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 	s.SetParameters("ttbar", MCSelection, kOrange);
  	s.SetFileNames(prefix + "ttbar-powheg-tot_" + channel + ".root");
- 	 if (channel == "ele")s.weight = 1.04;
- 	else if (channel == "mu")s.weight = 0.99;
+ 	 if (channel == "ele")s.weight = 1.05;
+ 	else if (channel == "mu")s.weight = 0.95;
  	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
  		exit(0);
