@@ -62,9 +62,7 @@ public:
 			else if (type == "ID" && variation=="up") SF = nom_SF + error_SF;			
 			else if (type == "ID" && variation=="down") SF = nom_SF - error_SF;
 			else if (type == "trigger")	SF = Mu50::scaleFactor( pt, eta);
-			else throw cms::Exception("InvalidValue") <<  " not supported type of scale factor is used !!! " << std::endl;	
-
-			std::cout  << "type : "<< type  << " eta: " << eta << " pt " << pt << " SF " << SF <<  " error_SF : " << error_SF << std::endl;
+			else throw cms::Exception("InvalidValue") <<  " not supported type of scale factor is used !!! " << std::endl;
 		}
 
 		//electron is not yet supported
