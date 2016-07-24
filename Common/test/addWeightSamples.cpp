@@ -34,12 +34,12 @@ int Nevents(std::string filename){
   }
   return sum;
 }
-void addWeight(string FileName, float xsection, float lumi)
+void addWeight(string FileName, float xsection, float lumi, std::string channel)
 {
   int Nevents_ = Nevents(FileName);
   TFile file(FileName.c_str(), "UPDATE");
   TTree * tree = (TTree*) file.Get("treeDumper/BasicTree");
-  double totWeight,totWeight_BTagUp,totWeight_BTagDown, totWeight_MistagUp, totWeight_MistagDown, totWeight_LeptonIDUp, totWeight_LeptonIDDown ;
+  double totWeight,totWeight_BTagUp,totWeight_BTagDown, totWeight_MistagUp, totWeight_MistagDown, totWeight_LeptonIDUp, totWeight_LeptonIDDown, LeptonSF_ID, LeptonSF_ID_Up, LeptonSF_ID_Down ;
   tree -> SetBranchAddress("totWeight", &totWeight);
   tree -> SetBranchAddress("totWeight_BTagUp", &totWeight_BTagUp);
   tree -> SetBranchAddress("totWeight_BTagDown", &totWeight_BTagDown);
@@ -47,6 +47,10 @@ void addWeight(string FileName, float xsection, float lumi)
   tree -> SetBranchAddress("totWeight_MistagDown", &totWeight_MistagDown);
   tree -> SetBranchAddress("totWeight_LeptonIDUp", &totWeight_LeptonIDUp);
   tree -> SetBranchAddress("totWeight_LeptonIDDown", &totWeight_LeptonIDDown);
+
+  tree -> SetBranchAddress("LeptonSF_ID", &LeptonSF_ID);
+  tree -> SetBranchAddress("LeptonSF_ID_Up", &LeptonSF_ID_Up);
+  tree -> SetBranchAddress("LeptonSF_ID_Down", &LeptonSF_ID_Down);
   double weightLumi = (xsection*lumi)/Nevents_;
   double totWeightWithLumi, totWeightWithLumi_MistagUp, totWeightWithLumi_MistagDown, totWeightWithLumi_BTagUp, totWeightWithLumi_BTagDown,  totWeightWithLumi_LeptonIDUp, totWeightWithLumi_LeptonIDDown;
   TBranch * br = tree -> Branch("totEventWeight", &totWeightWithLumi, "totEventWeight/D"); 
@@ -56,6 +60,7 @@ void addWeight(string FileName, float xsection, float lumi)
   TBranch * br_BTagDown = tree -> Branch("totEventWeight_BTagDown", &totWeightWithLumi_BTagDown, "totEventWeight_BTagDown/D");
   TBranch * br_LeptonIDUp = tree -> Branch("totEventWeight_LeptonIDUp", &totWeightWithLumi_LeptonIDUp, "totEventWeight_LeptonIDUp/D"); 
   TBranch * br_LeptonIDDown = tree -> Branch("totEventWeight_LeptonIDDown", &totWeightWithLumi_LeptonIDDown, "totEventWeight_LeptonIDDown/D");
+
   std::cout << FileName << std::endl;
   std::cout << "Number of events (effective):" << Nevents_ << std::endl;
   
@@ -67,8 +72,14 @@ void addWeight(string FileName, float xsection, float lumi)
     totWeightWithLumi_BTagDown = totWeight_BTagDown*weightLumi;
     totWeightWithLumi_MistagUp= totWeight_MistagUp*weightLumi;
     totWeightWithLumi_MistagDown = totWeight_MistagDown*weightLumi;
-    totWeightWithLumi_LeptonIDUp= totWeight_LeptonIDUp*weightLumi;
-    totWeightWithLumi_LeptonIDDown = totWeight_LeptonIDDown*weightLumi;
+    if (channel != "ele"){
+      totWeightWithLumi_LeptonIDUp= (LeptonSF_ID + sqrt((LeptonSF_ID_Up - LeptonSF_ID)*(LeptonSF_ID_Up - LeptonSF_ID) + LeptonSF_ID*LeptonSF_ID*0.012*0.012) )*totWeight*weightLumi/LeptonSF_ID;
+      totWeightWithLumi_LeptonIDDown= (LeptonSF_ID + sqrt((LeptonSF_ID_Down - LeptonSF_ID)*(LeptonSF_ID_Down - LeptonSF_ID) + LeptonSF_ID*LeptonSF_ID*0.012*0.012) )*totWeight*weightLumi/LeptonSF_ID;
+    }
+    else{
+      totWeightWithLumi_LeptonIDUp= 1.01*totWeight*weightLumi;
+      totWeightWithLumi_LeptonIDDown = 0.99*totWeight*weightLumi; 
+    }
     br -> Fill();
     br_MistagUp -> Fill();
     br_MistagDown -> Fill();
@@ -85,39 +96,39 @@ void addWeight(string FileName, float xsection, float lumi)
 void addWeightSamples()
 {
   double lumi = 2300.;
-  std::string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_12July2016/";
+  std::string prefix = "/afs/cern.ch/work/i/ishvetso/public/samples_76X_12July2016_v2/";
 
   //electron channel
-  addWeight(prefix + "WW-tot_ele.root", 49.997, lumi);
-  addWeight(prefix + "WZ_ele.root", 11.46, lumi);
-  addWeight(prefix + "s-ch_ele.root", 10.32*0.33, lumi);
-  addWeight(prefix + "t-ch-tot_ele.root", 216.99*0.33, lumi); 
-  addWeight(prefix + "tW-ch-top_ele.root", 35.6, lumi); 
-  addWeight(prefix + "tW-ch-antitop_ele.root", 35.6, lumi); 
-  addWeight(prefix + "WJets_HT-100To200-tot_ele.root", 1345.0*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-200To400-tot_ele.root", 359.7*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-400To600_ele.root", 48.91*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-600To800_ele.root", 12.05*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-800To1200-tot_ele.root", 5.501*1.21, lumi);
-  addWeight(prefix + "WJets_HT-1200To2500-tot_ele.root", 1.329*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-2500ToInf-tot_ele.root", 0.03216*1.21, lumi); 
-  addWeight(prefix + "ttbar-powheg-tot_ele.root", 831.76, lumi); 
+  addWeight(prefix + "WW-tot_ele.root", 49.997, lumi, "ele");
+  addWeight(prefix + "WZ_ele.root", 11.46, lumi, "ele");
+  addWeight(prefix + "s-ch_ele.root", 10.32*0.33, lumi, "ele");
+  addWeight(prefix + "t-ch-tot_ele.root", 216.99*0.33, lumi, "ele"); 
+  addWeight(prefix + "tW-ch-top_ele.root", 35.6, lumi, "ele"); 
+  addWeight(prefix + "tW-ch-antitop_ele.root", 35.6, lumi, "ele"); 
+  addWeight(prefix + "WJets_HT-100To200-tot_ele.root", 1345.0*1.21, lumi, "ele"); 
+  addWeight(prefix + "WJets_HT-200To400-tot_ele.root", 359.7*1.21, lumi, "ele"); 
+  addWeight(prefix + "WJets_HT-400To600_ele.root", 48.91*1.21, lumi, "ele"); 
+  addWeight(prefix + "WJets_HT-600To800_ele.root", 12.05*1.21, lumi, "ele"); 
+  addWeight(prefix + "WJets_HT-800To1200-tot_ele.root", 5.501*1.21, lumi, "ele");
+  addWeight(prefix + "WJets_HT-1200To2500-tot_ele.root", 1.329*1.21, lumi, "ele"); 
+  addWeight(prefix + "WJets_HT-2500ToInf-tot_ele.root", 0.03216*1.21, lumi, "ele"); 
+  addWeight(prefix + "ttbar-powheg-tot_ele.root", 831.76, lumi, "ele");
   //muon channel
 
-  addWeight(prefix + "WW-tot_mu.root", 49.997, lumi);
-  addWeight(prefix + "WZ_mu.root", 11.46, lumi);
-  addWeight(prefix + "s-ch_mu.root", 10.32*0.33, lumi);
-  addWeight(prefix + "t-ch-tot_mu.root", 216.99*0.33, lumi); 
-  addWeight(prefix + "tW-ch-top_mu.root", 35.6, lumi); 
-  addWeight(prefix + "tW-ch-antitop_mu.root", 35.6, lumi); 
-  addWeight(prefix + "WJets_HT-100To200-tot_mu.root", 1345.0*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-200To400-tot_mu.root", 359.7*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-400To600_mu.root", 48.91*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-600To800_mu.root", 12.05*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-800To1200-tot_mu.root", 5.501*1.21, lumi);
-  addWeight(prefix + "WJets_HT-1200To2500-tot_mu.root", 1.329*1.21, lumi); 
-  addWeight(prefix + "WJets_HT-2500ToInf-tot_mu.root", 0.03216*1.21, lumi); 
-  addWeight(prefix + "ttbar-powheg-tot_mu.root", 831.76, lumi); 
+  addWeight(prefix + "WW-tot_mu.root", 49.997, lumi, "mu");
+  addWeight(prefix + "WZ_mu.root", 11.46, lumi, "mu");
+  addWeight(prefix + "s-ch_mu.root", 10.32*0.33, lumi, "mu");
+  addWeight(prefix + "t-ch-tot_mu.root", 216.99*0.33, lumi, "mu"); 
+  addWeight(prefix + "tW-ch-top_mu.root", 35.6, lumi, "mu"); 
+  addWeight(prefix + "tW-ch-antitop_mu.root", 35.6, lumi, "mu"); 
+  addWeight(prefix + "WJets_HT-100To200-tot_mu.root", 1345.0*1.21, lumi, "mu"); 
+  addWeight(prefix + "WJets_HT-200To400-tot_mu.root", 359.7*1.21, lumi, "mu"); 
+  addWeight(prefix + "WJets_HT-400To600_mu.root", 48.91*1.21, lumi, "mu"); 
+  addWeight(prefix + "WJets_HT-600To800_mu.root", 12.05*1.21, lumi, "mu"); 
+  addWeight(prefix + "WJets_HT-800To1200-tot_mu.root", 5.501*1.21, lumi, "mu");
+  addWeight(prefix + "WJets_HT-1200To2500-tot_mu.root", 1.329*1.21, lumi, "mu"); 
+  addWeight(prefix + "WJets_HT-2500ToInf-tot_mu.root", 0.03216*1.21, lumi, "mu"); 
+  addWeight(prefix + "ttbar-powheg-tot_mu.root", 831.76, lumi, "mu");
   
  
 }
