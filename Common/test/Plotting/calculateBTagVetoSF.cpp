@@ -14,6 +14,8 @@ std::pair<double,double> getNEvents(Sample sample_, bool isMC=true)
 {	
 
 	TH1D * hist_temp  = new TH1D(sample_.Processname.c_str(), sample_.Processname.c_str(), 1, -10., 10.);
+	hist_temp -> Sumw2();
+	std::cout << hist_temp -> GetSumw2()-> GetAt(1) << std::endl;
 	for (unsigned int iFile = 0; iFile < sample_.filenames.size(); iFile++)
  	{	
  		TFile file_(sample_.filenames.at(iFile).c_str(), "READ");
@@ -22,7 +24,7 @@ std::pair<double,double> getNEvents(Sample sample_, bool isMC=true)
  		else  tree = (TTree*)file_.Get("treeDumper/BasicTree");
  		double charge_W_lep;
  		double totEventWeight;
- 		if(isMC)tree -> SetBranchAddress("totEventWeight3", &totEventWeight);
+ 		if(isMC)tree -> SetBranchAddress("totEventWeight", &totEventWeight);
  		tree -> SetBranchAddress("charge_W_lep", &charge_W_lep);
  		TTreeFormula *MCSampleSelection = new TTreeFormula("MCSampleSelection",sample_.selection.c_str(),tree);//that should be without any weights!
  		for (unsigned int iEntry = 0; iEntry < tree -> GetEntries(); iEntry ++)
@@ -36,7 +38,7 @@ std::pair<double,double> getNEvents(Sample sample_, bool isMC=true)
 
  	std::pair <double, double> Nevents;
  	Nevents.first = hist_temp -> Integral() ;
- 	Nevents.second = sqrt(hist_temp -> GetSumOfWeights() );
+ 	Nevents.second = sqrt(hist_temp -> GetSumw2()-> GetAt(1));
  	return Nevents;
  	delete hist_temp;
 }
@@ -44,7 +46,7 @@ std::pair<double,double> getNEvents(Sample sample_, bool isMC=true)
 
 void calculateBTagVetoSF()
 {
-	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_31March2016_v3/";
+	string prefix = "/afs/cern.ch/work/i/ishvetso/aTGCRun2/samples_76X_22July2016/";
 	Sample ttbar, wjets,dataSample;
 	string TTBarEnrichedBTagVeto = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0 ";
 	std::string channel = "ele";
@@ -56,16 +58,16 @@ void calculateBTagVetoSF()
 		exit(0);
 	}
 	ttbar.SetParameters("ttbar", TTBarEnrichedBTagVeto, kOrange);
- 	ttbar.SetFileNames(prefix + "ttbar_"+ channel + ".root");
+ 	ttbar.SetFileNames(prefix + "ttbar-powheg-tot_"+ channel + ".root");
 
  	wjets.SetParameters("W+jets", TTBarEnrichedBTagVeto, kGreen);
- 	wjets.SetFileNames(prefix + "WJets_Ht100To200_" + channel + ".root");
- 	wjets.SetFileNames(prefix + "WJets_Ht200To400_" + channel + ".root");
- 	wjets.SetFileNames(prefix + "WJets_Ht400To600_" + channel + ".root");
- 	wjets.SetFileNames(prefix + "WJets_Ht600To800_" + channel + ".root");
- 	wjets.SetFileNames(prefix + "WJets_Ht800To1200_" + channel + ".root");
- 	wjets.SetFileNames(prefix + "WJets_Ht1200To2500_" + channel + ".root");
- 	wjets.SetFileNames(prefix + "WJets_Ht2500ToInf_" + channel + ".root");
+ 	wjets.SetFileNames(prefix + "WJets_HT-100To200-tot_" + channel + ".root");
+ 	wjets.SetFileNames(prefix + "WJets_HT-200To400-tot_" + channel + ".root");
+ 	wjets.SetFileNames(prefix + "WJets_HT-400To600_" + channel + ".root");
+ 	wjets.SetFileNames(prefix + "WJets_HT-600To800_" + channel + ".root");
+ 	wjets.SetFileNames(prefix + "WJets_HT-800To1200-tot_" + channel + ".root");
+ 	wjets.SetFileNames(prefix + "WJets_HT-1200To2500-tot_" + channel + ".root");
+ 	wjets.SetFileNames(prefix + "WJets_HT-2500ToInf-tot_" + channel + ".root");
 
 
 	dataSample.SetParameters("data", TTBarEnrichedBTagVeto, kBlack);
@@ -113,6 +115,12 @@ void calculateBTagVetoSF()
  	double SF = SF_wjets/SF_ttbar;
  	double totSFerr = SF*sqrt(pow(SF_wjets_error/SF_wjets, 2) + pow(SF_ttbar_error/SF_ttbar, 2));
  	std::cout<< "SF: " << SF << " totSFerr :" << totSFerr << std::endl;
+ 	std::cout<< "data_veto: " << data_veto.first << " err :" << data_veto.second << std::endl;
+ 	std::cout<< "data_inclusive: " << data_inclusive.first << " err :" << data_inclusive.second << std::endl;
+ 	std::cout<< "ttbar_veto: " << ttbar_veto.first << " err :" << ttbar_veto.second << std::endl;
+ 	std::cout<< "ttbar_inclusive: " << ttbar_inclusive.first << " err :" << ttbar_inclusive.second << std::endl;
+ 	std::cout<< "wjets_veto: " << wjets_veto.first << " err :" << wjets_veto.second << std::endl;
+ 	std::cout<< "wjets_inclusive: " << wjets_inclusive.first << " err :" << wjets_inclusive.second << std::endl;
 
  	
 }
