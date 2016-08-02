@@ -10,7 +10,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	Var var;
 	var.logscale = false;
 	var.VarName = "Mjpruned";
-	var.Title = "M_{jet pruned} (GeV)";
+	var.Title = "M_{pruned} (GeV)";
 	var.SetRange(65., 105.);
 	variables.push_back(var);
 
@@ -202,7 +202,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		exit(0);
 	}
 
-	string TTBarEnrichedInclusive = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. ";
+	string TTBarEnrichedInclusive = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. ";
 	if (channel == "ele") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") TTBarEnrichedInclusive += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -210,7 +210,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		exit(0);
 	}
 
-	string TTBarEnrichedBTagVeto = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 40. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0 ";
+	string TTBarEnrichedBTagVeto = "(jet_pt > 200.  &&  jet_tau2tau1 < 0.6  && Mjpruned < 200. && Mjpruned > 155. && W_pt > 200.  && abs(deltaR_LeptonWJet) > pi/2. && abs(deltaPhi_WJetMet) > 2. && abs(deltaPhi_WJetWlep) > 2. && MWW > 900. && nbtag == 0 ";
 	if (channel == "ele") TTBarEnrichedBTagVeto += " && l_pt > 50. && pfMET > 80. )"; 
 	else if (channel == "mu") TTBarEnrichedBTagVeto += " && l_pt > 50. && pfMET > 40. )"; 
 	else {
@@ -230,7 +230,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		MCSelection =  addOnCutTtbar;
 		SignalSelection = "( " + addOnCutTtbar + " )";
 		DataSelection = addOnCutTtbar;
-		p.AddTitleOnCanvas = "ttbar control region I";
+		p.AddTitleOnCanvas = "ttbar control region";
 	}
 	else if(region == "TTBarEnrichedInclusive"){
 		MCSelection =  TTBarEnrichedInclusive;
@@ -282,8 +282,8 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
  	s.SetFileNames(prefix + "WJets_HT-1200To2500-tot_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_HT-2500ToInf-tot_" + channel + ".root");
  	//rescale W+jets to the normalization from the fit in the pruned jet mass side
- 	if (channel == "ele")s.weight = 0.87;
- 	else if (channel == "mu")s.weight = 0.99;
+ 	if (channel == "ele")s.weight = 0.91;
+ 	else if (channel == "mu")s.weight = 1.04;
  	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
  		exit(0);
@@ -291,10 +291,10 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	samples.push_back(s);
 	s.ReSet();
 
-	s.SetParameters("ttbar", MCSelection, kOrange);
+	s.SetParameters("t#bar{t}", MCSelection , kOrange);
  	s.SetFileNames(prefix + "ttbar-powheg-tot_" + channel + ".root");
- 	 if (channel == "ele")s.weight = 1.05;
- 	else if (channel == "mu")s.weight = 0.95;
+ 	 if (channel == "ele")s.weight = 1.04;
+ 	else if (channel == "mu")s.weight = 0.96;
  	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
  		exit(0);
@@ -310,7 +310,12 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	samples.push_back(s);
 	s.ReSet();
 
-	dataSample.SetParameters("data", DataSelection, kBlack);
+	if (channel == "ele") dataSample.SetParameters("CMS Data e#nu", DataSelection, kBlack);
+	else if (channel == "mu") dataSample.SetParameters("CMS Data #mu#nu", DataSelection, kBlack);
+	else {
+ 		std::cerr << "Wrong channel, use ele or mu" << std::endl;
+ 		exit(0);
+ 	}
  	dataSample.SetFileNames(prefix + "data-RunD_" + channel + ".root");
 
  	signalSample.SetParameters("#splitline{madgraph EWDim6}{c_{WWW} = -12 TeV^{-2}, c_{W} = -20 TeV^{-2},c_{B} = -60 TeV^{-2}}", SignalSelection, kRed);

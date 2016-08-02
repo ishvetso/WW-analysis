@@ -94,8 +94,14 @@ void Plotter::Plotting(std::string OutPrefix_)
   for (uint var_i = 0; var_i < variables.size(); ++ var_i )   {
     
     std::string vname = variables.at(var_i).VarName;
-    leg[vname] = new TLegend(0.8,0.5,0.98,0.93);
+    leg[vname] = new TLegend(0.7,0.6,0.85,0.9);
     leg[vname] ->  SetFillColor(kWhite);
+    leg[vname] ->  SetTextFont(42);
+    leg[vname] ->  SetTextSize(0.05);
+    leg[vname] ->  SetFillStyle(0);
+    leg[vname] ->  SetBorderSize(0);
+    leg[vname] ->  SetLineColor(0);
+    leg[vname] ->  SetLineStyle(0);
     
     if(withData){
       data[vname] = new TH1D((DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(),(DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
@@ -728,13 +734,13 @@ void Plotter::Plotting(std::string OutPrefix_)
     std::string vname = var -> VarName;
 
     if(withData){
-      leg[vname]->AddEntry(data[vname], "Data","pad1");
+      leg[vname]->AddEntry(data[vname], DataSample.Processname.c_str(),"pad1");
       data[vname]->SetFillColor(78);
       if (var -> logscale) data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
-      else  data[vname]-> GetYaxis() -> SetRangeUser(0., (data[vname] -> GetMaximum())*1.5);
+      else  data[vname]-> GetYaxis() -> SetRangeUser(0., (data[vname] -> GetMaximum())*1.8);
       data[vname]->GetYaxis()->SetTitle("Number of events");
       data[vname]->SetMarkerColor(DataSample.color);
-      data[vname]->SetMarkerStyle(21);
+      data[vname]->SetMarkerStyle(20);
       data[vname]->GetXaxis() -> SetLabelSize(0.);
       data[vname]->GetXaxis() -> SetLabelOffset(100000.);
     }
@@ -765,8 +771,8 @@ void Plotter::Plotting(std::string OutPrefix_)
     std::string vname = var -> VarName;
     if(withSystematics)systematics.eval(&(*var), hist_summed[vname]);
     c1=  new TCanvas("c1","canvas",1200,800);
-    pad1 = new TPad("pad1","This is pad1",0.0,0.25,0.8,1.0);
-    pad2 = new TPad("pad2","This is pad2",0.0,0.02,0.8,0.25);
+    pad1 = new TPad("pad1","This is pad1",0.0,0.25,1.,1.0);
+    pad2 = new TPad("pad2","This is pad2",0.0,0.02,1.,0.25);
     
     c1 -> cd();
     if(withSignal)leg[vname] -> AddEntry(signalHist[vname], SignalSample.Processname.c_str()); 	  	  	
@@ -803,12 +809,11 @@ void Plotter::Plotting(std::string OutPrefix_)
     }
     c1 -> cd();
     
-    TPaveText *pt = new TPaveText(0.15,0.83,0.35,0.93, "blNDC");
+    TPaveText *pt = new TPaveText(0.25,0.83,0.45,0.93, "blNDC");
     pt -> SetFillStyle(0);
     pt -> SetBorderSize(0);
-    if (channel == ELECTRON) pt -> AddText("Electron channel");
-    else if (channel == MUON) pt -> AddText("Muon channel");
-    else std::cerr << "no channel set..." << std::endl;
+    pt -> SetTextFont(42);
+    pt -> SetTextSize(0.05);
     pt -> AddText("");
     pt -> AddText(AddTitleOnCanvas.c_str());
     pt -> Draw("SAME");
