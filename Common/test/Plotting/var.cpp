@@ -36,3 +36,15 @@ Double_t Var::value(){
   return value_d;
 }
 
+bool Var::HasUnits(){
+  if( Title.find("GeV") !=std::string::npos ) return true;
+  else return false;
+}
+
+string Var::Unit(){
+  _Unit = "";
+  if (HasUnits()) _Unit = "GeV";
+  else _Unit = "";
+  return _Unit;
+}
+

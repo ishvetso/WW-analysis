@@ -24,8 +24,10 @@ struct Var
 {
 	string VarName;
   string Title;
+  string _Unit;
 	range Range;
   bool logscale;
+  bool HasUnits_;
 
   Double_t value_d;
   Int_t    value_i;
@@ -37,6 +39,8 @@ struct Var
 	
 	void SetRange(double xlow, double xhigh);
   void Initialize(TTree* tree);
+  bool HasUnits();
+  string Unit();
 };
 
 #endif
