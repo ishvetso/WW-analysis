@@ -20,6 +20,7 @@ SystHelper::SystHelper(std::string selection){
   ListOfSystematics.push_back("LeptonRes");
   ListOfSystematics.push_back("UnclEn");
   ListOfSystematics.push_back("JER");
+  ListOfSystematics.push_back("JMS");
 
   //JEC
   VarsJEC.push_back("W_pt");
@@ -73,9 +74,11 @@ SystHelper::SystHelper(std::string selection){
   VarsJER.push_back("jet_mass");
   VarsJER.push_back("Mjpruned");
   VarsJER.push_back("jet_mass_softdrop");
+  VarsJER.push_back("MWW");
 
-  //JetRes, please merge JER and JetRes!
-  VarsJetRes.push_back("MWW");
+  //JMS
+ // VarsJMS.push_back("Mjpruned");
+
 
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JEC", VarsJEC));
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("LeptonEn", VarsLeptonEn));
@@ -83,6 +86,7 @@ SystHelper::SystHelper(std::string selection){
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("UnclEn", VarsUnclEn));
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JER", VarsJER));
   VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JetRes", VarsJetRes));
+  VariablesAffected.insert(std::pair<std::string, std::vector<std::string>>("JMS", VarsJMS));
 
   //weighted systematics
   WeightNameSystematics.push_back("Mistag");
@@ -118,9 +122,9 @@ SystHelper::SystHelper(std::string selection){
 
 void SystHelper::initTree(TTree* tree, std::string prefixEventWeight="totEventWeight"){
   if ( nominalSelection != NULL) delete nominalSelection;
-  std::cout << nominalSelection << std::endl;
+  //std::cout << nominalSelection << std::endl;
   nominalSelection = new TTreeFormula("nominalSelection", NominalSelection.c_str(), tree);
-  std::cout << nominalSelection << std::endl;
+  //std::cout << nominalSelection << std::endl;
   for (uint iSyst =0; iSyst < ListOfSystematics.size(); iSyst++)
     {
       if (selectionUpInFormula[ListOfSystematics[iSyst]]!=0) delete selectionUpInFormula[ListOfSystematics[iSyst]];

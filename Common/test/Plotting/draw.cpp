@@ -11,7 +11,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	var.logscale = false;
 	var.VarName = "Mjpruned";
 	var.Title = "M_{pruned} (GeV)";
-	var.SetRange(65., 105.);
+	var.SetRange(40., 150.);
 	variables.push_back(var);
 
 	var.VarName = "jet_tau2tau1";
@@ -230,7 +230,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		MCSelection =  addOnCutTtbar;
 		SignalSelection = "( " + addOnCutTtbar + " )";
 		DataSelection = addOnCutTtbar;
-		p.AddTitleOnCanvas = "ttbar control region";
+		p.AddTitleOnCanvas = "t#bar{t} control region";
 	}
 	else if(region == "TTBarEnrichedInclusive"){
 		MCSelection =  TTBarEnrichedInclusive;
@@ -282,8 +282,8 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
  	s.SetFileNames(prefix + "WJets_HT-1200To2500-tot_" + channel + ".root");
  	s.SetFileNames(prefix + "WJets_HT-2500ToInf-tot_" + channel + ".root");
  	//rescale W+jets to the normalization from the fit in the pruned jet mass side
- 	if (channel == "ele")s.weight = 0.91;
- 	else if (channel == "mu")s.weight = 1.04;
+ 	if (channel == "ele")s.weight = 0.92;
+ 	else if (channel == "mu")s.weight = 1.06;
  	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
  		exit(0);
@@ -293,8 +293,8 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 	s.SetParameters("t#bar{t}", MCSelection , kOrange);
  	s.SetFileNames(prefix + "ttbar-powheg-tot_" + channel + ".root");
- 	 if (channel == "ele")s.weight = 1.04;
- 	else if (channel == "mu")s.weight = 0.96;
+ 	 if (channel == "ele")s.weight = 1.05;
+ 	else if (channel == "mu")s.weight = 0.98;
  	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
  		exit(0);

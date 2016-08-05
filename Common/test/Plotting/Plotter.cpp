@@ -115,7 +115,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     
     if(withMC){
       //for Monte-Carlo samples
-      hs[vname] = new THStack("hs",(";"+ vname +";Number of events").c_str());	  
+      hs[vname] = new THStack("hs",(";"+ vname +";Events").c_str());	
       // sum of all processes for a given variable
       hist_summed[vname] = new TH1D((vname + "summed").c_str(),( vname+ "summed").c_str(), Nbins, variables.at(var_i).Range.low, variables.at(var_i).Range.high);
       hist_summed[vname] -> Sumw2();
@@ -738,7 +738,15 @@ void Plotter::Plotting(std::string OutPrefix_)
       data[vname]->SetFillColor(78);
       if (var -> logscale) data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
       else  data[vname]-> GetYaxis() -> SetRangeUser(0., (data[vname] -> GetMaximum())*1.8);
-      data[vname]->GetYaxis()->SetTitle("Number of events");
+
+      float step = (var->Range.high - var->Range.low)/Nbins;
+      string TitleWithUnits ;
+      std:string stepToStr = std::to_string(step);
+      stepToStr.erase ( stepToStr.find_last_not_of('0') + 1, std::string::npos );
+      if (var->HasUnits()) TitleWithUnits = "/("+std::to_string(step)+" "+var->Unit()+")";
+      else TitleWithUnits = "";
+
+      data[vname]->GetYaxis()->SetTitle(("Events"+TitleWithUnits).c_str());
       data[vname]->SetMarkerColor(DataSample.color);
       data[vname]->SetMarkerStyle(20);
       data[vname]->GetXaxis() -> SetLabelSize(0.);
