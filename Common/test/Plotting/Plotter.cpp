@@ -743,7 +743,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       string TitleWithUnits ;
       std:string stepToStr = std::to_string(step);
       stepToStr.erase ( stepToStr.find_last_not_of('0') + 1, std::string::npos );
-      if (var->HasUnits()) TitleWithUnits = "/("+std::to_string(step)+" "+var->Unit()+")";
+      if (var->HasUnits()) TitleWithUnits = " /( "+stepToStr+" "+var->Unit()+" )";
       else TitleWithUnits = "";
 
       data[vname]->GetYaxis()->SetTitle(("Events"+TitleWithUnits).c_str());
