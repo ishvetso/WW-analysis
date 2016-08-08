@@ -809,6 +809,7 @@ void Plotter::Plotting(std::string OutPrefix_)
 	     data[vname] -> GetXaxis() -> Draw("SAME");
        if(!withSystematics && withMC)hist_summed[vname] -> GetXaxis() -> SetLabelSize(0.2);
        if(!withSystematics && withMC)hist_summed[vname] -> GetXaxis() -> Draw("SAME");
+       gPad->RedrawAxis();
     } 
     else { 
       if(withMC)hist_summed[vname]->Draw("hist");
