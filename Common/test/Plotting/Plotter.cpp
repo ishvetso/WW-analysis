@@ -798,7 +798,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     
     if(withData)
     {	
-    	 
+    	 pad1 -> cd();
        data[vname] -> Draw("E1");
 	     hs[vname]->Draw("hist SAME s(0,0)");
 	     hist_summed[vname] -> SetFillColor(kBlack);
@@ -900,7 +900,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     leg[vname]->Draw("SAME");
     
     
-    CMS_lumi( c1, 4, 0 );
+    CMS_lumi( pad1, 4, 0 );
     c1 -> SaveAs((OutPrefix_  + "png/"+ var->VarName + ".png").c_str());
     c1 -> Update();
     c1 -> Print((OutPrefix_  + "pdf/"+ var->VarName + ".pdf").c_str());
