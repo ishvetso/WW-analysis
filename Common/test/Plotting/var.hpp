@@ -28,6 +28,7 @@ struct Var
 	range Range;
   bool logscale;
   bool HasUnits_;
+  double YMax;
 
   Double_t value_d;
   Int_t    value_i;

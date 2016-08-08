@@ -736,14 +736,21 @@ void Plotter::Plotting(std::string OutPrefix_)
     if(withData){
       leg[vname]->AddEntry(data[vname], DataSample.Processname.c_str(),"pad1");
       data[vname]->SetFillColor(78);
-      if (var -> logscale) data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
-      else  data[vname]-> GetYaxis() -> SetRangeUser(0., (data[vname] -> GetMaximum())*1.8);
+      if (var-> YMax == -1. ) {
+        if (var -> logscale) data[vname]-> GetYaxis() -> SetRangeUser(0.1, (data[vname] -> GetMaximum())*7.);
+        else  data[vname]-> GetYaxis() -> SetRangeUser(0., (data[vname] -> GetMaximum())*1.8);
+      }
+      else{
+        if (var -> logscale) data[vname]-> GetYaxis() -> SetRangeUser(0.1,var->YMax);
+        else  data[vname]-> GetYaxis() -> SetRangeUser(0., var->YMax);   
+      }
 
       float step = (var->Range.high - var->Range.low)/Nbins;
       string TitleWithUnits ;
       std:string stepToStr = std::to_string(step);
       stepToStr.erase ( stepToStr.find_last_not_of('0') + 1, std::string::npos );
-      if (var->HasUnits()) TitleWithUnits = " /( "+stepToStr+" "+var->Unit()+" )";
+      if (boost::ends_with(stepToStr, ".")) stepToStr.erase ( stepToStr.end() -1, stepToStr.end() );
+      if (var->HasUnits()) TitleWithUnits = " / ( "+stepToStr+" "+var->Unit()+" )";
       else TitleWithUnits = "";
 
       data[vname]->GetYaxis()->SetTitle(("Events"+TitleWithUnits).c_str());

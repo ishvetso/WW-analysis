@@ -12,21 +12,24 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	var.VarName = "Mjpruned";
 	var.Title = "M_{pruned} (GeV)";
 	var.SetRange(40., 150.);
-	variables.push_back(var);
-
-	var.VarName = "jet_tau2tau1";
-	var.Title = "#tau_{21}";
-	var.SetRange(0., 0.7);
-	variables.push_back(var);
-
-	var.VarName = "jet_tau3tau2";
-	var.Title = "#tau_{32}";
-	var.SetRange(0., 1.);
+	var.YMax = 50.;
 	variables.push_back(var);
 
 	var.VarName = "MWW";
 	var.Title = "M_{WV} (GeV)";
 	var.SetRange(900., 3500.);
+	var.YMax = 150.;
+	variables.push_back(var);
+
+	var.VarName = "jet_tau2tau1";
+	var.Title = "#tau_{21}";
+	var.SetRange(0., 0.7);
+	var.YMax = -1.;
+	variables.push_back(var);
+
+	var.VarName = "jet_tau3tau2";
+	var.Title = "#tau_{32}";
+	var.SetRange(0., 1.);
 	variables.push_back(var);
 
 	var.VarName = "nPV";
@@ -219,30 +222,42 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	}
 
 	std::string MCSelection,SignalSelection,DataSelection;
+	std::string ChannelTitle;
+	if(channel == "ele"){
+		ChannelTitle = "#e#nu";
+	}
+	else if (channel == "mu"){
+	 ChannelTitle = "#mu#nu";
+	}
+ 	else {
+		std::cerr << "Invalid channel used, use ele or mu" << std::endl;
+		exit(0);
+	}
+
 
 	if (region == "WJets"){
 		MCSelection =  addOnCutWjets ;
 		SignalSelection = "( " + addOnCutWjets + " )";
 		DataSelection = addOnCutWjets;
-		p.AddTitleOnCanvas = "W+jets control region";
+		p.AddTitleOnCanvas = "W+jets control region "+ ChannelTitle;
 	}
 	else if(region == "ttbar"){
 		MCSelection =  addOnCutTtbar;
 		SignalSelection = "( " + addOnCutTtbar + " )";
 		DataSelection = addOnCutTtbar;
-		p.AddTitleOnCanvas = "t#bar{t} control region";
+		p.AddTitleOnCanvas = "t#bar{t} control region "+ ChannelTitle;
 	}
 	else if(region == "TTBarEnrichedInclusive"){
 		MCSelection =  TTBarEnrichedInclusive;
 		SignalSelection = "( " + TTBarEnrichedInclusive + " )";
 		DataSelection = TTBarEnrichedInclusive;
-		p.AddTitleOnCanvas = "ttbar control region II";
+		p.AddTitleOnCanvas = "ttbar control region II "+ ChannelTitle;
 	}
 	else if(region == "TTBarEnrichedBTagVeto"){
 		MCSelection =  TTBarEnrichedBTagVeto;
 		SignalSelection = "( " + TTBarEnrichedBTagVeto + " )";
 		DataSelection = TTBarEnrichedBTagVeto;
-		p.AddTitleOnCanvas = "ttbar control region veto";
+		p.AddTitleOnCanvas = "ttbar control region veto " + ChannelTitle;
 	}
 	else if(region == "signal"){
 		MCSelection =  signalRegion;
@@ -310,8 +325,8 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	samples.push_back(s);
 	s.ReSet();
 
-	if (channel == "ele") dataSample.SetParameters("CMS Data e#nu", DataSelection, kBlack);
-	else if (channel == "mu") dataSample.SetParameters("CMS Data #mu#nu", DataSelection, kBlack);
+	if (channel == "ele") dataSample.SetParameters("Data", DataSelection, kBlack);
+	else if (channel == "mu") dataSample.SetParameters("Data", DataSelection, kBlack);
 	else {
  		std::cerr << "Wrong channel, use ele or mu" << std::endl;
  		exit(0);
