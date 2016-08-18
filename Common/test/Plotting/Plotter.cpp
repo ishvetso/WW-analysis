@@ -105,7 +105,7 @@ void Plotter::Plotting(std::string OutPrefix_)
     
     if(withData){
       data[vname] = new TH1D((DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(),(DataSample.Processname + variables.at(var_i).VarName + "_data").c_str(), Nbins,variables.at(var_i).Range.low, variables.at(var_i).Range.high);
-      data[vname] -> Sumw2();
+      data[vname] -> Sumw2(kFALSE);
     }
     
     if(withSignal){
@@ -262,7 +262,20 @@ void Plotter::Plotting(std::string OutPrefix_)
 	       std::string vname = var->VarName;
 	       if(dataSelection -> EvalInstance())data[vname]->Fill(var->value());//check if the event passeds the selection, and if true fill the histogram
       }
+
     }
+    for(auto var = variables.begin(); var != variables.end() ; var++)
+      {
+         std::string vname = var->VarName;
+         for (unsigned int iBin = 1; iBin <= data[vname] -> GetNbinsX(); iBin++)
+         {
+           data[vname]->SetBinErrorOption(TH1::kPoisson);
+           double err_low = data[vname]->GetBinErrorLow(iBin);
+           double err_up =  data[vname]->GetBinErrorUp(iBin);
+         }
+      }
+
+
   } // end of the loop over data files
   
   //begin the loop over signal files      
@@ -846,7 +859,8 @@ void Plotter::Plotting(std::string OutPrefix_)
 
     
     TH1D *data_dif = new TH1D((vname + "_dif").c_str(),( vname + "_dif").c_str(), Nbins,var->Range.low, var->Range.high);
-    data_dif -> Sumw2();
+    data_dif -> Sumw2(kFALSE);
+    data_dif->SetBinErrorOption(TH1::kPoisson);
     TH1D *data_dif_MCerr = new TH1D((vname + "_dif_MCerror").c_str(),( vname + "_dif_MCerror").c_str(), Nbins,var->Range.low, var->Range.high);
     data_dif_MCerr -> Sumw2();
     data_dif_MCerr -> SetFillColor(kGray);
@@ -858,6 +872,8 @@ void Plotter::Plotting(std::string OutPrefix_)
         	else {
         	  data_dif -> SetBinContent(iBin, ((data[vname] -> GetBinContent(iBin)) - (hist_summed[vname] -> GetBinContent(iBin)))/(hist_summed[vname] -> GetBinContent(iBin)));
         	  data_dif -> SetBinError(iBin, (data[vname]-> GetBinError(iBin))/(hist_summed[vname] -> GetBinContent(iBin)));
+            double err_low = data_dif->GetBinErrorLow(iBin);
+            double err_up  = data_dif ->GetBinErrorUp(iBin);
         	}
      }
     }
