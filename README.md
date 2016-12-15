@@ -11,6 +11,10 @@ git cms-merge-topic Sam-Harper:HEEPV61 # to fix the drop of electron ID efficien
 git clone -b 76X git@github.com:ishvetso/aTGCsAnalysis.git
 # Compile
 scram b -j 10
+
+Samples (the last version):
+/afs/cern.ch/work/i/ishvetso/public/samples_76X_22July2016
+
 Plotting: code is located in aTGCsAnalysis/Common/test/Plotting/.
 To compile do:
 make
