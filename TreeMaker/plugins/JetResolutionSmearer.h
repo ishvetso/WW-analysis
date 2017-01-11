@@ -28,7 +28,7 @@ public:
 		parameters.setJetPt(jet.pt());
 		parameters.setJetEta(jet.eta());
 		parameters.setRho(rho);
-		double r = resolution_pt.getResolution(parameters);
+		double r = jet.pt()*resolution_pt.getResolution(parameters);
 		return r;
 	}
 	double resolutionPhi( T jet){
