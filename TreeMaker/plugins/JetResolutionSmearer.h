@@ -28,7 +28,7 @@ public:
 		parameters.setJetPt(jet.pt());
 		parameters.setJetEta(jet.eta());
 		parameters.setRho(rho);
-		double r = jet.pt()*resolution_pt.getResolution(parameters);
+		double r = jet.pt()*resolution_pt.getResolution(parameters);//NOTE:text files contain !relative! resolution for pt and absolute for phi. Make sure this doesn't change. 
 		return r;
 	}
 	double resolutionPhi( T jet){
