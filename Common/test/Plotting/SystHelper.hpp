@@ -17,6 +17,7 @@ private:
   std::vector<std::string> VarsUnclEn;
   std::vector<std::string> VarsJER;
   std::vector<std::string> VarsJetRes;
+  std::vector<std::string> VarsJMS;
   std::string NominalSelection;
  
   // histograms for varname, syst
@@ -33,7 +34,7 @@ private:
 
   // for selection from tree
   std::map<std::string, TTreeFormula*> selectionUpInFormula, selectionDownInFormula;
-  TTreeFormula *nominalSelection;
+  TTreeFormula *nominalSelection=NULL;
   //weights for systematics
   std::map<std::string, Var*> weightsUp;
   std::map<std::string, Var*> weightsDown;
