@@ -790,6 +790,8 @@ void Plotter::Plotting(std::string OutPrefix_)
       hist_per_process[key] -> SetLineColor(kBlack);
       hist_per_process[key] -> SetLineWidth(1.);
       leg[vname]->AddEntry(hist_per_process[key], (samples.at(process_i).Processname).c_str(),"f");
+      hist_summed[vname]->GetXaxis() -> SetLabelSize(0.);
+      hist_summed[vname]->GetXaxis() -> SetLabelOffset(100000.);
     }
   }
           
@@ -812,11 +814,12 @@ void Plotter::Plotting(std::string OutPrefix_)
     if(withData)
     {	
     	 pad1 -> cd();
-       data[vname] -> Draw("E1");
+       hist_summed[vname]-> GetYaxis() -> SetRangeUser(0., (hist_summed[vname] -> GetMaximum())*1.8); 
+       hist_summed[vname] -> Draw("E2 SAME");
+       data[vname] -> Draw("E1 SAME");
 	     hs[vname]->Draw("hist SAME s(0,0)");
 	     hist_summed[vname] -> SetFillColor(kBlack);
 	     hist_summed[vname] -> SetFillStyle(3018);
-	     hist_summed[vname] -> Draw("E2 SAME");
 	     if(withSignal)signalHist[vname] -> Draw("hist SAME");
 	     data[vname] -> Draw("E1 SAME");
 	     data[vname] -> GetXaxis() -> Draw("SAME");
