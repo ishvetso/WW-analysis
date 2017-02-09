@@ -742,7 +742,7 @@ void Plotter::Plotting(std::string OutPrefix_)
   }//end of cycle over processes
   
   
-  //condition histograms
+  //setting labels, ranges etc. on axes
   for(auto var = variables.begin(); var != variables.end() ; var++){
     std::string vname = var -> VarName;
 
@@ -795,9 +795,9 @@ void Plotter::Plotting(std::string OutPrefix_)
       hist_summed[vname]->GetXaxis() -> SetLabelSize(0.);
       hist_summed[vname]->GetXaxis() -> SetLabelOffset(100000.);
       if (var -> logscale)hist_summed[vname]-> GetYaxis() -> SetRangeUser(0.1, (hist_summed[vname] -> GetMaximum())*7); 
-      else hist_summed[vname]-> GetYaxis() -> SetRangeUser(0., (hist_summed[vname] -> GetMaximum())*1.8); 
+      else hist_summed[vname]-> GetYaxis() -> SetRangeUser(0., (hist_summed[vname] -> GetMaximum())*2.3); 
     }
-  }
+  }//end setting labels, ranges etc. on axes
           
   //cosmetics
   for(auto var = variables.begin(); var != variables.end() ; var++)
@@ -821,6 +821,7 @@ void Plotter::Plotting(std::string OutPrefix_)
        hist_summed[vname] -> Draw("E2 SAME");
        data[vname] -> Draw("E1 SAME");
 	     hs[vname]->Draw("hist SAME s(0,0)");
+       hist_summed[vname] -> Draw("E2 SAME");
 	     hist_summed[vname] -> SetFillColor(kBlack);
 	     hist_summed[vname] -> SetFillStyle(3018);
 	     if(withSignal)signalHist[vname] -> Draw("hist SAME");
