@@ -790,6 +790,7 @@ void Plotter::Plotting(std::string OutPrefix_)
       hist_per_process[key] -> SetLineColor(kBlack);
       hist_per_process[key] -> SetLineWidth(1.);
       leg[vname]->AddEntry(hist_per_process[key], (samples.at(process_i).Processname).c_str(),"f");
+      //so that we don't have labels on x-axis on the main pad
       hist_summed[vname]->GetXaxis() -> SetLabelSize(0.);
       hist_summed[vname]->GetXaxis() -> SetLabelOffset(100000.);
     }
