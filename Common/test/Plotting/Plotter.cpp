@@ -786,13 +786,16 @@ void Plotter::Plotting(std::string OutPrefix_)
       hist_summed[vname] -> Add(hist_per_process[key]);
       hist_per_process[key] -> SetFillColor(samples.at(process_i).color);
       hist_per_process[key] -> SetLineColor(samples.at(process_i).color);
-      //hist_per_process[key] -> GetYaxis() -> SetRangeUser(0.1, (hist_per_process[key] -> GetMaximum())*1.5);
       hist_per_process[key] -> SetLineColor(kBlack);
       hist_per_process[key] -> SetLineWidth(1.);
       leg[vname]->AddEntry(hist_per_process[key], (samples.at(process_i).Processname).c_str(),"f");
+    }
+    if (withMC){
       //so that we don't have labels on x-axis on the main pad
       hist_summed[vname]->GetXaxis() -> SetLabelSize(0.);
       hist_summed[vname]->GetXaxis() -> SetLabelOffset(100000.);
+      if (var -> logscale)hist_summed[vname]-> GetYaxis() -> SetRangeUser(0.1, (hist_summed[vname] -> GetMaximum())*7); 
+      else hist_summed[vname]-> GetYaxis() -> SetRangeUser(0., (hist_summed[vname] -> GetMaximum())*1.8); 
     }
   }
           
@@ -815,7 +818,6 @@ void Plotter::Plotting(std::string OutPrefix_)
     if(withData)
     {	
     	 pad1 -> cd();
-       hist_summed[vname]-> GetYaxis() -> SetRangeUser(0., (hist_summed[vname] -> GetMaximum())*1.8); 
        hist_summed[vname] -> Draw("E2 SAME");
        data[vname] -> Draw("E1 SAME");
 	     hs[vname]->Draw("hist SAME s(0,0)");
