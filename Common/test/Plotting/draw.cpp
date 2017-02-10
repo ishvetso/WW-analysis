@@ -224,7 +224,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	std::string MCSelection,SignalSelection,DataSelection;
 	std::string ChannelTitle;
 	if(channel == "ele"){
-		ChannelTitle = "#e#nu";
+		ChannelTitle = "e#nu";
 	}
 	else if (channel == "mu"){
 	 ChannelTitle = "#mu#nu";
@@ -263,7 +263,7 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 		MCSelection =  signalRegion;
 		SignalSelection = "( " + signalRegion + " )";
 		DataSelection = signalRegion;
-		p.AddTitleOnCanvas = "signal region";
+		p.AddTitleOnCanvas = "signal region " + ChannelTitle;
 	}
 	else std::cout << "This should not happen ..." << std::endl;
 
