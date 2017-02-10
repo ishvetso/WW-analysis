@@ -237,13 +237,13 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 
 	if (region == "WJets"){
 		MCSelection =  addOnCutWjets ;
-		SignalSelection = "( " + addOnCutWjets + " )";
+		SignalSelection = addOnCutWjets;
 		DataSelection = addOnCutWjets;
 		p.AddTitleOnCanvas = "W+jets control region "+ ChannelTitle;
 	}
 	else if(region == "ttbar"){
 		MCSelection =  addOnCutTtbar;
-		SignalSelection = "( " + addOnCutTtbar + " )";
+		SignalSelection = addOnCutTtbar;
 		DataSelection = addOnCutTtbar;
 		p.AddTitleOnCanvas = "t#bar{t} control region "+ ChannelTitle;
 	}
@@ -255,13 +255,13 @@ void draw(std::string channel, std::string region, std::string tag, string prefi
 	}
 	else if(region == "TTBarEnrichedBTagVeto"){
 		MCSelection =  TTBarEnrichedBTagVeto;
-		SignalSelection = "( " + TTBarEnrichedBTagVeto + " )";
+		SignalSelection =  TTBarEnrichedBTagVeto ;
 		DataSelection = TTBarEnrichedBTagVeto;
 		p.AddTitleOnCanvas = "ttbar control region veto " + ChannelTitle;
 	}
 	else if(region == "signal"){
 		MCSelection =  signalRegion;
-		SignalSelection = "( " + signalRegion + " )";
+		SignalSelection = signalRegion;
 		DataSelection = signalRegion;
 		p.AddTitleOnCanvas = "signal region " + ChannelTitle;
 	}
