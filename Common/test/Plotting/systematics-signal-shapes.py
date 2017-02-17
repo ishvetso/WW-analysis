@@ -274,12 +274,14 @@ def main(options):
 	high = 3500.
 	step = (high - low)/1000
 	for iATGC in POI:
-		legend = TLegend(0.7,0.7,0.9,0.8)
+		legend = TLegend(0.6,0.7,0.85,0.9)
+		legend.SetTextFont(42)
+		legend.SetTextSize(0.05)
 		legend.SetFillColor(kWhite)
 		if options.ch == "ele":
-			legend.SetHeader(options.cat + " , electron channel")
+			legend.SetHeader(options.cat + " , e#nu")
 		elif options.ch == "mu" :
-			legend.SetHeader(options.cat + " , muon channel")
+			legend.SetHeader(options.cat + " , #mu#nu")
 		else :
 			raise RuntimeError('channel not supported!')
 		integral = (math.exp(high*NominalValues["a_quad_" + iATGC + "_" + options.cat + "_" + options.ch ]) - math.exp(low*NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch ]))/NominalValues["a_quad_" + iATGC + "_" + options.cat + "_" + options.ch ]
@@ -302,11 +304,20 @@ def main(options):
 			sum_ += pow(integral,-1)*math.exp(NominalValues["a_quad_"+ iATGC +"_"+ options.cat +"_"+ options.ch]*mass)*step
 			iMass += 1
 		graph.SetFillStyle(3010)
-		graph.GetXaxis().SetTitle("m_{WV}")
+		graph.GetXaxis().SetTitle("M_{WV}")
 		graph.GetYaxis().SetTitle("arb. units")
 		graph.SetLineWidth(4)
 		graph.SetLineColor(kRed)
-		legend.AddEntry(graph, iATGC,"l")
+		iATGCLatex = ''
+		if iATGC == "ccw":
+			iATGCLatex = 'c_{W}'
+		elif iATGC == 'cwww':
+			iATGCLatex = 'c_{WWW}'
+		elif iATGC == 'cb':
+			iATGCLatex = 'c_{B}'
+		else:
+			raise RuntimeError('aTGC is not supported!')
+		legend.AddEntry(graph, iATGCLatex,"l")
 		graph.Draw("AL3")
 		hist_ = fileWithHists.Get('signalNegative_%s'%iATGC) 
 		hist_.SetLineWidth(4)
@@ -318,7 +329,7 @@ def main(options):
 		for iBin in range(1, hist_.GetNbinsX()+1):
 			graphMC.SetPoint(iBin, hist_.GetBinCenter(iBin),hist_.GetBinContent(iBin) )
 		graphMC.SetMarkerColor(kBlue)
-		legend.AddEntry(graphMC, "MC", "p")		
+		legend.AddEntry(graphMC, "MC simulation", "p")		
 		graphMC.Draw("PSAME")
 		legend.Draw("SAME")
 		
